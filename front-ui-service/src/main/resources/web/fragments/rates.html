@@ -1,0 +1,16 @@
+<section class="card" th:fragment="section">
+    <h2 class="card__title">Курсы валют</h2>
+    <p class="card__hint">Обновление сервером</p>
+    <table class="table" aria-label="Курсы валют">
+        <thead>
+        <tr><th>Валюта</th><th>Код</th><th>Курс</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${rates}">
+            <td th:text="${r.title}">Доллар США</td>
+            <td th:text="${r.code}">USD</td>
+            <td th:text="${#numbers.formatDecimal(r.value, 1, 'DEFAULT', 4, 'DEFAULT')}">90.1234</td>
+        </tr>
+        </tbody>
+    </table>
+</section>

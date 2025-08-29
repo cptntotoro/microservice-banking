@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="header-head">
+    <link rel="stylesheet" th:href="@{/styles/fragments/header.css}">
+</head>
+
+<body>
+<header class="header" th:fragment="header">
+    <div class="container row between center">
+        <a class="brand" href="/" aria-label="BankApp Home">Bank<span>App</span></a>
+        <nav class="nav" aria-label="Основная навигация">
+            <a class="nav__link" href="/">Главная</a>
+            <a class="nav__link" href="/signup">Регистрация</a>
+            <a class="nav__link" href="/logout">Выход</a>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

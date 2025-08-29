@@ -1,0 +1,23 @@
+<head th:fragment="head(title)">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title th:text="${title}">Microservice Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Общие стили -->
+  <link rel="stylesheet" th:href="@{/styles/base.css}" />
+  <link rel="stylesheet" th:href="@{/styles/layout.css}" />
+
+  <!-- Подключение page-specific css -->
+  <th:block th:if="${title} == 'Вход'">
+    <link rel="stylesheet" th:href="@{/styles/login.css}" />
+  </th:block>
+  <th:block th:if="${title} == 'Регистрация'">
+    <link rel="stylesheet" th:href="@{/styles/signup.css}" />
+  </th:block>
+  <th:block th:if="${title} == 'Главная'">
+    <link rel="stylesheet" th:href="@{/styles/dashboard.css}" />
+  </th:block>
+</head>

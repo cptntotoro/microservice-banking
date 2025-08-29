@@ -1,0 +1,226 @@
+services:
+  front-ui-service:
+    profiles: ["prod"]
+    restart: on-failure
+    container_name: "front-ui-service"
+    build:
+      context: .
+      dockerfile: front-ui-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      # TODO
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/auth_db
+      - SPRING_R2DBC_USERNAME=postgres
+      - SPRING_R2DBC_PASSWORD=postgres
+      - # TODO
+      - DB_NAME=auth_db
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - # TODO
+#      - AUTH_SERVICE_JWT_ISSUER_URI=http://auth-service:9000
+#      - AUTH_SERVICE_JWT_JWK_SET_URI=http://auth-service:9000/oauth2/jwks
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+#  showcase-service:
+#    profiles: ["prod"]
+#    restart: on-failure
+#    build:
+#      context: .
+#      dockerfile: showcase-service/Dockerfile
+#    container_name: "yp-online-showcase"
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#      auth-service:
+#        condition: service_healthy
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/showcase_db
+#      - SPRING_R2DBC_USERNAME=postgres
+#      - SPRING_R2DBC_PASSWORD=postgres
+#      - PAYMENT_SERVICE_URL=http://payment-service:8081
+#      - AUTH_SERVICE_TOKEN_URL=http://auth-service:9000/oauth2/token
+#      - DB_NAME=showcase_db
+#      - DB_HOST=postgres
+#      - DB_PORT=5432
+#      - SPRING_DATA_REDIS_HOST=redis
+#      - SPRING_DATA_REDIS_PORT=6379
+#      - SPRING_DATA_REDIS_PASSWORD=
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#
+#  payment-service:
+#    profiles: ["prod"]
+#    build:
+#      context: .
+#      dockerfile: payment-service/Dockerfile
+#    container_name: "yp-payment-service"
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=prod
+#      - SERVER_PORT=8081
+#      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/payment_db
+#      - DB_NAME=payment_db
+#      - SPRING_R2DBC_USERNAME=postgres
+#      - SPRING_R2DBC_PASSWORD=postgres
+#      - PAYMENT_DEFAULT_BALANCE=15000.00
+#      - AUTH_SERVICE_JWK_URL=http://auth-service:9000/oauth2/jwks
+#      - AUTH_SERVICE_JWT_ISSUER_URI=http://auth-service:9000
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      auth-service:
+#        condition: service_healthy
+#      showcase-service:
+#        condition: service_healthy
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#
+#  postgres:
+#    profiles: ["prod"]
+#    image: postgres:15-alpine
+#    container_name: "postgres"
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      POSTGRES_DB: postgres
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#      - ./postgres/initdb:/docker-entrypoint-initdb.d
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+#
+#  redis:
+#    profiles: ["prod"]
+#    image: redis:7.2
+#    container_name: "redis"
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - redis_data:/data
+#    command: redis-server --appendonly yes
+#    healthcheck:
+#      test: [ "CMD", "redis-cli", "ping" ]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+#
+#  showcase-service-test:
+#    profiles: ["test"]
+#    build:
+#      context: .
+#      dockerfile: showcase-service/Dockerfile-test
+#    image: showcase-service-test
+#    container_name: "showcase-service-test"
+#    privileged: true
+#    ports:
+#      - "9090:9090"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: test
+#      SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db
+#      SPRING_R2DBC_USERNAME: postgres
+#      SPRING_R2DBC_PASSWORD: postgres
+#      DB_NAME: test_db
+#      DB_HOST: test-db
+#      DB_PORT: 5432
+#      REDIS_HOST: test-redis
+#      REDIS_PORT: 6379
+#      TESTCONTAINERS_RYUK_DISABLED: "true"
+#      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+#      DOCKER_HOST: "unix:///var/run/docker.sock"
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 10
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    command: >
+#      sh -c "mvn -f showcase-service/pom.xml test;
+#      docker stop test-redis test-db || true"
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+#    depends_on:
+#      test-db:
+#        condition: service_healthy
+#      test-redis:
+#          condition: service_healthy
+#
+#  payment-service-test:
+#    profiles: [ "test" ]
+#    build:
+#      context: .
+#      dockerfile: payment-service/Dockerfile-test
+#    image: payment-service-test
+#    container_name: "payment-service-test"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: test
+#      SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db
+#      SPRING_R2DBC_USERNAME: postgres
+#      SPRING_R2DBC_PASSWORD: postgres
+#      REDIS_HOST: test-redis
+#      REDIS_PORT: 6379
+#    depends_on:
+#      - test-db
+#
+#  test-db:
+#    profiles: ["test"]
+#    container_name: "test-db"
+#    image: postgres:14-alpine
+#    ports:
+#      - "6542:5432"
+#    environment:
+#      POSTGRES_DB: test_db
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres -d test_db"]
+#      interval: 5s
+#      timeout: 10s
+#      retries: 20
+#    volumes:
+#      - test_db_data:/var/lib/postgresql/data
+#
+#  test-redis:
+#    profiles: [ "test" ]
+#    image: redis:7.2
+#    container_name: "test-redis"
+#    ports:
+#      - "6380:6379"
+#    healthcheck:
+#      test: [ "CMD", "redis-cli", "ping" ]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+#    volumes:
+#      - test_redis_data:/data
+
+#volumes:
+#  postgres_data:
+#  redis_data:
+#  test_db_data:
+#  test_redis_data:

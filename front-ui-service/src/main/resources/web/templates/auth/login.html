@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout :: content">
+<section class="card">
+    <h1 class="card__title">Вход в аккаунт</h1>
+    <p class="card__hint">Введите логин и пароль, чтобы продолжить</p>
+
+    <div class="errors" th:if="${param.error}">
+        Неверные учетные данные или аккаунт заблокирован.
+    </div>
+    <div class="status status--ok" th:if="${param.logout}">Вы вышли из системы.</div>
+
+    <form class="form" th:action="@{/login}" method="post">
+        <div class="form__row">
+            <label class="label" for="username">Логин</label>
+            <input class="input" id="username" type="text" name="username" autocomplete="username" required/>
+        </div>
+        <div class="form__row">
+            <label class="label" for="password">Пароль</label>
+            <input class="input" id="password" type="password" name="password" autocomplete="current-password"
+                   required/>
+        </div>
+        <div class="row between center">
+            <label class="row center" style="gap:8px">
+                <input type="checkbox" name="remember-me"/>
+                <span class="help">Запомнить меня</span>
+            </label>
+            <button class="btn" type="submit">Войти</button>
+        </div>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    </form>
+
+    <p class="help" style="margin-top:14px">Нет аккаунта? <a href="/signup">Зарегистрируйтесь</a></p>
+</section>
+</html>
