@@ -249,3 +249,117 @@ body.page {
     color: #fde68a;
     border-color: rgba(245, 158, 11, .4)
 }
+
+/* Добавьте это в конец base.css */
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.error-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.error-container__header {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.error-details {
+    margin-bottom: 30px;
+    /*max-width: 500px;*/
+}
+
+.error-detail {
+    font-size: 18px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.error-actions {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #0b1220;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+    background: rgba(56, 189, 248, 0.1);
+    transform: translateY(-2px);
+}
+
+.error-container__timestamp {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 600px) {
+    .error-container__header {
+        font-size: 24px;
+    }
+
+    .error-detail {
+        font-size: 16px;
+    }
+
+    .error-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn-primary,
+    .btn-outline {
+        width: 200px;
+    }
+
+    .error-icon {
+        font-size: 60px;
+    }
+}

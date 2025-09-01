@@ -1,32 +1,33 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title th:text="${title}">Microservice Banking</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
-    <!-- Общие стили -->
-    <link rel="stylesheet" th:href="@{/styles/base.css}"/>
-    <link rel="stylesheet" th:href="@{/styles/layout/layout.css}"/>
-    <th:block th:replace="~{${styles} :: styles}" th:if="${styles != null}"></th:block>
-</head>
+<!--<head>-->
+<!--    <meta charset="UTF-8"/>-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1"/>-->
+<!--    <title th:text="${title}">Microservice Banking</title>-->
+<!--    <link rel="preconnect" href="https://fonts.googleapis.com">-->
+<!--    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">-->
+<!--    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>-->
+<!--    &lt;!&ndash; Общие стили &ndash;&gt;-->
+<!--    <link rel="stylesheet" th:href="@{/styles/base.css}"/>-->
+<!--    <link rel="stylesheet" th:href="@{/styles/layout/layout.css}"/>-->
+<!--    <th:block th:replace="~{${styles} :: styles}" th:if="${styles != null}"></th:block>-->
+<!--</head>-->
+<head th:replace="~{../fragments/layout/head :: head(${title}, ${description}, ${styles})}"></head>
+
 <body class="page">
+    <div th:replace="~{../fragments/layout/header :: header}"></div>
 
-<div th:replace="~{../fragments/layout/header :: header}"></div>
+    <main class="container">
+        <!-- Динамическое содержимое страницы -->
+        <div th:replace="~{${page} :: content}"></div>
+    </main>
 
-<main class="container">
-    <!-- Здесь будет подставляться содержимое страниц -->
-    <div th:replace="~{${page} :: content}"></div>
-</main>
+    <div th:replace="~{../fragments/layout/footer :: footer}"></div>
 
-<div th:replace="~{../fragments/layout/footer :: footer}"></div>
-
+    <!-- Скрипты -->
+    <th:block th:if="${script != null}">
+        <script th:src="@{'/scripts/' + ${script} + '.js'}"></script>
+    </th:block>
 </body>
-
-<div th:if="${script != null}">
-    <script th:replace="~{${script} :: script}"></script>
-</div>
 </html>

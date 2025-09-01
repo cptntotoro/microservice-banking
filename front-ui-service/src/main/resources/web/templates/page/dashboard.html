@@ -1,6 +1,6 @@
-<th:block th:fragment="styles">
-    <link rel="stylesheet" th:href="@{/styles/dashboard.css}"/>
-</th:block>
+<!--<th:block th:fragment="styles">-->
+<!--    <link rel="stylesheet" th:href="@{/styles/dashboard.css}"/>-->
+<!--</th:block>-->
 
 <section th:fragment="content" class="dashboard-layout">
     <div class="dashboard-main card">
@@ -207,27 +207,27 @@
     </aside>
 </section>
 
-<script th:fragment="script">
-    document.addEventListener("DOMContentLoaded", () => {
-        const buttons = document.querySelectorAll(".dashboard-nav__btn");
-        const sections = document.querySelectorAll(".dashboard-section");
+<!--<script th:fragment="script">-->
+<!--    document.addEventListener("DOMContentLoaded", () => {-->
+<!--        const buttons = document.querySelectorAll(".dashboard-nav__btn");-->
+<!--        const sections = document.querySelectorAll(".dashboard-section");-->
 
-        buttons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                // Снимаем active у кнопок
-                buttons.forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
+<!--        buttons.forEach(btn => {-->
+<!--            btn.addEventListener("click", () => {-->
+<!--                // Снимаем active у кнопок-->
+<!--                buttons.forEach(b => b.classList.remove("active"));-->
+<!--                btn.classList.add("active");-->
 
-                // Скрываем все секции
-                sections.forEach(s => s.classList.remove("active"));
+<!--                // Скрываем все секции-->
+<!--                sections.forEach(s => s.classList.remove("active"));-->
 
-                // Показываем нужную секцию
-                const target = document.getElementById(btn.dataset.target);
-                if (target) target.classList.add("active");
-            });
-        });
-    });
-</script>
+<!--                // Показываем нужную секцию-->
+<!--                const target = document.getElementById(btn.dataset.target);-->
+<!--                if (target) target.classList.add("active");-->
+<!--            });-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
 
 
 

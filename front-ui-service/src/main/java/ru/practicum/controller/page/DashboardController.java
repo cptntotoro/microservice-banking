@@ -1,19 +1,18 @@
-package ru.practicum.controller;
+package ru.practicum.controller.page;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import ru.practicum.controller.BaseController;
 
 @Controller
-public class DashboardController {
+public class DashboardController extends BaseController {
 
     @GetMapping("/dashboard")
     public Mono<String> dashboard(ServerWebExchange exchange, Model model) {
-        model.addAttribute("page", "dashboard");
-        model.addAttribute("styles", "dashboard");
-        model.addAttribute("script", "dashboard");
-        return Mono.just("layout");
+        return renderPage(model, "page/dashboard", "Главная страница",
+                "Главная страница приложения BankingApp", "page/dashboard", "dashboard");
     }
 }

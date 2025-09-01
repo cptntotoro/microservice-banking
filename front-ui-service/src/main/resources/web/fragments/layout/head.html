@@ -1,12 +1,19 @@
-<head th:fragment="head(title)">
+<head th:fragment="head(title, description, styles)">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title th:text="${title}">Microservice Banking</title>
+  <meta name="description" th:content="${description}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" th:href="@{../images/favicon.ico}"/>
-  <!-- Общие стили -->
+
+  <!-- Базовые стили -->
   <link rel="stylesheet" th:href="@{/styles/base.css}" />
-  <link rel="stylesheet" th:href="@{/styles/layout.css}" />
+  <link rel="stylesheet" th:href="@{/styles/layout/layout.css}" />
+
+  <!-- Дополнительные стили страницы -->
+  <th:block th:if="${styles}">
+    <link rel="stylesheet" th:href="@{'/styles/' + ${styles} + '.css'}" />
+  </th:block>
 </head>
