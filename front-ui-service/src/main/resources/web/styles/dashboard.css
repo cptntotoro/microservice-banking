@@ -1,2 +1,33 @@
 /* Специфично для дашборда */
-.grid--3 > .card { min-height: 240px; }
+.grid--3 > .card {
+    min-height: 240px;
+}
+
+.dashboard-nav {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.dashboard-nav__btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, .25);
+    background: rgba(148, 163, 184, .05);
+    color: var(--ink);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.dashboard-nav__btn.active {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: #0b1220;
+}
+
+.dashboard-section {
+    display: none;
+}
+
+.dashboard-section.active {
+    display: block;
+}

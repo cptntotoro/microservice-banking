@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org"
-      th:replace="layout :: content">
+      th:replace="~{../templates/layout :: content}">
 <section class="card" style="text-align:center; max-width:520px; margin:60px auto;">
     <h1 class="card__title">Выйти из аккаунта?</h1>
     <p class="card__hint">Вы будете перенаправлены на страницу входа.</p>
     <form th:action="@{/logout}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+<!--        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
         <button class="btn" type="submit">Выйти</button>
         <a class="btn btn--ghost" href="/">Отмена</a>
     </form>

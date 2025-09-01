@@ -1,11 +1,25 @@
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: rgba(17,24,39,.6);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(148,163,184,.15);
+/*.topbar {*/
+/*    position: sticky;*/
+/*    top: 0;*/
+/*    z-index: 10;*/
+/*    background: rgba(17, 24, 39, .6);*/
+/*    backdrop-filter: blur(8px);*/
+/*    border-bottom: 1px solid rgba(148, 163, 184, .15);*/
+/*}*/
+
+header {
+    padding: 30px;
 }
+
+main.container {
+    flex: 1;
+    /*margin: 0 auto;*/
+}
+
+.footer {
+    margin-top: auto;
+}
+
 .brand {
     font-weight: 800;
     letter-spacing: .3px;
@@ -13,16 +27,25 @@
     color: #fff;
     font-size: 20px;
 }
+
 .brand span {
     background: linear-gradient(90deg, var(--accent), var(--accent-2));
     -webkit-background-clip: text;
     color: transparent;
 }
+
 .nav__link {
     color: var(--ink);
     text-decoration: none;
     padding: 10px 14px;
     border-radius: 10px;
 }
-.nav__link:hover { background: rgba(148,163,184,.1); }
-.footer { border-top: 1px solid rgba(148,163,184,.15); margin-top: 40px; }
+
+.nav__link:hover {
+    background: rgba(148, 163, 184, .1);
+}
+
+.footer {
+    border-top: 1px solid rgba(148, 163, 184, .15);
+    padding: 30px;
+}

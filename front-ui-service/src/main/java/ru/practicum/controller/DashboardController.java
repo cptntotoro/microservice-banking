@@ -11,6 +11,9 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public Mono<String> dashboard(ServerWebExchange exchange, Model model) {
-        return Mono.just("dashboard");
+        model.addAttribute("page", "dashboard");
+        model.addAttribute("styles", "dashboard");
+        model.addAttribute("script", "dashboard");
+        return Mono.just("layout");
     }
 }

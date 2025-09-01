@@ -15,24 +15,33 @@ import ru.practicum.dto.auth.SignupFormDto;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @GetMapping("/login")
+    @GetMapping(value = "/login")
     public Mono<String> login(ServerWebExchange exchange, Model model) {
-        return Mono.just("auth/login");
+        model.addAttribute("page", "auth/login");
+        model.addAttribute("styles", "auth/login");
+        return Mono.just("layout");
     }
 
     @GetMapping("/signup")
-    public Mono<String> signupForm(Model model) {
-        return Mono.just(model.addAttribute("signup", new SignupFormDto()))
-                .thenReturn("auth/signup");
+    public Mono<String> signup(Model model) {
+        model.addAttribute("page", "auth/signup");
+        model.addAttribute("styles", "auth/signup");
+        model.addAttribute("signup", new SignupFormDto());
+        return Mono.just("layout");
     }
 
-    @PostMapping("/signup")
-    public Mono<String> signup(@Valid @ModelAttribute("signup") SignupFormDto signupFormDto, Model model) {
-//        return userService.register(userMapper.userAuthDtoToUser(userAuthDto))
-//                .then(Mono.just("redirect:/login"))
-//                .onErrorResume(UserAlreadyExistsException.class, e -> {
-//                    model.addAttribute("userExists", true);
-//                    return Mono.just("auth/sign-up");
-//                });
+//    @PostMapping("/signup")
+//    public Mono<String> signup(@Valid @ModelAttribute("signup") SignupFormDto signupFormDto, Model model) {
+////        return userService.register(userMapper.userAuthDtoToUser(userAuthDto))
+////                .then(Mono.just("redirect:/login"))
+////                .onErrorResume(UserAlreadyExistsException.class, e -> {
+////                    model.addAttribute("userExists", true);
+////                    return Mono.just("auth/sign-up");
+////                });
+//    }
+
+    @GetMapping("/logout")
+    public Mono<String> logout(Model model) {
+        return Mono.just("auth/logout");
     }
 }

@@ -5,15 +5,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <link rel="icon" type="image/png" th:href="@{../images/favicon.ico}"/>
   <!-- Общие стили -->
   <link rel="stylesheet" th:href="@{/styles/base.css}" />
   <link rel="stylesheet" th:href="@{/styles/layout.css}" />
 
-  <!-- Подключение page-specific css -->
-  <th:block th:if="${title} == 'Вход'">
-    <link rel="stylesheet" th:href="@{/styles/login.css}" />
-  </th:block>
+
   <th:block th:if="${title} == 'Регистрация'">
     <link rel="stylesheet" th:href="@{/styles/signup.css}" />
   </th:block>

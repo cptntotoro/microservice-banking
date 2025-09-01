@@ -1,18 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ошибка API | GeekStore</title>
-    <meta name="description" content="Yandex Practicum Blog | Ошибка API">
-    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/styles/util/error.css}">
-</head>
-<body>
-<main class="main-error">
-    <div class="error-container">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{../templates/layout :: content}">
+    <div th:fragment="content" class="error-container">
         <div class="error-icon">⚠️</div>
         <h1 class="error-container__header">Ошибка API</h1>
 
@@ -38,6 +27,4 @@
             <a href="javascript:history.back()" class="btn btn-outline">Назад</a>
         </div>
     </div>
-</main>
-</body>
 </html>

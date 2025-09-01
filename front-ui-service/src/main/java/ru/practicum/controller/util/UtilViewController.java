@@ -11,11 +11,11 @@ public class UtilViewController {
 
     @GetMapping("/notfound")
     public Mono<String> notFound() {
-        return Mono.just("util/notfound");
+        return Mono.just("util/not-found");
     }
 
     @GetMapping("/error")
     public Mono<String> error() {
-        return Mono.just("util/notfound");
+        return Mono.just("util/error");
     }
 }

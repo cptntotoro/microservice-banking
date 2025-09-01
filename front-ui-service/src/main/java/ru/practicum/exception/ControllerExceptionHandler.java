@@ -26,9 +26,10 @@ public class ControllerExceptionHandler {
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public Mono<String> handleResponseStatus(ResponseStatusException ex) {
+    public Mono<String> handleResponseStatus(ResponseStatusException ex, Model model) {
         if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return Mono.just("util/notfound");
+            model.addAttribute("page", "util/not-found");
+            return Mono.just("layout");
         }
         return Mono.error(ex);
     }
