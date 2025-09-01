@@ -32,13 +32,6 @@ body.page {
     radial-gradient(1000px 500px at 110% 10%, #0b1220 0, transparent 60%), var(--bg);
 }
 
-
-/*.container {*/
-/*    max-width: 1100px;*/
-/*    margin-inline: auto;*/
-/*    padding: 24px*/
-/*}*/
-
 .row {
     display: flex;
     gap: 16px
@@ -130,20 +123,10 @@ body.page {
     box-shadow: var(--shadow);
     padding: 20px;
 
-    /* 🔑 адаптивная ширина */
-    width: calc(100% - 10vw); /* ширина окна минус 10vw (по 5vw слева и справа) */
-    margin-inline: auto;      /* центрируем по горизонтали */
+    margin: 2rem auto;
 
-    /* авто-высота */
     height: auto;
-
 }
-
-/*.card__title {*/
-/*    margin: 0 0 8px 0;*/
-/*    font-size: 16px;*/
-/*    font-weight: 700*/
-/*}*/
 
 .card__hint {
     color: var(--ink);
@@ -154,16 +137,16 @@ body.page {
 
 .form {
     display: grid;
-    gap: 14px
+    gap: 20px;
 }
 
 .form__row {
     display: grid;
-    gap: 8px
+    gap: 8px;
 }
 
 .label {
-    font-weight: 600
+    font-weight: 600;
 }
 
 .input, .select {

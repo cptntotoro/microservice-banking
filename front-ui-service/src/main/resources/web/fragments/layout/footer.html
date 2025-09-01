@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ru">
-<head th:fragment="footer-head">
-    <link rel="stylesheet" th:href="@{/styles/fragments/footer.css}">
-</head>
-
-<body>
 <footer class="footer" th:fragment="footer">
     <div class="container row between center">
         <p class="muted">© <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2025</span> Microservice Banking</p>
         <p class="muted">Микросервисное банковское приложение</p>
     </div>
 </footer>
-</body>
-</html>

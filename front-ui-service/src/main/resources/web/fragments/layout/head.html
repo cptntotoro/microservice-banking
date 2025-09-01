@@ -9,12 +9,4 @@
   <!-- Общие стили -->
   <link rel="stylesheet" th:href="@{/styles/base.css}" />
   <link rel="stylesheet" th:href="@{/styles/layout.css}" />
-
-
-  <th:block th:if="${title} == 'Регистрация'">
-    <link rel="stylesheet" th:href="@{/styles/signup.css}" />
-  </th:block>
-  <th:block th:if="${title} == 'Главная'">
-    <link rel="stylesheet" th:href="@{/styles/dashboard.css}" />
-  </th:block>
 </head>
