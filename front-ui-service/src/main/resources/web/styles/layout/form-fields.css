@@ -27,9 +27,7 @@
 /* Стили для клиентских ошибок */
 .client-error {
     color: var(--error);
-    font-size: 13px;
-    margin-top: 4px;
-    display: none;
+    font-weight: 500;
 }
 
 .client-error.show {

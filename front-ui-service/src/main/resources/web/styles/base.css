@@ -1,16 +1,16 @@
 :root {
-    --bg: #0f172a; /* slate-900 */
-    --panel: #111827; /* gray-900 */
-    --muted: #94a3b8; /* slate-400 */
-    --card: #0b1220; /* dark card */
-    --ink: #e5e7eb; /* gray-200 */
-    --accent: #38bdf8; /* sky-400 */
-    --accent-2: #22d3ee; /* cyan-400 */
-    --error: #ef4444; /* red-500 */
-    --ok: #22c55e; /* green-500 */
-    --warning: #f59e0b; /* amber-500 */
+    --bg: #0f172a; /* фон остаётся глубоким */
+    --panel: #111827;
+    --muted: #9ca3af; /* немного светлее для читаемости */
+    --card: #0b1220;
+    --ink: #f1f5f9; /* светлее текста */
+    --accent: #38bdf8;
+    --accent-2: #22d3ee;
+    --error: #ef4444;
+    --ok: #22c55e;
+    --warning: #f59e0b;
     --radius: 16px;
-    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    --shadow: 0 10px 30px rgba(0, 0, 0, .4); /* чуть глубже */
 }
 
 * {
@@ -108,8 +108,9 @@ body.page {
     flex-direction: column;
     gap: 20px;
 
-    background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, .00));
-    border: 1px solid rgba(148, 163, 184, .15);
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+    border: 1px solid rgba(148,163,184,.25);
+    backdrop-filter: blur(6px);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding: 20px;
@@ -152,6 +153,15 @@ body.page {
 .input:focus, .select:focus {
     outline: 2px solid rgba(56, 189, 248, .45);
     border-color: rgba(56, 189, 248, .25);
+}
+
+/* Валидные поля */
+/*.input.valid {*/
+/*    border-color: var(--ok);;*/
+/*}*/
+
+.input.invalid {
+    border-color: var(--error);
 }
 
 .help {
@@ -202,30 +212,30 @@ body.page {
 
 /* Второстепенная (прозрачная) */
 .btn--ghost {
-    background: rgba(56, 189, 248, 0.12);
+    background: rgba(56, 189, 248, 0.1);
     color: var(--accent);
-    border: 1px solid var(--accent);
+    border: 1px solid rgba(56, 189, 248, 0.6);
     font-weight: 600;
     transition: all 0.25s ease;
 }
 
 .btn--ghost:hover {
     background: rgba(56, 189, 248, 0.25);
+    color: #fff;
     border-color: var(--accent-2);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.25);
 }
 
-/* Обводка с акцентом */
-/* для акцентных, но не основных действий */
 .btn--outline {
-    background: transparent;
     color: var(--accent);
     border: 2px solid var(--accent);
+    background: rgba(56, 189, 248, 0.05);
 }
 
 .btn--outline:hover {
-    background: rgba(56, 189, 248, 0.1);
+    background: rgba(56, 189, 248, 0.15);
+    color: #fff;
     transform: translateY(-2px);
 }
 

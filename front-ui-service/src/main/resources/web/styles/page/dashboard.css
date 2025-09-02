@@ -43,7 +43,7 @@
 
 .dashboard-nav__btn.active {
     color: var(--accent);
-    background: transparent;
+    font-weight: 700;
 }
 
 .dashboard-nav__btn.active::after {
@@ -52,8 +52,9 @@
     bottom: -5px;
     left: 8px;
     right: 8px;
-    height: 2px;
+    height: 3px;
     background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    box-shadow: 0 2px 8px rgba(34, 211, 238, 0.4);
     border-radius: 2px;
 }
 
