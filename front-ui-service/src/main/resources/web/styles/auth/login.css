@@ -1,2 +1,4 @@
-/* Специфично для страницы входа */
-.card { max-width: 520px; margin: 60px auto; }
+.card {
+    max-width: 520px;
+    margin: 60px auto;
+}

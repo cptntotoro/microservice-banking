@@ -28,7 +28,7 @@ public class AuthController extends BaseController {
         model.addAttribute("signup", new SignupFormDto());
         return renderPage(model, "auth/signup",
                 "Регистрация", "Регистрация в приложении",
-                "auth/signup", null);
+                "auth/signup", "auth/signup");
     }
 
     @GetMapping("/logout")
