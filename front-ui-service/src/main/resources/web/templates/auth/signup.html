@@ -21,13 +21,13 @@
             <div class="form__row">
                 <label class="label" for="email">Электронная почта</label>
                 <input class="input" id="email" th:field="*{email}" type="email" placeholder="you@example.com"
-                       required/>
+                       data-validate="email" required/>
                 <div class="client-error" style="display: none;"></div>
             </div>
             <div class="form__row">
                 <label class="label" for="birthdate">Дата рождения</label>
                 <input class="input" id="birthdate" th:field="*{birthdate}" type="date" pattern="\d{4}-\d{2}-\d{2}"
-                       placeholder="ГГГГ-ММ-ДД" required max="2023-12-31" min="1900-01-01"/>
+                       data-validate="birthdate" required max="2023-12-31" min="1900-01-01"/>
                 <div class="client-error" style="display: none;"></div>
             </div>
         </div>
@@ -36,14 +36,23 @@
         <div class="grid grid--2">
             <div class="form__row">
                 <label class="label" for="login">Логин</label>
-                <input class="input" id="login" th:field="*{login}" required autocomplete="username"/>
+                <input class="input" id="login" th:field="*{login}" data-validate="login" required autocomplete="username"/>
                 <div class="client-error" style="display: none;"></div>
             </div>
             <div class="form__row">
                 <label class="label" for="password">Пароль</label>
                 <input class="input" id="password" th:field="*{password}" type="password" required
-                       autocomplete="new-password" oninput="checkPasswordStrength(this.value)"/>
+                       data-validate="password" autocomplete="new-password"/>
+<!--                oninput="checkPasswordStrength(this.value)"-->
                 <div class="client-error" style="display: none;"></div>
+
+                <!-- Индикатор сложности -->
+                <div class="password-strength-container">
+                    <div class="password-strength">
+                        <div class="password-strength__bar"></div>
+                    </div>
+                    <div class="password-strength__text">Введите пароль</div>
+                </div>
             </div>
         </div>
 
@@ -51,16 +60,16 @@
         <div class="form__row">
             <label class="label" for="confirmPassword">Повторите пароль</label>
             <input class="input" id="confirmPassword" th:field="*{confirmPassword}" type="password" required
-                   autocomplete="new-password"/>
-            <div class="signup-error" id="passwordMatchError" style="display: none;">
+                   data-validate="confirm-password" autocomplete="new-password"/>
+            <div class="client-error" id="passwordMatchError" style="display: none;">
                 Пароли не совпадают
             </div>
         </div>
 
         <div class="form__row">
-            <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+            <input type="checkbox" id="agreeTerms" data-validate="terms" name="agreeTerms" required>
             <label for="agreeTerms">Я согласен с <a href="#">Условиями использования</a> и&nbsp;<a href="#">Политикой конфиденциальности</a></label>
-            <div class="signup-error" id="termsError" style="display: none;">
+            <div class="client-error" id="termsError" style="display: none;">
                 Необходимо принять условия
             </div>
         </div>

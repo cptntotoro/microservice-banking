@@ -1,7 +1,3 @@
-<!--<th:block th:fragment="styles">-->
-<!--    <link rel="stylesheet" th:href="@{/styles/auth/login.css}" />-->
-<!--</th:block>-->
-
 <section th:fragment="content" class="card">
     <h1 class="card__title">Вход в аккаунт</h1>
 <!--    <p class="card__hint">Введите логин и пароль, чтобы продолжить</p>-->
@@ -22,7 +18,7 @@
             <label class="label" for="password">Пароль</label>
             <input class="input" id="password" type="password" name="password" required/>
         </div>
-        <button class="btn" type="submit">Войти</button>
+        <button class="btn btn--primary" type="submit">Войти</button>
     </form>
 
     <p class="help">Нет аккаунта? <a href="/signup">Зарегистрируйтесь</a></p>

@@ -1,7 +1,3 @@
-<!--<th:block th:fragment="styles">-->
-<!--    <link rel="stylesheet" th:href="@{/styles/dashboard.css}"/>-->
-<!--</th:block>-->
-
 <section th:fragment="content" class="dashboard-layout">
     <div class="dashboard-main card">
         <!-- Навигация -->
@@ -18,7 +14,7 @@
             <form class="form" th:action="@{'/user/' + ${login} + '/delete'}" method="post">
                 <div class="form__row">
                     <label class="label">Логин</label>
-                    <input class="input" name="login" type="text" th:value="${login}" readonly/>
+                    <input class="input" name="login" type="text" th:value="${login}" readonly disabled/>
                 </div>
                 <div class="row between center">
                     <span class="error" th:each="e : ${deleteErrors}" th:text="${e}"></span>
@@ -30,16 +26,31 @@
             <form class="form" th:action="@{'/user/' + ${login} + '/editPassword'}" method="post">
                 <div class="grid grid--2">
                     <div class="form__row">
-                        <label class="label">Новый пароль</label>
-                        <input class="input" name="password" type="password" required/>
+                        <label class="label" for="password">Новый пароль</label>
+                        <input class="input" id="password" name="password" type="password" data-validate="password"
+                               autocomplete="new-password" required/>
+<!--                        oninput="checkPasswordStrength(this.value)"-->
+                        <div class="client-error" style="display: none;"></div>
+
+                        <!-- Индикатор сложности -->
+                        <div class="password-strength-container">
+                            <div class="password-strength">
+                                <div class="password-strength__bar"></div>
+                            </div>
+                            <div class="password-strength__text">Введите пароль</div>
+                        </div>
                     </div>
                     <div class="form__row">
-                        <label class="label">Повторите пароль</label>
-                        <input class="input" name="confirm_password" type="password" required/>
+                        <label class="label" for="confirmPassword">Повторите пароль</label>
+                        <input class="input" id="confirmPassword" name="confirm_password" type="password"
+                               data-validate="confirm-password" autocomplete="new-password" required/>
+                        <div class="client-error" id="passwordMatchError" style="display: none;">
+                            Пароли не совпадают
+                        </div>
                     </div>
                 </div>
                 <div class="row between center">
-                    <span class="error" th:each="e : ${passwordErrors}" th:text="${e}"></span>
+<!--                    <span class="error" th:each="e : ${passwordErrors}" th:text="${e}"></span>-->
                     <button class="btn btn--ghost" type="submit">Изменить пароль</button>
                 </div>
             </form>
@@ -56,16 +67,22 @@
                         <input class="input" name="firstName" th:value="${firstName}" required/>
                     </div>
                     <div class="form__row">
-                        <label class="label">Почта</label>
-                        <input class="input" name="email" type="email" th:value="${email}" required/>
+                        <label class="label" for="email">Электронная почта</label>
+                        <input class="input" id="email" name="email" type="email" data-validate="email" th:value="${email}" required/>
+                        <div class="client-error" style="display: none;"></div>
                     </div>
+
+
                     <div class="form__row">
-                        <label class="label">Дата рождения</label>
-                        <input class="input" name="birthdate" type="date" th:value="${birthdate}" required/>
+                        <label class="label" for="birthdate">Дата рождения</label>
+                        <input class="input" id="birthdate" th:value="*{birthdate}" type="date"
+                               data-validate="birthdate" />
+                        <div class="client-error" style="display: none;"></div>
                     </div>
+
                 </div>
                 <div class="row between center">
-                    <span class="error" th:each="e : ${profileErrors}" th:text="${e}"></span>
+<!--                    <span class="error" th:each="e : ${profileErrors}" th:text="${e}"></span>-->
                     <button class="btn btn--ghost" type="submit">Сохранить профиль</button>
                 </div>
             </form>
