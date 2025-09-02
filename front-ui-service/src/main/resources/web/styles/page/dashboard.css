@@ -18,7 +18,7 @@
 .dashboard-nav {
     display: flex;
     gap: 8px;
-    border-bottom: 1px solid rgba(148, 163, 184, .15);
+    border-bottom: 1px solid var(--border-light);
     padding-bottom: 4px;
     margin-bottom: 20px;
 }
@@ -38,7 +38,7 @@
 
 .dashboard-nav__btn:hover {
     color: var(--ink);
-    background: rgba(148, 163, 184, .05);
+    background: var(--bg-light);
 }
 
 .dashboard-nav__btn.active {
@@ -53,8 +53,8 @@
     left: 8px;
     right: 8px;
     height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    box-shadow: 0 2px 8px rgba(34, 211, 238, 0.4);
+    background: var(--gradient-accent);
+    box-shadow: 0 2px 8px var(--accent-shadow);
     border-radius: 2px;
 }
 

@@ -1,16 +1,52 @@
 :root {
-    --bg: #0f172a; /* фон остаётся глубоким */
+    /* Основные цвета */
+    --bg: #0f172a;
     --panel: #111827;
-    --muted: #9ca3af; /* немного светлее для читаемости */
     --card: #0b1220;
-    --ink: #f1f5f9; /* светлее текста */
+    --ink: #f1f5f9;
+    --muted: #9ca3af;
+
+    /* Акцентные цвета */
     --accent: #38bdf8;
     --accent-2: #22d3ee;
+    --accent-light: rgba(56, 189, 248, 0.1);
+    --accent-border: rgba(56, 189, 248, 0.25);
+    --accent-shadow: rgba(56, 189, 248, 0.35);
+
+    /* Цвета статусов */
     --error: #ef4444;
+    --error-light: rgba(239, 68, 68, 0.08);
+    --error-border: rgba(239, 68, 68, 0.4);
+    --error-text: #fecaca;
+
     --ok: #22c55e;
+    --ok-light: rgba(34, 197, 94, 0.4);
+    --ok-text: #bbf7d0;
+
     --warning: #f59e0b;
+    --warning-light: rgba(245, 158, 11, 0.4);
+    --warning-text: #fde68a;
+
+    /* Нейтральные цвета */
+    --border: rgba(148, 163, 184, 0.2);
+    --border-light: rgba(148, 163, 184, 0.15);
+    --border-muted: rgba(148, 163, 184, 0.1);
+    --bg-light: rgba(148, 163, 184, 0.05);
+    --bg-muted: rgba(148, 163, 184, 0.04);
+    --bg-panel: rgba(148, 163, 184, 0.08);
+
+    /* Градиенты */
+    --gradient-accent: linear-gradient(90deg, var(--accent), var(--accent-2));
+    --gradient-card: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+
+    /* Тени */
+    --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+    --shadow-accent: 0 6px 20px var(--accent-shadow);
+
+    /* Радиусы */
     --radius: 16px;
-    --shadow: 0 10px 30px rgba(0, 0, 0, .4); /* чуть глубже */
+    --radius-sm: 12px;
+    --radius-lg: 20px;
 }
 
 * {
@@ -28,8 +64,9 @@ body.page {
     margin: 0;
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     color: var(--ink);
-    background: radial-gradient(1200px 600px at 10% -10%, #0b1220 0, transparent 60%),
-    radial-gradient(1000px 500px at 110% 10%, #0b1220 0, transparent 60%), var(--bg);
+    background: radial-gradient(1200px 600px at 10% -10%, var(--card) 0, transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, var(--card) 0, transparent 60%),
+    var(--bg);
 }
 
 .row {
@@ -82,7 +119,7 @@ body.page {
 }
 
 .brand span {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background: var(--gradient-accent);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -108,13 +145,13 @@ body.page {
     flex-direction: column;
     gap: 20px;
 
-    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
-    border: 1px solid rgba(148,163,184,.25);
+    background: var(--gradient-card);
+    border: 1px solid var(--border);
     backdrop-filter: blur(6px);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 20px;
 
+    padding: 20px;
     margin: 2rem auto;
 
     height: auto;
@@ -145,14 +182,14 @@ body.page {
     width: 100%;
     padding: 12px 14px;
     border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, .2);
-    background: #0b1220;
+    border: 1px solid var(--border);
+    background: var(--card);
     color: var(--ink);
 }
 
 .input:focus, .select:focus {
-    outline: 2px solid rgba(56, 189, 248, .45);
-    border-color: rgba(56, 189, 248, .25);
+    outline: 2px solid var(--accent-border);
+    border-color: var(--accent-border);
 }
 
 /* Валидные поля */
@@ -170,15 +207,15 @@ body.page {
 }
 
 .errors {
-    border: 1px dashed rgba(239, 68, 68, .5);
-    background: rgba(239, 68, 68, .08);
-    color: #fecaca;
+    border: 1px dashed var(--error-border);
+    background: var(--error-light);
+    color: var(--error-text);
     padding: 10px;
     border-radius: 12px;
 }
 
 .error {
-    color: #fecaca;
+    color: var(--error-text);
     font-size: 13px;
 }
 
@@ -200,42 +237,42 @@ body.page {
 /* Основная кнопка */
 /* для главного действия (регистрация, сохранить, отправить) */
 .btn--primary {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #0b1220;
+    background: var(--gradient-accent);
+    color: var(--card);
     border: none;
 }
 
 .btn--primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+    box-shadow: var(--shadow-accent);
 }
 
 /* Второстепенная (прозрачная) */
 .btn--ghost {
-    background: rgba(56, 189, 248, 0.1);
+    background: var(--accent-light);
     color: var(--accent);
-    border: 1px solid rgba(56, 189, 248, 0.6);
+    border: 1px solid var(--accent-border);
     font-weight: 600;
     transition: all 0.25s ease;
 }
 
 .btn--ghost:hover {
-    background: rgba(56, 189, 248, 0.25);
-    color: #fff;
+    background: var(--accent-border);
+    color: var(--ink);
     border-color: var(--accent-2);
-    box-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+    box-shadow: 0 0 12px var(--accent-shadow);
     transform: translateY(-2px);
 }
 
 .btn--outline {
     color: var(--accent);
     border: 2px solid var(--accent);
-    background: rgba(56, 189, 248, 0.05);
+    background: var(--bg-light);
 }
 
 .btn--outline:hover {
-    background: rgba(56, 189, 248, 0.15);
-    color: #fff;
+    background: var(--accent-light);
+    color: var(--ink);
     transform: translateY(-2px);
 }
 
@@ -258,7 +295,7 @@ body.page {
     border-spacing: 0;
     overflow: hidden;
     border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, .15);
+    border: 1px solid var(--border-light);
 }
 
 .table th, .table td {
@@ -267,14 +304,14 @@ body.page {
 }
 
 .table thead th {
-    background: rgba(148, 163, 184, .08);
+    background: var(--bg-panel);
     font-size: 12px;
     letter-spacing: .04em;
     text-transform: uppercase;
 }
 
 .table tbody tr:nth-child(odd) {
-    background: rgba(148, 163, 184, .04);
+    background: var(--bg-muted);
 }
 
 .status {
@@ -285,13 +322,13 @@ body.page {
 }
 
 .status--ok {
-    color: #bbf7d0;
-    border-color: rgba(34, 197, 94, .4);
+    color: var(--ok-text);
+    border-color: var(--ok-light);
 }
 
 .status--warn {
-    color: #fde68a;
-    border-color: rgba(245, 158, 11, .4);
+    color: var(--warning-text);
+    border-color: var(--warning-light);
 }
 
 .error-container {
@@ -319,7 +356,7 @@ body.page {
     font-size: 32px;
     font-weight: 800;
     margin-bottom: 20px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background: var(--gradient-accent);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -345,8 +382,8 @@ body.page {
 }
 
 .btn-primary {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #0b1220;
+    background: var(--gradient-accent);
+    color: var(--card);
     border: none;
     padding: 12px 24px;
     border-radius: 12px;
@@ -357,7 +394,7 @@ body.page {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3);
+    box-shadow: 0 8px 25px var(--accent-shadow);
 }
 
 .btn-outline {
@@ -372,7 +409,7 @@ body.page {
 }
 
 .btn-outline:hover {
-    background: rgba(56, 189, 248, 0.1);
+    background: var(--accent-light);
     transform: translateY(-2px);
 }
 

@@ -14,12 +14,12 @@ main.container {
     font-weight: 800;
     letter-spacing: .3px;
     text-decoration: none;
-    color: #fff;
+    color: var(--ink);
     font-size: 20px;
 }
 
 .brand span {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background: var(--gradient-accent);
     -webkit-background-clip: text;
     color: transparent;
 }
@@ -32,10 +32,10 @@ main.container {
 }
 
 .nav__link:hover {
-    background: rgba(148, 163, 184, .1);
+    background: var(--bg-muted);
 }
 
 .footer {
-    border-top: 1px solid rgba(148, 163, 184, .15);
+    border-top: 1px solid var(--border-light);
     padding: 30px;
 }
