@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{../templates/layout :: content}">
+    <div th:fragment="content" class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-container__header">Ошибка API</h1>
+
+        <div class="error-details">
+            <div class="error-detail">
+                <strong>Статус:</strong> <span th:text="${error.status}"></span>
+            </div>
+            <div class="error-detail">
+                <strong>Причина:</strong> <span th:text="${error.reason}"></span>
+            </div>
+            <div class="error-detail">
+                <strong>Сообщение:</strong> <span th:text="${error.message}"></span>
+            </div>
+        </div>
+
+        <p class="error-container__timestamp">
+            <small>Время ошибки: <span
+                    th:text="${#temporals.format(error.timestamp, 'dd.MM.yyyy HH:mm:ss')}"></span></small>
+        </p>
+
+        <div class="error-actions">
+            <a href="/products" class="btn btn-primary">На главную</a>
+            <a href="javascript:history.back()" class="btn btn-outline">Назад</a>
+        </div>
+    </div>
+</html>

@@ -1,0 +1,41 @@
+header {
+    padding: 30px;
+}
+
+main.container {
+    flex: 1;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+.brand {
+    font-weight: 800;
+    letter-spacing: .3px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 20px;
+}
+
+.brand span {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.nav__link {
+    color: var(--ink);
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+.nav__link:hover {
+    background: var(--bg-muted);
+}
+
+.footer {
+    border-top: 1px solid var(--border-light);
+    padding: 30px;
+}

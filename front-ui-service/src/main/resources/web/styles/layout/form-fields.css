@@ -1,0 +1,35 @@
+/* Контейнер для индикатора пароля */
+.password-strength-container {
+    margin-top: auto;
+    padding-top: 8px;
+}
+
+/* Индикатор сложности пароля */
+.password-strength {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-muted);
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.password-strength__bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.password-strength__text {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* Стили для клиентских ошибок */
+.client-error {
+    color: var(--error);
+    font-weight: 500;
+}
+
+.client-error.show {
+    display: block;
+}

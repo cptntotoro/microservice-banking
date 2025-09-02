@@ -1,0 +1,15 @@
+<div th:fragment="content" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h1 class="error-container__header">404 - Страница не найдена</h1>
+
+    <div class="error-details">
+        <p class="error-detail">Запрошенная страница не существует или была перемещена.</p>
+        <p class="error-detail muted">Возможно, она была удалена или вы ввели неправильный адрес.</p>
+    </div>
+
+    <div class="error-actions">
+        <a href="javascript:history.back()" class="btn btn-outline">Назад</a>
+    </div>
+
+    <p class="error-container__timestamp" th:text="${#dates.format(#dates.createNow(), 'dd.MM.yyyy HH:mm')}"></p>
+</div>
