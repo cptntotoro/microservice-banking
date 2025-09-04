@@ -1,9 +1,7 @@
 spring:
-  application:
-    name: account-service
   cloud:
     consul:
-      host: localhost
+      host: consul-server
       port: 8500
       discovery:
         instance-id: ${spring.application.name}:${random.uuid}
@@ -13,17 +11,10 @@ spring:
         health-check-interval: 15s
         register: true
 
+  r2dbc:
+    url: r2dbc:postgresql://postgres:5432/bank_accounts
+    username: postgres
+    password: password
+
 server:
   port: 8082
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, metrics
-
-logging:
-  level:
-    org.springframework: INFO
-    ru.practicum: DEBUG
-    org.springframework.cloud.consul: INFO

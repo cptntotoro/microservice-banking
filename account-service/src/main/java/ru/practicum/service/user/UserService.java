@@ -1,6 +1,6 @@
 package ru.practicum.service.user;
 
-
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.model.user.User;
 
@@ -62,6 +62,34 @@ public interface UserService {
     Mono<Void> deleteUser(UUID userId);
 
     /**
+     * Активация пользователя
+     *
+     * @param userId Идентификатор пользователя
+     */
+    Mono<Void> activateUser(UUID userId);
+
+    /**
+     * Деактивация пользователя
+     *
+     * @param userId Идентификатор пользователя
+     */
+    Mono<Void> deactivateUser(UUID userId);
+
+    /**
+     * Блокировка пользователя
+     *
+     * @param userId Идентификатор пользователя
+     */
+    Mono<Void> lockAccount(UUID userId);
+
+    /**
+     * Разблокировка пользователя
+     *
+     * @param userId Идентификатор пользователя
+     */
+    Mono<Void> unlockAccount(UUID userId);
+
+    /**
      * Проверка существования пользователя по логину
      *
      * @param login Логин пользователя
@@ -76,4 +104,10 @@ public interface UserService {
      * @return true если пользователь существует
      */
     Mono<Boolean> existsByEmail(String email);
+
+    Flux<User> getAllUsers();
+
+    Flux<User> getUsersByStatus(boolean enabled);
+
+    Flux<User> getUsersByLockStatus(boolean locked);
 }

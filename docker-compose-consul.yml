@@ -1,0 +1,110 @@
+services:
+  consul-server:
+    image: consul:1.15
+    container_name: consul-server
+    ports:
+      - "8500:8500"   # UI и HTTP API
+      - "8600:8600/udp" # DNS
+      - "8300:8300"   # Server RPC
+      - "8301:8301"   # Serf LAN
+      - "8302:8302"   # Serf WAN
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0 -bind=0.0.0.0
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    volumes:
+      - consul_data:/consul/data
+    networks:
+      - bank-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8500/v1/status/leader" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+#  config-server:
+#    build:
+#      context: .
+#      dockerfile: config-server/Dockerfile
+#    container_name: config-server
+#    ports:
+#      - "8888:8888"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_CLOUD_CONSUL_HOST=consul-server
+#    depends_on:
+#      - consul-server
+#    networks:
+#      - bank-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway-server
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONSUL_HOST=consul-server
+#      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    depends_on:
+      - consul-server
+#      - config-server
+#      - discovery-server
+    networks:
+      - bank-network
+
+#  discovery-server:
+#    build:
+#      context: ./discovery-server
+#      dockerfile: Dockerfile
+#    container_name: discovery-server
+#    ports:
+#      - "8761:8761" # Для совместимости, если какие-то клиенты ожидают порт 8761
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_CLOUD_CONSUL_HOST=consul-server
+#    depends_on:
+#      consul-server:
+#        condition: service_healthy
+##      - config-server
+#    networks:
+#      - bank-network
+
+  account-service:
+    build:
+      context: ./account-service
+      dockerfile: Dockerfile
+    container_name: account-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONSUL_HOST=consul-server
+    depends_on:
+      - consul-server
+#      - config-server
+      - postgres
+    networks:
+      - bank-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: bank_accounts
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bank-network
+
+networks:
+  bank-network:
+    driver: bridge
+
+volumes:
+  consul_data:
+  postgres_data:

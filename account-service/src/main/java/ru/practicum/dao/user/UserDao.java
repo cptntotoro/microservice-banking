@@ -75,4 +75,16 @@ public class UserDao {
      */
     @Column("updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * Флаг активности аккаунта
+     */
+    @Column("enabled")
+    private boolean enabled;
+
+    /**
+     * Флаг блокировки аккаунта
+     */
+    @Column("account_locked")
+    private boolean accountLocked;
 }

@@ -19,8 +19,21 @@
     <name>Online Microservice Banking</name>
 
     <modules>
+        <!--   Infrastructure   -->
+        <module>discovery-server</module>
+        <module>api-gateway-server</module>
+        <module>config-server</module>
+        <module>auth-server</module>
+
+        <!--   Resource   -->
         <module>front-ui-service</module>
         <module>account-service</module>
+        <module>cash-service</module>
+        <module>transfer-service</module>
+        <module>exchange-service</module>
+        <module>exchange-generator-service</module>
+        <module>blocker-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>
@@ -35,6 +48,19 @@
         <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
 
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2024.0.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
 
         <!-- Spring Boot Starters -->
@@ -42,6 +68,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-consul-config</artifactId>-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.boot</groupId>-->
 <!--            <artifactId>spring-boot-starter-data-r2dbc</artifactId>-->
@@ -81,25 +111,6 @@
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
             <scope>compile</scope>
-        </dependency>
-
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>

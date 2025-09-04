@@ -20,7 +20,7 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
     /**
@@ -57,6 +57,16 @@ public class UserController {
     }
 
     /**
+     * Получение пользователя по логину
+     */
+    @GetMapping("/by-login/{login}")
+    public Mono<UserResponseDto> getUserByLogin(@PathVariable String login) {
+        log.info("Получение пользователя по логину: {}", login);
+        return userService.getUserByLogin(login)
+                .map(userMapper::userToResponseDto);
+    }
+
+    /**
      * Обновление данных пользователя
      */
     @PutMapping("/{userId}")
@@ -89,6 +99,42 @@ public class UserController {
     public Mono<Void> deleteUser(@PathVariable UUID userId) {
         log.info("Удаление пользователя: {}", userId);
         return userService.deleteUser(userId);
+    }
+
+    /**
+     * Активация пользователя
+     */
+    @PatchMapping("/{userId}/activate")
+    public Mono<Void> activateUser(@PathVariable UUID userId) {
+        log.info("Активация пользователя: {}", userId);
+        return userService.activateUser(userId);
+    }
+
+    /**
+     * Деактивация пользователя
+     */
+    @PatchMapping("/{userId}/deactivate")
+    public Mono<Void> deactivateUser(@PathVariable UUID userId) {
+        log.info("Деактивация пользователя: {}", userId);
+        return userService.deactivateUser(userId);
+    }
+
+    /**
+     * Блокировка аккаунта пользователя
+     */
+    @PatchMapping("/{userId}/lock")
+    public Mono<Void> lockAccount(@PathVariable UUID userId) {
+        log.info("Блокировка аккаунта пользователя: {}", userId);
+        return userService.lockAccount(userId);
+    }
+
+    /**
+     * Разблокировка аккаунта пользователя
+     */
+    @PatchMapping("/{userId}/unlock")
+    public Mono<Void> unlockAccount(@PathVariable UUID userId) {
+        log.info("Разблокировка аккаунта пользователя: {}", userId);
+        return userService.unlockAccount(userId);
     }
 
     /**

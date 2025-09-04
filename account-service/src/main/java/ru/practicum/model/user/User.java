@@ -59,4 +59,19 @@ public class User {
      * Дата обновления
      */
     private LocalDateTime updatedAt;
+
+    /**
+     * Флаг активности аккаунта
+     */
+    private boolean enabled;
+
+    /**
+     * Флаг, указывающий, не заблокирована ли учетная запись
+     */
+    private boolean accountNonLocked;
+
+    /**
+     * Флаг блокировки аккаунта
+     */
+    private boolean accountLocked;
 }
