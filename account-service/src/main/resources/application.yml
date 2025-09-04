@@ -1,0 +1,6 @@
+# Локальные настройки
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
