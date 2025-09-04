@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: discovery-server
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: 8500
+      config:
+        enabled: false
+      discovery:
+        instance-id: ${spring.application.name}:${random.uuid}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        register: true
+        enabled: true
+
+server:
+  port: 8761
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.consul: DEBUG
+    ru.practicum: DEBUG
