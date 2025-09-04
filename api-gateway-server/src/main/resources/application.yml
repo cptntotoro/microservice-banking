@@ -1,0 +1,88 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Автоматическое создание маршрутов по именам сервисов
+          lower-case-service-id: true
+      routes:
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/accounts/**
+          filters:
+            - StripPrefix=1
+
+        - id: cash-service
+          uri: lb://cash-service
+          predicates:
+            - Path=/api/cash/**
+          filters:
+            - StripPrefix=1
+
+        - id: transfer-service
+          uri: lb://transfer-service
+          predicates:
+            - Path=/api/transfer/**
+          filters:
+            - StripPrefix=1
+
+        - id: exchange-service
+          uri: lb://exchange-service
+          predicates:
+            - Path=/api/exchange/**
+          filters:
+            - StripPrefix=1
+
+        # Health check endpoint для gateway
+        - id: gateway-health
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/actuator/health
+
+#        - id: front-ui-service
+#          uri: lb://front-ui-service
+#          predicates:
+#            - Path=/**
+#          filters:
+#            - StripPrefix=0
+
+      # Глобальная конфигурация для всех маршрутов
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 5s
+
+    consul:
+      host: localhost
+      port: 8500
+      config:
+        enabled: false
+      discovery:
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        register: true
+        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.consul: INFO
