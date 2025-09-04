@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.exception.ErrorReasons;
@@ -53,6 +54,8 @@ public class UserServiceImpl implements UserService {
                 .then(Mono.defer(() -> {
                     UserDao userDao = userMapper.userToUserDao(user);
                     userDao.setPasswordHash(passwordEncoder.encode(password));
+                    userDao.setEnabled(true);
+                    userDao.setAccountLocked(false);
                     return userRepository.save(userDao);
                 }))
                 .map(userMapper::userDaoToUser)
@@ -96,6 +99,8 @@ public class UserServiceImpl implements UserService {
                     updatedUserDao.setId(existingUserDao.getId());
                     updatedUserDao.setPasswordHash(existingUserDao.getPasswordHash());
                     updatedUserDao.setCreatedAt(existingUserDao.getCreatedAt());
+                    updatedUserDao.setEnabled(existingUserDao.isEnabled());
+                    updatedUserDao.setAccountLocked(existingUserDao.isAccountLocked());
                     return userRepository.save(updatedUserDao);
                 })
                 .map(userMapper::userDaoToUser)
@@ -133,6 +138,58 @@ public class UserServiceImpl implements UserService {
                     return userRepository.deleteById(userId);
                 })
                 .doOnSuccess(v -> log.info("Пользователь удален: {}", userId));
+    }
+
+    @Transactional
+    @Override
+    public Mono<Void> activateUser(UUID userId) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
+                .flatMap(userDao -> {
+                    userDao.setEnabled(true);
+                    return userRepository.save(userDao);
+                })
+                .then()
+                .doOnSuccess(v -> log.info("Пользователь активирован: {}", userId));
+    }
+
+    @Transactional
+    @Override
+    public Mono<Void> deactivateUser(UUID userId) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
+                .flatMap(userDao -> {
+                    userDao.setEnabled(false);
+                    return userRepository.save(userDao);
+                })
+                .then()
+                .doOnSuccess(v -> log.info("Пользователь деактивирован: {}", userId));
+    }
+
+    @Transactional
+    @Override
+    public Mono<Void> lockAccount(UUID userId) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
+                .flatMap(userDao -> {
+                    userDao.setAccountLocked(true);
+                    return userRepository.save(userDao);
+                })
+                .then()
+                .doOnSuccess(v -> log.info("Аккаунт заблокирован: {}", userId));
+    }
+
+    @Transactional
+    @Override
+    public Mono<Void> unlockAccount(UUID userId) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
+                .flatMap(userDao -> {
+                    userDao.setAccountLocked(false);
+                    return userRepository.save(userDao);
+                })
+                .then()
+                .doOnSuccess(v -> log.info("Аккаунт разблокирован: {}", userId));
     }
 
     @Override
@@ -183,5 +240,26 @@ public class UserServiceImpl implements UserService {
                     }
                     return Mono.empty();
                 });
+    }
+
+    @Override
+    public Flux<User> getAllUsers() {
+        log.info("Получение всех пользователей");
+        return userRepository.findAll()
+                .map(userMapper::userDaoToUser);
+    }
+
+    @Override
+    public Flux<User> getUsersByStatus(boolean enabled) {
+        log.info("Получение пользователей по статусу активности: {}", enabled);
+        return userRepository.findByEnabled(enabled)
+                .map(userMapper::userDaoToUser);
+    }
+
+    @Override
+    public Flux<User> getUsersByLockStatus(boolean locked) {
+        log.info("Получение пользователей по статусу блокировки: {}", locked);
+        return userRepository.findByAccountLocked(locked)
+                .map(userMapper::userDaoToUser);
     }
 }
