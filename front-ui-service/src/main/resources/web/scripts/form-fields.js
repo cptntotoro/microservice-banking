@@ -9,7 +9,7 @@ function initFormValidation(form) {
     const passwordInput = form.querySelector('[data-validate="password"]');
     const confirmPasswordInput = form.querySelector('[data-validate="confirm-password"]');
     const birthdateInput = form.querySelector('[data-validate="birthdate"]');
-    const loginInput = form.querySelector('[data-validate="login"]');
+    const usernameInput = form.querySelector('[data-validate="username"]');
     const emailInput = form.querySelector('[data-validate="email"]');
     const termsCheckbox = form.querySelector('[data-validate="terms"]');
 
@@ -45,8 +45,8 @@ function initFormValidation(form) {
         return emailRegex.test(email);
     }
 
-    function validateLogin(login) {
-        return /^[a-zA-Z0-9]{5,15}$/.test(login);
+    function validateUsername(username) {
+        return /^[a-zA-Z0-9]{5,15}$/.test(username);
     }
 
     function validateBirthdate(dateString) {
@@ -128,7 +128,7 @@ function initFormValidation(form) {
             if (!input.value.trim()) return false;
         }
         if (emailInput && emailInput.value && !validateEmail(emailInput.value)) return false;
-        if (loginInput && loginInput.value && !validateLogin(loginInput.value)) return false;
+        if (usernameInput && usernameInput.value && !validateUsername(usernameInput.value)) return false;
         if (birthdateInput && birthdateInput.value && !validateBirthdate(birthdateInput.value)) return false;
         if (!validatePasswords()) return false;
         if (!validateTerms()) return false;
@@ -152,8 +152,8 @@ function initFormValidation(form) {
             showError(emailInput, 'Неверный формат email');
             isValid = false;
         }
-        if (loginInput && loginInput.value && !validateLogin(loginInput.value)) {
-            showError(loginInput, 'Логин должен содержать 5-15 символов (только латинские буквы и цифры)');
+        if (usernameInput && usernameInput.value && !validateUsername(usernameInput.value)) {
+            showError(usernameInput, 'Логин должен содержать 5-15 символов (только латинские буквы и цифры)');
             isValid = false;
         }
         if (birthdateInput && birthdateInput.value && !validateBirthdate(birthdateInput.value)) {
@@ -191,14 +191,14 @@ function initFormValidation(form) {
         });
     }
 
-    if (loginInput) {
-        loginInput.addEventListener('input', function () {
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function () {
             this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
             if (this.value) hideError(this);
             updateSubmitButton();
         });
-        loginInput.addEventListener('blur', function () {
-            if (this.value && !validateLogin(this.value)) {
+        usernameInput.addEventListener('blur', function () {
+            if (this.value && !validateUsername(this.value)) {
                 showError(this, 'Логин должен содержать 5-15 символов (только латинские буквы и цифры)');
             } else if (!this.value.trim() && this.hasAttribute('required')) {
                 showError(this, 'Это поле обязательно для заполнения');
@@ -256,7 +256,7 @@ function initFormValidation(form) {
 
     form.querySelectorAll('input').forEach(input => {
         input.addEventListener('blur', function () {
-            if (this !== emailInput && this !== birthdateInput && this !== loginInput) {
+            if (this !== emailInput && this !== birthdateInput && this !== usernameInput) {
                 if (!this.value.trim() && this.hasAttribute('required')) {
                     showError(this, 'Это поле обязательно для заполнения');
                 } else {

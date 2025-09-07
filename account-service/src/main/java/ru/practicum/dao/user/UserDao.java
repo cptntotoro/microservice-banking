@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -22,18 +23,21 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class UserDao {
 
     /**
      * Идентификатор
      */
     @Id
-    private UUID id;
+    @Column("user_uuid")
+    private UUID uuid;
 
     /**
      * Логин
      */
-    private String login;
+    @Column("username")
+    private String username;
 
     /**
      * Хэш пароля
@@ -56,6 +60,7 @@ public class UserDao {
     /**
      * Email
      */
+    @Column("email")
     private String email;
 
     /**
@@ -85,6 +90,6 @@ public class UserDao {
     /**
      * Флаг блокировки аккаунта
      */
-    @Column("account_locked")
-    private boolean accountLocked;
+    @Column("account_non_locked")
+    private boolean accountNonLocked;
 }

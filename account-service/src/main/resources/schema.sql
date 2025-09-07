@@ -1,37 +1,46 @@
--- -- Создание базы данных
--- CREATE DATABASE account_service;
--- \c account_service;
-
 -- Включение необходимых расширений
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- -- Создание типов для ENUM
--- CREATE TYPE transaction_type AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'TRANSFER', 'EXCHANGE');
--- CREATE TYPE transaction_status AS ENUM ('PENDING', 'COMPLETED', 'FAILED');
-
--- Таблица пользователей (аккаунтов)
-CREATE TABLE users
+-- Таблица пользователей
+CREATE TABLE IF NOT EXISTS users
 (
-    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    login          VARCHAR(50)  NOT NULL,
-    password_hash  VARCHAR(255) NOT NULL,
-    first_name     VARCHAR(100) NOT NULL,
-    last_name      VARCHAR(100) NOT NULL,
-    email          VARCHAR(150) NOT NULL,
-    birth_date     DATE         NOT NULL,
-    created_at     TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
-    enabled        BOOLEAN          DEFAULT TRUE,
-    account_locked BOOLEAN          DEFAULT FALSE,
+    user_uuid          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username           VARCHAR(50)  NOT NULL UNIQUE,
+    password_hash      VARCHAR(255) NOT NULL,
+    first_name         VARCHAR(100) NOT NULL,
+    last_name          VARCHAR(100) NOT NULL,
+    email              VARCHAR(150) NOT NULL UNIQUE,
+    birth_date         DATE         NOT NULL,
+    created_at         TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
+    enabled            BOOLEAN          DEFAULT TRUE,
+    account_non_locked BOOLEAN          DEFAULT TRUE
     CONSTRAINT chk_user_age CHECK (EXTRACT(YEAR FROM AGE(birth_date)) >= 18)
 );
 
--- Индексы для таблицы users
-CREATE UNIQUE INDEX idx_users_login ON users (login);
+CREATE UNIQUE INDEX idx_users_username ON users (username);
 CREATE UNIQUE INDEX idx_users_email ON users (email);
--- CREATE INDEX idx_users_created_at ON users (created_at);
--- CREATE INDEX idx_users_birth_date ON users (birth_date);
+
+-- Таблица ролей
+CREATE TABLE IF NOT EXISTS roles
+(
+    role_uuid   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    description TEXT,
+    name        VARCHAR(20) NOT NULL UNIQUE
+);
+
+-- Таблица связи пользователей и ролей
+CREATE TABLE IF NOT EXISTS user_roles
+(
+    user_uuid UUID NOT NULL,
+    role_uuid UUID NOT NULL,
+    PRIMARY KEY (user_uuid, role_uuid),
+    FOREIGN KEY (user_uuid) REFERENCES users (user_uuid) ON DELETE CASCADE,
+    FOREIGN KEY (role_uuid) REFERENCES roles (role_uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_roles_user_id ON user_roles (user_uuid);
+CREATE INDEX idx_user_roles_role_id ON user_roles (role_uuid);
 
 -- Триггер для автоматического обновления updated_at
 -- CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -49,38 +58,38 @@ CREATE UNIQUE INDEX idx_users_email ON users (email);
 --     FOR EACH ROW
 -- EXECUTE FUNCTION update_updated_at_column();
 
--- -- Таблица валют
--- CREATE TABLE currencies
--- (
---     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
---     code       VARCHAR(3)  NOT NULL,
---     name       VARCHAR(50) NOT NULL,
---     created_at TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP
--- );
---
--- -- Индексы для таблицы currencies
--- CREATE UNIQUE INDEX idx_currencies_code ON currencies (code);
--- CREATE INDEX idx_currencies_name ON currencies (name);
---
--- -- Таблица счетов
--- CREATE TABLE accounts
--- (
---     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
---     user_id        UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
---     currency_id    UUID        NOT NULL REFERENCES currencies (id),
---     balance        NUMERIC(15, 2)   DEFAULT 0.00 CHECK (balance >= 0),
---     account_number VARCHAR(20) NOT NULL,
---     created_at     TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
---     updated_at     TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
---     CONSTRAINT unique_user_currency UNIQUE (user_id, currency_id)
--- );
---
--- -- Индексы для таблицы accounts
--- CREATE UNIQUE INDEX idx_accounts_number ON accounts (account_number);
--- CREATE INDEX idx_accounts_user_id ON accounts (user_id);
--- CREATE INDEX idx_accounts_currency_id ON accounts (currency_id);
--- CREATE INDEX idx_accounts_created_at ON accounts (created_at);
--- CREATE INDEX idx_accounts_balance ON accounts (balance);
+-- Таблица валют
+CREATE TABLE currencies
+(
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code       VARCHAR(3)  NOT NULL,
+    name       VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы для таблицы currencies
+CREATE UNIQUE INDEX idx_currencies_code ON currencies (code);
+CREATE INDEX idx_currencies_name ON currencies (name);
+
+-- Таблица счетов
+CREATE TABLE accounts
+(
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id        UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    currency_id    UUID        NOT NULL REFERENCES currencies (id),
+    balance        NUMERIC(15, 2)   DEFAULT 0.00 CHECK (balance >= 0),
+    account_number VARCHAR(20) NOT NULL,
+    created_at     TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_currency UNIQUE (user_id, currency_id)
+);
+
+-- Индексы для таблицы accounts
+CREATE UNIQUE INDEX idx_accounts_number ON accounts (account_number);
+CREATE INDEX idx_accounts_user_id ON accounts (user_id);
+CREATE INDEX idx_accounts_currency_id ON accounts (currency_id);
+CREATE INDEX idx_accounts_created_at ON accounts (created_at);
+CREATE INDEX idx_accounts_balance ON accounts (balance);
 --
 -- -- Триггер для обновления updated_at в accounts
 -- CREATE TRIGGER trigger_accounts_updated_at
@@ -89,54 +98,54 @@ CREATE UNIQUE INDEX idx_users_email ON users (email);
 --     FOR EACH ROW
 -- EXECUTE FUNCTION update_updated_at_column();
 --
--- -- Таблица курсов валют
--- CREATE TABLE exchange_rates
--- (
---     id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
---     base_currency_id   UUID           NOT NULL REFERENCES currencies (id),
---     target_currency_id UUID           NOT NULL REFERENCES currencies (id),
---     buy_rate           NUMERIC(10, 4) NOT NULL CHECK (buy_rate > 0),
---     sell_rate          NUMERIC(10, 4) NOT NULL CHECK (sell_rate > 0),
---     effective_date     DATE           NOT NULL,
---     created_at         TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
---     CONSTRAINT unique_rate_pair_date UNIQUE (base_currency_id, target_currency_id, effective_date)
--- );
---
--- -- Индексы для таблицы exchange_rates
--- CREATE INDEX idx_exchange_rates_effective_date ON exchange_rates (effective_date);
--- CREATE INDEX idx_exchange_rates_base_currency ON exchange_rates (base_currency_id);
--- CREATE INDEX idx_exchange_rates_target_currency ON exchange_rates (target_currency_id);
--- CREATE INDEX idx_exchange_rates_dates ON exchange_rates (effective_date, created_at);
---
--- -- Таблица транзакций (история операций)
--- CREATE TABLE transactions
--- (
---     id              UUID PRIMARY KEY   DEFAULT gen_random_uuid(),
---     type            transaction_type NOT NULL,
---     from_account_id UUID REFERENCES accounts (id),
---     to_account_id   UUID REFERENCES accounts (id),
---     amount          NUMERIC(15, 2)   NOT NULL CHECK (amount > 0),
---     currency_id     UUID             NOT NULL REFERENCES currencies (id),
---     description     TEXT,
---     status          transaction_status DEFAULT 'COMPLETED',
---     created_at      TIMESTAMPTZ        DEFAULT CURRENT_TIMESTAMP,
---     CONSTRAINT valid_transfer CHECK (
---         (type = 'TRANSFER' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL) OR
---         (type = 'DEPOSIT' AND from_account_id IS NULL AND to_account_id IS NOT NULL) OR
---         (type = 'WITHDRAWAL' AND from_account_id IS NOT NULL AND to_account_id IS NULL) OR
---         (type = 'EXCHANGE' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL)
---         )
--- );
---
--- -- Индексы для таблицы transactions
--- CREATE INDEX idx_transactions_from_account ON transactions (from_account_id);
--- CREATE INDEX idx_transactions_to_account ON transactions (to_account_id);
--- CREATE INDEX idx_transactions_currency_id ON transactions (currency_id);
--- CREATE INDEX idx_transactions_created_at ON transactions (created_at);
--- CREATE INDEX idx_transactions_type ON transactions (type);
--- CREATE INDEX idx_transactions_status ON transactions (status);
--- CREATE INDEX idx_transactions_type_created ON transactions (type, created_at);
--- CREATE INDEX idx_transactions_amount ON transactions (amount);
+-- Таблица курсов валют
+CREATE TABLE exchange_rates
+(
+    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    base_currency_id   UUID           NOT NULL REFERENCES currencies (id),
+    target_currency_id UUID           NOT NULL REFERENCES currencies (id),
+    buy_rate           NUMERIC(10, 4) NOT NULL CHECK (buy_rate > 0),
+    sell_rate          NUMERIC(10, 4) NOT NULL CHECK (sell_rate > 0),
+    effective_date     DATE           NOT NULL,
+    created_at         TIMESTAMPTZ      DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_rate_pair_date UNIQUE (base_currency_id, target_currency_id, effective_date)
+);
+
+-- Индексы для таблицы exchange_rates
+CREATE INDEX idx_exchange_rates_effective_date ON exchange_rates (effective_date);
+CREATE INDEX idx_exchange_rates_base_currency ON exchange_rates (base_currency_id);
+CREATE INDEX idx_exchange_rates_target_currency ON exchange_rates (target_currency_id);
+CREATE INDEX idx_exchange_rates_dates ON exchange_rates (effective_date, created_at);
+
+-- Таблица транзакций (история операций)
+CREATE TABLE transactions
+(
+    id              UUID PRIMARY KEY   DEFAULT gen_random_uuid(),
+    type            transaction_type NOT NULL,
+    from_account_id UUID REFERENCES accounts (id),
+    to_account_id   UUID REFERENCES accounts (id),
+    amount          NUMERIC(15, 2)   NOT NULL CHECK (amount > 0),
+    currency_id     UUID             NOT NULL REFERENCES currencies (id),
+    description     TEXT,
+    status          transaction_status DEFAULT 'COMPLETED',
+    created_at      TIMESTAMPTZ        DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT valid_transfer CHECK (
+        (type = 'TRANSFER' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL) OR
+        (type = 'DEPOSIT' AND from_account_id IS NULL AND to_account_id IS NOT NULL) OR
+        (type = 'WITHDRAWAL' AND from_account_id IS NOT NULL AND to_account_id IS NULL) OR
+        (type = 'EXCHANGE' AND from_account_id IS NOT NULL AND to_account_id IS NOT NULL)
+        )
+);
+
+-- Индексы для таблицы transactions
+CREATE INDEX idx_transactions_from_account ON transactions (from_account_id);
+CREATE INDEX idx_transactions_to_account ON transactions (to_account_id);
+CREATE INDEX idx_transactions_currency_id ON transactions (currency_id);
+CREATE INDEX idx_transactions_created_at ON transactions (created_at);
+CREATE INDEX idx_transactions_type ON transactions (type);
+CREATE INDEX idx_transactions_status ON transactions (status);
+CREATE INDEX idx_transactions_type_created ON transactions (type, created_at);
+CREATE INDEX idx_transactions_amount ON transactions (amount);
 --
 -- -- Частичные индексы для оптимизации
 -- CREATE INDEX idx_transactions_recent ON transactions (created_at) WHERE created_at > CURRENT_DATE - INTERVAL '30 days';

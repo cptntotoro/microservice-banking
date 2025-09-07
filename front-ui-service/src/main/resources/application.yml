@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: front-ui-service
+
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        instance-id: ${spring.application.name}:${random.uuid}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+
+  thymeleaf:
+    prefix: classpath:/web/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+    servlet:
+      content-type: text/html
+    enable-spring-el-compiler: true
+    render-hidden-markers-before-checkboxes: true
+
+  webflux:
+    static-path-pattern: /**
+
+  web:
+    resources:
+      static-locations: classpath:/web/
+      cache:
+        period: 0
+        cachecontrol:
+          max-age: 1h
+          no-cache: false
+
+  main:
+    web-application-type: reactive
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+    endpoint:
+      health:
+        show-details: always
+
+logging:
+  level:
+    org.springframework: DEBUG
+    ru.practicum: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

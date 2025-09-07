@@ -15,14 +15,14 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRegistrationDto {
+public class UserSignUpDto {
 
     /**
      * Логин пользователя
      */
-    @NotBlank(message = "Логин обязателен для заполнения")
+    @NotBlank(message = "Username  обязателен для заполнения")
     @Size(min = 3, max = 50, message = "Логин должен содержать от 3 до 50 символов")
-    private String login;
+    private String username;
 
     /**
      * Пароль пользователя
@@ -59,4 +59,7 @@ public class UserRegistrationDto {
     @NotNull(message = "Дата рождения обязательна для заполнения")
     @Past(message = "Дата рождения должна быть в прошлом")
     private LocalDate birthDate;
+
+    @AssertTrue(message = "Необходимо согласие с условиями")
+    private Boolean termsAccepted;
 }

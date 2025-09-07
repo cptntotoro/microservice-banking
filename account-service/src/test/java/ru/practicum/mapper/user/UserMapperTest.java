@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.dto.user.PasswordChangeDto;
-import ru.practicum.dto.user.UserRegistrationDto;
+import ru.practicum.dto.user.UserSignUpDto;
 import ru.practicum.dto.user.UserResponseDto;
 import ru.practicum.model.user.User;
 
@@ -21,7 +21,7 @@ class UserMapperTest {
 
     @Test
     void registrationDtoToUser_shouldMapCorrectly() {
-        UserRegistrationDto dto = new UserRegistrationDto();
+        UserSignUpDto dto = new UserSignUpDto();
         dto.setEmail("test@example.com");
         dto.setFirstName("John");
         dto.setLastName("Doe");
@@ -29,7 +29,7 @@ class UserMapperTest {
         User user = userMapper.registrationDtoToUser(dto);
 
         assertNotNull(user);
-        assertNull(user.getId());
+        assertNull(user.getUuid());
         assertNull(user.getPasswordHash());
         assertNull(user.getCreatedAt());
         assertNull(user.getUpdatedAt());
@@ -48,7 +48,7 @@ class UserMapperTest {
     @Test
     void userToResponseDto_shouldMapCorrectly() {
         User user = new User();
-        user.setId(USER_ID);
+        user.setUuid(USER_ID);
         user.setEmail("test@example.com");
         user.setFirstName("John");
         user.setLastName("Doe");
@@ -58,7 +58,7 @@ class UserMapperTest {
         UserResponseDto dto = userMapper.userToResponseDto(user);
 
         assertNotNull(dto);
-        assertEquals(USER_ID, dto.getId());
+        assertEquals(USER_ID, dto.getUuid());
         assertEquals("test@example.com", dto.getEmail());
         assertEquals("John", dto.getFirstName());
         assertEquals("Doe", dto.getLastName());
@@ -102,7 +102,7 @@ class UserMapperTest {
     @Test
     void userToUserDao_shouldMapCorrectly() {
         User user = new User();
-        user.setId(USER_ID);
+        user.setUuid(USER_ID);
         user.setEmail("test@example.com");
         user.setFirstName("John");
         user.setLastName("Doe");
@@ -115,7 +115,7 @@ class UserMapperTest {
         UserDao userDao = userMapper.userToUserDao(user);
 
         assertNotNull(userDao);
-        assertEquals(USER_ID, userDao.getId());
+        assertEquals(USER_ID, userDao.getUuid());
         assertEquals("test@example.com", userDao.getEmail());
         assertEquals("John", userDao.getFirstName());
         assertEquals("Doe", userDao.getLastName());
@@ -134,7 +134,7 @@ class UserMapperTest {
     @Test
     void userDaoToUser_shouldMapCorrectly() {
         UserDao userDao = new UserDao();
-        userDao.setId(USER_ID);
+        userDao.setUuid(USER_ID);
         userDao.setEmail("test@example.com");
         userDao.setFirstName("John");
         userDao.setLastName("Doe");
@@ -147,7 +147,7 @@ class UserMapperTest {
         User user = userMapper.userDaoToUser(userDao);
 
         assertNotNull(user);
-        assertEquals(USER_ID, user.getId());
+        assertEquals(USER_ID, user.getUuid());
         assertEquals("test@example.com", user.getEmail());
         assertEquals("John", user.getFirstName());
         assertEquals("Doe", user.getLastName());
