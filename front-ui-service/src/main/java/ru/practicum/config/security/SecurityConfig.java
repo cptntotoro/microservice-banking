@@ -42,33 +42,33 @@
 //                .csrf(ServerHttpSecurity.CsrfSpec::disable) // Для REST API, для форм включить
 //                .authorizeExchange(exchanges -> exchanges
 //                        .pathMatchers(PermittedPaths.PATTERNS.toArray(String[]::new)).permitAll()
-//                                .pathMatchers(HttpMethod.GET, "/products", "/products/**")
-//                                .access((mono, context) -> {
-//                                    // Разрешить доступ всем, но запустить фильтры (включая remember-me)
-//                                    return mono.map(auth -> new AuthorizationDecision(true))
-//                                            .defaultIfEmpty(new AuthorizationDecision(true));
-//                                })
+////                                .pathMatchers(HttpMethod.GET, "/products", "/products/**")
+////                                .access((mono, context) -> {
+////                                    // Разрешить доступ всем, но запустить фильтры (включая remember-me)
+////                                    return mono.map(auth -> new AuthorizationDecision(true))
+////                                            .defaultIfEmpty(new AuthorizationDecision(true));
+////                                })
 //                        .anyExchange().authenticated()
 //                )
 //                .formLogin(form -> form
 //                        .loginPage("/login")
 //                        .authenticationSuccessHandler(new DelegatingServerAuthenticationSuccessHandler(
-//                                rememberMeSuccessHandler,
-//                                new RedirectServerAuthenticationSuccessHandler("/products")
+////                                rememberMeSuccessHandler,
+//                                new RedirectServerAuthenticationSuccessHandler("/dashboard")
 //                        ))
 //                        .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/login?error"))
 //                )
-//                .addFilterAt(new RememberMeAuthenticationWebFilter(
-//                        rememberMeAuthenticationConverter,
-//                        new AnonymousAuthenticationWebFilter("anonymous")
-//                ), SecurityWebFiltersOrder.SECURITY_CONTEXT_SERVER_WEB_EXCHANGE)
+////                .addFilterAt(new RememberMeAuthenticationWebFilter(
+////                        rememberMeAuthenticationConverter,
+////                        new AnonymousAuthenticationWebFilter("anonymous")
+////                ), SecurityWebFiltersOrder.SECURITY_CONTEXT_SERVER_WEB_EXCHANGE)
 //                .logout(logout -> logout
 //                        .logoutUrl("/logout")
-//                        .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
+////                        .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
 //                        .logoutSuccessHandler((exchange, auth) -> {
 //                            ServerWebExchange swe = exchange.getExchange();
-//                            ResponseCookie cookie = RememberMeCookieUtil.clearRememberMeCookie();
-//                            swe.getResponse().addCookie(cookie);
+////                            ResponseCookie cookie = RememberMeCookieUtil.clearRememberMeCookie();
+////                            swe.getResponse().addCookie(cookie);
 //
 //                            return swe.getSession()
 //                                    .doOnNext(WebSession::invalidate)
@@ -76,10 +76,23 @@
 //                                        swe.getResponse().setStatusCode(HttpStatus.FOUND);
 //                                        swe.getResponse().getHeaders().setLocation(URI.create("/login?logout"));
 //                                    }));
+//
+////                            // Очищаем сессию и перенаправляем на login
+////                            return exchange.getExchange().getSession()
+////                                    .flatMap(session -> {
+////                                        session.getAttributes().clear();
+////                                        return Mono.fromRunnable(() -> {
+////                                            exchange.getExchange().getResponse()
+////                                                    .setStatusCode(org.springframework.http.HttpStatus.FOUND);
+////                                            exchange.getExchange().getResponse().getHeaders()
+////                                                    .setLocation(java.net.URI.create("/login?logout"));
+////                                        });
+////                                    });
+////                        })
 //                        })
 //                )
 //                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-//                .authenticationManager(authenticationManager())
+////                .authenticationManager(authenticationManager())
 //                .exceptionHandling(handling -> handling
 //                        .authenticationEntryPoint((exchange, ex) -> {
 //                            exchange.getResponse().setStatusCode(HttpStatus.FOUND);

@@ -15,9 +15,11 @@ import ru.practicum.exception.ValidationException;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.user.UserRepository;
+import ru.practicum.repository.user.UserRoleRepository;
 import ru.practicum.service.account.AccountService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.UUID;
 
@@ -32,6 +34,11 @@ public class UserServiceImpl implements UserService {
      * Репозиторий пользователей
      */
     private final UserRepository userRepository;
+
+    /**
+     * Репозиторий ролей пользователей
+     */
+    private final UserRoleRepository userRoleRepository;
 
     /**
      * Сервис для работы со счетами
@@ -49,31 +56,95 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Mono<User> registerUser(User user, String password) {
         return validateUserAge(user.getBirthDate())
-                .then(validateUniqueLogin(user.getLogin()))
+                .then(validateUniqueUsername(user.getUsername()))
                 .then(validateUniqueEmail(user.getEmail()))
                 .then(Mono.defer(() -> {
                     UserDao userDao = userMapper.userToUserDao(user);
                     userDao.setPasswordHash(passwordEncoder.encode(password));
                     userDao.setEnabled(true);
-                    userDao.setAccountLocked(false);
+                    userDao.setAccountNonLocked(true);
+                    userDao.setCreatedAt(LocalDateTime.now());
+                    userDao.setUpdatedAt(LocalDateTime.now());
                     return userRepository.save(userDao);
                 }))
-                .map(userMapper::userDaoToUser)
-                .doOnSuccess(registeredUser -> log.info("Пользователь зарегистрирован: {}", registeredUser.getLogin()));
+                .flatMap(savedUser -> addUserRole(savedUser.getUuid(), "ROLE_USER")
+                        .thenReturn(savedUser))
+                .map(userMapper::userDaoToUser);
+//                .doOnError(error -> log.error("Ошибка при регистрации пользователя: {}", error.getMessage(), error));
     }
 
+    @Transactional
     @Override
-    public Mono<User> getUserById(UUID userId) {
+    public Mono<Void> addUserRole(UUID userId, String roleName) {
         return userRepository.findById(userId)
-                .map(userMapper::userDaoToUser)
-                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())));
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
+                .flatMap(user -> userRoleRepository.userHasRole(userId, roleName))
+                .flatMap(hasRole -> {
+                    if (hasRole) {
+                        return Mono.error(new ValidationException(
+                                "У пользователя уже есть роль: " + roleName,
+                                HttpStatus.CONFLICT,
+                                ErrorReasons.DUPLICATE_ENTITY
+                        ));
+                    }
+                    return userRoleRepository.addUserRole(userId, roleName);
+                })
+                .doOnSuccess(v -> log.info("Роль {} добавлена пользователю: {}", roleName, userId));
+    }
+
+    @Transactional
+    @Override
+    public Mono<Void> removeUserRole(UUID userId, String roleName) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
+                .flatMap(user -> userRoleRepository.userHasRole(userId, roleName))
+                .flatMap(hasRole -> {
+                    if (!hasRole) {
+                        return Mono.error(new ValidationException(
+                                "У пользователя нет роли: " + roleName,
+                                HttpStatus.NOT_FOUND,
+                                ErrorReasons.NOT_FOUND
+                        ));
+                    }
+                    return userRoleRepository.removeUserRole(userId, roleName);
+                })
+                .doOnSuccess(v -> log.info("Роль {} удалена у пользователя: {}", roleName, userId));
     }
 
     @Override
-    public Mono<User> getUserByLogin(String login) {
-        return userRepository.findByLogin(login)
-                .map(userMapper::userDaoToUser)
-                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь с логином", login)));
+    public Mono<Boolean> userHasRole(UUID userId, String roleName) {
+        return userRoleRepository.userHasRole(userId, roleName);
+    }
+
+    @Override
+    public Mono<User> getUserByUuid(UUID uuid) {
+        return userRepository.findById(uuid)
+                .flatMap(this::getUserWithRoles)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", uuid.toString())));
+    }
+
+    @Override
+    public Mono<User> getUserWithRoles(String username) {
+        return userRepository.findByUsername(username)
+                .flatMap(this::getUserWithRoles)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь с username", username)));
+    }
+
+    private Mono<User> getUserWithRoles(UserDao userDao) {
+        return userRoleRepository.findRoleNamesByUserUuid(userDao.getUuid())
+                .collectList()
+                .map(roles -> {
+                    User user = userMapper.userDaoToUser(userDao);
+                    user.setRoles(roles);
+                    return user;
+                });
+    }
+
+    @Override
+    public Mono<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .flatMap(this::getUserWithRoles)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь с username", username)));
     }
 
     @Override
@@ -83,8 +154,8 @@ public class UserServiceImpl implements UserService {
                 .then(userRepository.findById(userId))
                 .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
                 .flatMap(existingUserDao -> {
-                    if (!existingUserDao.getLogin().equals(user.getLogin())) {
-                        return validateUniqueLogin(user.getLogin()).thenReturn(existingUserDao);
+                    if (!existingUserDao.getUsername().equals(user.getUsername())) {
+                        return validateUniqueUsername(user.getUsername()).thenReturn(existingUserDao);
                     }
                     return Mono.just(existingUserDao);
                 })
@@ -96,15 +167,16 @@ public class UserServiceImpl implements UserService {
                 })
                 .flatMap(existingUserDao -> {
                     UserDao updatedUserDao = userMapper.userToUserDao(user);
-                    updatedUserDao.setId(existingUserDao.getId());
+                    updatedUserDao.setUuid(existingUserDao.getUuid());
                     updatedUserDao.setPasswordHash(existingUserDao.getPasswordHash());
                     updatedUserDao.setCreatedAt(existingUserDao.getCreatedAt());
                     updatedUserDao.setEnabled(existingUserDao.isEnabled());
-                    updatedUserDao.setAccountLocked(existingUserDao.isAccountLocked());
+                    updatedUserDao.setAccountNonLocked(existingUserDao.isAccountNonLocked());
                     return userRepository.save(updatedUserDao);
                 })
-                .map(userMapper::userDaoToUser)
-                .doOnSuccess(updatedUser -> log.info("Данные пользователя обновлены: {}", updatedUser.getLogin()));
+                .flatMap(this::getUserWithRoles)
+                .doOnSuccess(updatedUser ->
+                        log.info("Данные пользователя обновлены: {}", updatedUser.getUsername()));
     }
 
     @Override
@@ -172,7 +244,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
                 .flatMap(userDao -> {
-                    userDao.setAccountLocked(true);
+                    userDao.setAccountNonLocked(true);
                     return userRepository.save(userDao);
                 })
                 .then()
@@ -185,7 +257,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", userId.toString())))
                 .flatMap(userDao -> {
-                    userDao.setAccountLocked(false);
+                    userDao.setAccountNonLocked(false);
                     return userRepository.save(userDao);
                 })
                 .then()
@@ -193,8 +265,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<Boolean> existsByLogin(String login) {
-        return userRepository.existsByLogin(login);
+    public Mono<Boolean> existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 
     @Override
@@ -212,20 +284,6 @@ public class UserServiceImpl implements UserService {
             ));
         }
         return Mono.empty();
-    }
-
-    private Mono<Void> validateUniqueLogin(String login) {
-        return userRepository.existsByLogin(login)
-                .flatMap(exists -> {
-                    if (exists) {
-                        return Mono.error(new ValidationException(
-                                "Логин уже занят",
-                                HttpStatus.CONFLICT,
-                                ErrorReasons.DUPLICATE_ENTITY
-                        ));
-                    }
-                    return Mono.empty();
-                });
     }
 
     private Mono<Void> validateUniqueEmail(String email) {
@@ -259,7 +317,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public Flux<User> getUsersByLockStatus(boolean locked) {
         log.info("Получение пользователей по статусу блокировки: {}", locked);
-        return userRepository.findByAccountLocked(locked)
+        return userRepository.findByAccountNonLocked(locked)
                 .map(userMapper::userDaoToUser);
+    }
+
+    private Mono<Void> validateUniqueUsername(String username) {
+        return userRepository.existsByUsername(username)
+                .flatMap(exists -> {
+                    if (exists) {
+                        return Mono.error(new ValidationException(
+                                "Username уже занят",
+                                HttpStatus.CONFLICT,
+                                ErrorReasons.DUPLICATE_ENTITY
+                        ));
+                    }
+                    return Mono.empty();
+                });
     }
 }

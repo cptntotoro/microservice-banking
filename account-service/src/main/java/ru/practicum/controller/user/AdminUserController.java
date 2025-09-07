@@ -2,6 +2,7 @@ package ru.practicum.controller.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,6 +29,62 @@ public class AdminUserController {
      * Маппер пользователей
      */
     private final UserMapper userMapper;
+
+    /**
+     * Активация пользователя
+     */
+    @PatchMapping("/{userId}/activate")
+    public Mono<Void> activateUser(@PathVariable UUID userId) {
+        log.info("Активация пользователя: {}", userId);
+        return userService.activateUser(userId);
+    }
+
+    /**
+     * Деактивация пользователя
+     */
+    @PatchMapping("/{userId}/deactivate")
+    public Mono<Void> deactivateUser(@PathVariable UUID userId) {
+        log.info("Деактивация пользователя: {}", userId);
+        return userService.deactivateUser(userId);
+    }
+
+    /**
+     * Блокировка аккаунта пользователя
+     */
+    @PatchMapping("/{userId}/lock")
+    public Mono<Void> lockAccount(@PathVariable UUID userId) {
+        log.info("Блокировка аккаунта пользователя: {}", userId);
+        return userService.lockAccount(userId);
+    }
+
+    /**
+     * Разблокировка аккаунта пользователя
+     */
+    @PatchMapping("/{userId}/unlock")
+    public Mono<Void> unlockAccount(@PathVariable UUID userId) {
+        log.info("Разблокировка аккаунта пользователя: {}", userId);
+        return userService.unlockAccount(userId);
+    }
+
+    /**
+     * Добавить роль пользователю
+     */
+    @PostMapping("/{userId}/roles/{roleName}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> addUserRole(@PathVariable UUID userId, @PathVariable String roleName) {
+        log.info("Добавление роли {} пользователю: {}", roleName, userId);
+        return userService.addUserRole(userId, roleName);
+    }
+
+    /**
+     * Удалить роль у пользователя
+     */
+    @DeleteMapping("/{userId}/roles/{roleName}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> removeUserRole(@PathVariable UUID userId, @PathVariable String roleName) {
+        log.info("Удаление роли {} у пользователя: {}", roleName, userId);
+        return userService.removeUserRole(userId, roleName);
+    }
 
     /**
      * Получение всех пользователей
@@ -57,41 +114,5 @@ public class AdminUserController {
         log.info("Получение пользователей по статусу блокировки: {}", locked);
         return userService.getUsersByLockStatus(locked)
                 .map(userMapper::userToResponseDto);
-    }
-
-    /**
-     * Принудительная активация пользователя (админ)
-     */
-    @PatchMapping("/{userId}/force-activate")
-    public Mono<Void> forceActivateUser(@PathVariable UUID userId) {
-        log.info("Принудительная активация пользователя: {}", userId);
-        return userService.activateUser(userId);
-    }
-
-    /**
-     * Принудительная деактивация пользователя (админ)
-     */
-    @PatchMapping("/{userId}/force-deactivate")
-    public Mono<Void> forceDeactivateUser(@PathVariable UUID userId) {
-        log.info("Принудительная деактивация пользователя: {}", userId);
-        return userService.deactivateUser(userId);
-    }
-
-    /**
-     * Принудительная блокировка аккаунта (админ)
-     */
-    @PatchMapping("/{userId}/force-lock")
-    public Mono<Void> forceLockAccount(@PathVariable UUID userId) {
-        log.info("Принудительная блокировка аккаунта: {}", userId);
-        return userService.lockAccount(userId);
-    }
-
-    /**
-     * Принудительная разблокировка аккаунта (админ)
-     */
-    @PatchMapping("/{userId}/force-unlock")
-    public Mono<Void> forceUnlockAccount(@PathVariable UUID userId) {
-        log.info("Принудительная разблокировка аккаунта: {}", userId);
-        return userService.unlockAccount(userId);
     }
 }

@@ -19,8 +19,6 @@ public interface TransactionRepository extends ReactiveCrudRepository<Transactio
 
     Flux<TransactionDao> findByToAccountId(UUID toAccountId);
 
-    Flux<TransactionDao> findByUserId(UUID userId);
-
     Flux<TransactionDao> findByType(TransactionType type);
 
     Flux<TransactionDao> findByStatus(TransactionStatus status);

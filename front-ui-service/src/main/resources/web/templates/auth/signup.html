@@ -1,17 +1,21 @@
 <section th:fragment="content" class="card">
     <h1 class="card__title">Создать аккаунт</h1>
 
-    <form class="form" th:action="@{/signup}" th:object="${signup}" method="post" novalidate>
+<!--    <div th:if="${userExists}" class="alert alert-warning">-->
+<!--        Пользователь с таким email или username уже существует-->
+<!--    </div>-->
+
+    <form class="form" th:action="@{/signup}" th:object="${signupRequest}" method="post" novalidate>
         <!-- Имя / Фамилия -->
         <div class="grid grid--2">
             <div class="form__row">
-                <label class="label" for="surname">Фамилия</label>
-                <input class="input" id="surname" th:field="*{surname}" required/>
+                <label class="label" for="firstName">Имя</label>
+                <input class="input" id="firstName" th:field="*{firstName}" required/>
                 <div class="client-error" style="display: none;"></div>
             </div>
             <div class="form__row">
-                <label class="label" for="name">Имя</label>
-                <input class="input" id="name" th:field="*{name}" required/>
+                <label class="label" for="lastName">Фамилия</label>
+                <input class="input" id="lastName" th:field="*{lastName}" required/>
                 <div class="client-error" style="display: none;"></div>
             </div>
         </div>
@@ -25,18 +29,18 @@
                 <div class="client-error" style="display: none;"></div>
             </div>
             <div class="form__row">
-                <label class="label" for="birthdate">Дата рождения</label>
-                <input class="input" id="birthdate" th:field="*{birthdate}" type="date" pattern="\d{4}-\d{2}-\d{2}"
+                <label class="label" for="birthDate">Дата рождения</label>
+                <input class="input" id="birthDate" th:field="*{birthDate}" type="date" pattern="\d{4}-\d{2}-\d{2}"
                        data-validate="birthdate" required max="2023-12-31" min="1900-01-01"/>
                 <div class="client-error" style="display: none;"></div>
             </div>
         </div>
 
-        <!-- Логин / Пароль -->
+        <!-- Имя пользователя / Пароль -->
         <div class="grid grid--2">
             <div class="form__row">
-                <label class="label" for="login">Логин</label>
-                <input class="input" id="login" th:field="*{login}" data-validate="login" required autocomplete="username"/>
+                <label class="label" for="username">Имя пользователя</label>
+                <input class="input" id="username" th:field="*{username}" data-validate="username" required autocomplete="username"/>
                 <div class="client-error" style="display: none;"></div>
             </div>
             <div class="form__row">
@@ -51,7 +55,7 @@
                     <div class="password-strength">
                         <div class="password-strength__bar"></div>
                     </div>
-                    <div class="password-strength__text">Введите пароль</div>
+                    <div class="password-strength__text"></div>
                 </div>
             </div>
         </div>
@@ -59,16 +63,17 @@
         <!-- Повтор пароля -->
         <div class="form__row">
             <label class="label" for="confirmPassword">Повторите пароль</label>
-            <input class="input" id="confirmPassword" th:field="*{confirmPassword}" type="password" required
+            <input class="input" id="confirmPassword" type="password" required
                    data-validate="confirm-password" autocomplete="new-password"/>
             <div class="client-error" id="passwordMatchError" style="display: none;">
                 Пароли не совпадают
             </div>
         </div>
 
+        <!-- Чекбокс согласия -->
         <div class="form__row">
-            <input type="checkbox" id="agreeTerms" data-validate="terms" name="agreeTerms" required>
-            <label for="agreeTerms">Я согласен с <a href="#">Условиями использования</a> и&nbsp;<a href="#">Политикой конфиденциальности</a></label>
+            <input type="checkbox" id="termsAccepted" th:field="*{termsAccepted}" data-validate="terms" name="termsAccepted" required>
+            <label for="termsAccepted">Я согласен с <a href="#">Условиями использования</a> и&nbsp;<a href="#">Политикой конфиденциальности</a></label>
             <div class="client-error" id="termsError" style="display: none;">
                 Необходимо принять условия
             </div>

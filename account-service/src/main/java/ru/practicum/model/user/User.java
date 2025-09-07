@@ -3,6 +3,7 @@ package ru.practicum.model.user;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -18,12 +19,12 @@ public class User {
     /**
      * Идентификатор
      */
-    private UUID id;
+    private UUID uuid;
 
     /**
      * Логин
      */
-    private String login;
+    private String username;
 
     /**
      * Хэш пароля
@@ -51,6 +52,11 @@ public class User {
     private LocalDate birthDate;
 
     /**
+     * Роли
+     */
+    private List<String> roles;
+
+    /**
      * Дата создания
      */
     private LocalDateTime createdAt;
@@ -69,9 +75,4 @@ public class User {
      * Флаг, указывающий, не заблокирована ли учетная запись
      */
     private boolean accountNonLocked;
-
-    /**
-     * Флаг блокировки аккаунта
-     */
-    private boolean accountLocked;
 }

@@ -1,5 +1,6 @@
 package ru.practicum.service.user;
 
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.model.user.User;
@@ -19,13 +20,21 @@ public interface UserService {
      */
     Mono<User> registerUser(User user, String password);
 
+    Mono<Void> addUserRole(UUID userId, String roleName);
+
+    Mono<Void> removeUserRole(UUID userId, String roleName);
+
+    Mono<Boolean> userHasRole(UUID userId, String roleName);
+
     /**
      * Получение пользователя по идентификатору
      *
      * @param userId Идентификатор пользователя
      * @return Модель пользователя
      */
-    Mono<User> getUserById(UUID userId);
+    Mono<User> getUserByUuid(UUID userId);
+
+    Mono<User> getUserWithRoles(String username);
 
     /**
      * Получение пользователя по логину
@@ -33,7 +42,7 @@ public interface UserService {
      * @param login Логин пользователя
      * @return Модель пользователя
      */
-    Mono<User> getUserByLogin(String login);
+    Mono<User> getUserByUsername(String login);
 
     /**
      * Обновление данных пользователя
@@ -95,7 +104,7 @@ public interface UserService {
      * @param login Логин пользователя
      * @return true если пользователь существует
      */
-    Mono<Boolean> existsByLogin(String login);
+    Mono<Boolean> existsByUsername(String login);
 
     /**
      * Проверка существования пользователя по email

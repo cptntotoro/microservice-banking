@@ -45,12 +45,12 @@ spring:
           predicates:
             - Path=/actuator/health
 
-#        - id: front-ui-service
-#          uri: lb://front-ui-service
-#          predicates:
-#            - Path=/**
-#          filters:
-#            - StripPrefix=0
+        - id: front-ui-service
+          uri: lb://front-ui-service
+          predicates:
+            - Path=/**
+          filters:
+            - StripPrefix=0
 
       # Глобальная конфигурация для всех маршрутов
       httpclient:

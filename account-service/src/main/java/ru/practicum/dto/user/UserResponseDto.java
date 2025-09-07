@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -21,12 +22,12 @@ public class UserResponseDto {
     /**
      * Идентификатор пользователя
      */
-    private UUID id;
+    private UUID uuid;
 
     /**
      * Логин пользователя
      */
-    private String login;
+    private String username;
 
     /**
      * Имя пользователя
@@ -52,4 +53,9 @@ public class UserResponseDto {
      * Дата создания аккаунта
      */
     private LocalDateTime createdAt;
+
+    /**
+     * Роли
+     */
+    private List<String> roles;
 }

@@ -14,7 +14,32 @@ spring:
   r2dbc:
     url: r2dbc:postgresql://postgres:5432/bank_accounts
     username: postgres
-    password: password
+    password: postgres
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 30m
+      max-life-time: 60m
+      validation-query: SELECT 1
+
+  main:
+    web-application-type: reactive
 
 server:
   port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+
+logging:
+  level:
+    org.springframework: INFO
+    ru.practicum: INFO
+    org.thymeleaf: WARN
+    org.springframework.cloud.consul: INFO
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

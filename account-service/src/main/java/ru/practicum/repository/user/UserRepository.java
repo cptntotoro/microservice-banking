@@ -13,20 +13,20 @@ import java.util.UUID;
 public interface UserRepository extends ReactiveCrudRepository<UserDao, UUID> {
 
     /**
-     * Найти пользователя по логину
+     * Найти пользователя по username
      *
-     * @param login Логин
+     * @param username Логин
      * @return DAO пользователя
      */
-    Mono<UserDao> findByLogin(String login);
+    Mono<UserDao> findByUsername(String username);
 
     /**
-     * Проверить наличие пользователя по логину
+     * Проверить наличие пользователя по username
      *
-     * @param login Логин
+     * @param username Логин
      * @return Да / Нет
      */
-    Mono<Boolean> existsByLogin(String login);
+    Mono<Boolean> existsByUsername(String username);
 
     /**
      * Проверить наличие пользователя по email
@@ -47,8 +47,8 @@ public interface UserRepository extends ReactiveCrudRepository<UserDao, UUID> {
     /**
      * Найти пользователей по флагу блокировки аккаунта
      *
-     * @param accountLocked Флаг блокировки аккаунта
+     * @param accountNonLocked Флаг блокировки аккаунта
      * @return Список DAO пользователей
      */
-    Flux<UserDao> findByAccountLocked(boolean accountLocked);
+    Flux<UserDao> findByAccountNonLocked(boolean accountNonLocked);
 }
