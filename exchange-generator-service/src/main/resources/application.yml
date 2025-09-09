@@ -1,3 +1,10 @@
+# Переменные среды
+exchange:
+  rate:
+    generation:
+      interval:
+        ms: 1000
+
 spring:
   application:
     name: exchange-generator-service
@@ -31,6 +38,9 @@ spring:
 
   scheduling:
     enabled: true
+    task:
+      scheduling:
+        enabled: true
 
   main:
     web-application-type: reactive
