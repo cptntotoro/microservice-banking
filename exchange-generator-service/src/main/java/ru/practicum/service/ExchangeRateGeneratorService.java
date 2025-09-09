@@ -9,16 +9,12 @@ import ru.practicum.model.ExchangeRate;
  */
 public interface ExchangeRateGeneratorService {
 
-    // REST endpoint для получения текущих курсов
-
     /**
      * Получить текущие курсы обмена валют
      *
      * @return Список курсов обмена валют
      */
     Flux<ExchangeRate> getCurrentRates();
-
-    // REST endpoint для получения конкретного курса
 
     /**
      * Получить курс обмена валюты
@@ -32,7 +28,7 @@ public interface ExchangeRateGeneratorService {
     /**
      * Получить доступные валюты
      *
-     * @return
+     * @return Коды доступных валют
      */
     Flux<String> getAvailableCurrencies();
 }
