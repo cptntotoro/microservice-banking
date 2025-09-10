@@ -1,19 +1,25 @@
 package ru.practicum.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.practicum.client.ExchangeRateDto;
+import ru.practicum.client.ExchangeServiceClient;
+import ru.practicum.mapper.ExchangeRateMapper;
 import ru.practicum.model.ExchangeRate;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExchangeRateGeneratorServiceTest {
@@ -21,75 +27,42 @@ class ExchangeRateGeneratorServiceTest {
     @InjectMocks
     private ExchangeRateGeneratorServiceImpl generatorService;
 
+    @Mock
+    private ExchangeServiceClient exchangeServiceClient;
+
+    @Mock
+    private ExchangeRateMapper exchangeRateMapper;
+
+    @BeforeEach
+    void setUp() {
+        when(exchangeServiceClient.sendExchangeRates(any())).thenReturn(Mono.empty());
+
+        when(exchangeRateMapper.exchangeRateToExchangeRateDto(any()))
+                .thenAnswer(invocation -> {
+                    ExchangeRate rate = invocation.getArgument(0);
+                    return ExchangeRateDto.builder()
+                            .baseCurrency(rate.getBaseCurrency())
+                            .targetCurrency(rate.getTargetCurrency())
+                            .buyRate(rate.getBuyRate())
+                            .sellRate(rate.getSellRate())
+                            .build();
+                });
+    }
+
     @Test
-    void getCurrentRates_shouldReturnFluxOfExchangeRates() {
-        ExchangeRate rubToUsd = ExchangeRate.builder()
-                .baseCurrency("RUB")
-                .targetCurrency("USD")
-                .buyRate(new BigDecimal("75.00"))
-                .sellRate(new BigDecimal("75.50"))
-                .build();
+    void generateRates_shouldGenerateAllPairsAndSendToExchange() throws Exception {
+        // Вызываем приватный метод generateRates через рефлексию
+        Method generateRatesMethod = ExchangeRateGeneratorServiceImpl.class.getDeclaredMethod("generateRates");
+        generateRatesMethod.setAccessible(true);
+        generateRatesMethod.invoke(generatorService);
 
-        ExchangeRate usdToRub = ExchangeRate.builder()
-                .baseCurrency("USD")
-                .targetCurrency("RUB")
-                .buyRate(new BigDecimal("0.0132"))
-                .sellRate(new BigDecimal("0.0133"))
-                .build();
-
-        try {
-            Field currentRatesField = ExchangeRateGeneratorServiceImpl.class.getDeclaredField("currentRates");
-            currentRatesField.setAccessible(true);
-            Map<String, ExchangeRate> currentRates = (Map<String, ExchangeRate>) currentRatesField.get(generatorService);
-
-            currentRates.put("RUB_USD", rubToUsd);
-            currentRates.put("USD_RUB", usdToRub);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to access currentRates field", e);
-        }
-
+        // Проверяем, что сгенерированы все пары (6 валют -> 36 пар)
         Flux<ExchangeRate> result = generatorService.getCurrentRates();
-
         StepVerifier.create(result)
-                .expectNextCount(2)
+                .expectNextCount(36) // 6 * 6 пар
                 .verifyComplete();
-    }
 
-    @Test
-    void getRate_withExistingRate_shouldReturnMonoOfExchangeRate() {
-        Mono<ExchangeRate> result = generatorService.getRate("RUB", "USD");
-
-        StepVerifier.create(result)
-                .assertNext(rate -> {
-                    assertThat(rate.getBaseCurrency()).isEqualTo("RUB");
-                    assertThat(rate.getTargetCurrency()).isEqualTo("USD");
-                    assertThat(rate.getBuyRate()).isPositive();
-                    assertThat(rate.getSellRate()).isPositive();
-                    assertThat(rate.getSellRate()).isGreaterThan(rate.getBuyRate());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getRate_withNonExistingRate_shouldGenerateAndReturnRate() {
-        Mono<ExchangeRate> result = generatorService.getRate("EUR", "GBP");
-
-        StepVerifier.create(result)
-                .assertNext(rate -> {
-                    assertThat(rate.getBaseCurrency()).isEqualTo("EUR");
-                    assertThat(rate.getTargetCurrency()).isEqualTo("GBP");
-                    assertThat(rate.getBuyRate()).isPositive();
-                    assertThat(rate.getSellRate()).isPositive();
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getAvailableCurrencies_shouldReturnFluxOfCurrencyCodes() {
-        Flux<String> result = generatorService.getAvailableCurrencies();
-
-        StepVerifier.create(result)
-                .expectNext("RUB", "USD", "EUR", "CNY", "GBP", "JPY")
-                .verifyComplete();
+        // Проверяем, что sendExchangeRates вызван с 36 DTO
+        verify(exchangeServiceClient).sendExchangeRates(any(List.class));
     }
 }

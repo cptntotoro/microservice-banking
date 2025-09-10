@@ -1,5 +1,7 @@
 # Переменные среды
 exchange:
+  service:
+    url: http://localhost:8081
   rate:
     generation:
       interval:

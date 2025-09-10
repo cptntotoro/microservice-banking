@@ -23,18 +23,6 @@ public enum Currency {
     }
 
     /**
-     * Получить валюту по коду
-     */
-    public static Currency fromCode(String code) {
-        for (Currency currency : values()) {
-            if (currency.getCode().equalsIgnoreCase(code)) {
-                return currency;
-            }
-        }
-        throw new IllegalArgumentException("Unknown currency code: " + code);
-    }
-
-    /**
      * Проверить существование валюты по коду
      */
     public static boolean isValidCurrency(String code) {
@@ -56,21 +44,6 @@ public enum Currency {
             codes[i] = currencies[i].getCode();
         }
         return codes;
-    }
-
-    /**
-     * Получить все валюты кроме базовой (RUB)
-     */
-    public static Currency[] getAllExceptBase() {
-        Currency[] all = values();
-        Currency[] result = new Currency[all.length - 1];
-        int index = 0;
-        for (Currency currency : all) {
-            if (!currency.equals(RUB)) {
-                result[index++] = currency;
-            }
-        }
-        return result;
     }
 
     @Override

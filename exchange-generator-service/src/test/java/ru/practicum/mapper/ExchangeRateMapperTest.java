@@ -2,7 +2,7 @@ package ru.practicum.mapper;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import ru.practicum.dto.ExchangeRateDto;
+import ru.practicum.client.ExchangeRateDto;
 import ru.practicum.model.ExchangeRate;
 
 import java.math.BigDecimal;
