@@ -1,0 +1,178 @@
+openapi: 3.0.3
+info:
+  title: Exchange Service API
+  description: API для сервиса обмена валют, предоставляющего курсы и конвертацию
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/exchange
+    description: Локальный сервер
+paths:
+  /rates:
+    get:
+      summary: Получение текущих курсов валют (RUB как базовая)
+      operationId: getCurrentRates
+      responses:
+        '200':
+          description: Список курсов валют
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeRateDto'
+  /rates/{from}/{to}:
+    get:
+      summary: Получение курса для валютной пары
+      operationId: getRate
+      parameters:
+        - name: from
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: to
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Курс валютной пары
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRateDto'
+        '400':
+          description: Неподдерживаемая валюта
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /convert:
+    post:
+      summary: Конвертация валюты
+      operationId: convertCurrency
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeRequestDto'
+      responses:
+        '200':
+          description: Результат конвертации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeResponseDto'
+        '400':
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /currencies:
+    get:
+      summary: Получение списка доступных валют
+      operationId: getAvailableCurrencies
+      responses:
+        '200':
+          description: Список доступных валют
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableCurrenciesDto'
+  /update-rates:
+    post:
+      summary: Обновление курсов от сервиса генерации
+      operationId: updateRates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExchangeRateDto'
+      responses:
+        '202':
+          description: Курсы успешно приняты
+components:
+  schemas:
+    ExchangeRateDto:
+      type: object
+      properties:
+        baseCurrency:
+          type: string
+          description: Базовая валюта (RUB для фронтенда)
+        targetCurrency:
+          type: string
+          description: Целевая валюта (3 буквы, e.g., USD)
+        buyRate:
+          type: number
+          format: double
+          description: Цена покупки
+        sellRate:
+          type: number
+          format: double
+          description: Цена продажи
+    ExchangeRequestDto:
+      type: object
+      required: [fromCurrency, toCurrency, amount, operationType, userId]
+      properties:
+        fromCurrency:
+          type: string
+          description: Исходная валюта
+        toCurrency:
+          type: string
+          description: Целевая валюта
+        amount:
+          type: number
+          format: double
+          description: Сумма для конвертации
+        operationType:
+          type: string
+          enum: [BUY, SELL]
+          description: Тип операции
+        userId:
+          type: string
+          format: uuid
+          description: Идентификатор пользователя
+    ExchangeResponseDto:
+      type: object
+      properties:
+        fromCurrency:
+          type: string
+          description: Исходная валюта
+        toCurrency:
+          type: string
+          description: Целевая валюта
+        originalAmount:
+          type: number
+          format: double
+          description: Исходная сумма
+        convertedAmount:
+          type: number
+          format: double
+          description: Результат конвертации
+        exchangeRate:
+          type: number
+          format: double
+          description: Использованный курс
+        operationType:
+          type: string
+          description: Тип операции
+    AvailableCurrenciesDto:
+      type: object
+      properties:
+        currencies:
+          type: array
+          items:
+            type: string
+          description: Список кодов доступных валют (e.g., USD, EUR, RUB)
