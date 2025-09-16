@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: API сервиса обработки финансовых операций
+  description: API для управления операциями пополнения и снятия средств в реактивном банковском микросервисе.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8084
+    description: Локальный сервер
+  - url: http://cash-service:8084
+    description: Сервер в Docker
+paths:
+  /cash/deposit:
+    post:
+      summary: Пополнение счета
+      operationId: deposit
+      tags:
+        - Финансовые операции
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CashRequestDto'
+      responses:
+        '200':
+          description: Успешное пополнение счета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashResponseDto'
+        '400':
+          description: Неверные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashResponseDto'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashResponseDto'
+  /cash/withdraw:
+    post:
+      summary: Снятие средств со счета
+      operationId: withdraw
+      tags:
+        - Финансовые операции
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CashRequestDto'
+      responses:
+        '200':
+          description: Успешное снятие средств
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashResponseDto'
+        '400':
+          description: Неверные параметры запроса или недостаточно средств
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashResponseDto'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashResponseDto'
+components:
+  schemas:
+    CashRequestDto:
+      type: object
+      required:
+        - accountId
+        - userId
+        - amount
+        - currency
+      properties:
+        accountId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор счета
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        userId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор пользователя
+          example: "987fcdeb-12ab-34cd-5678-426614174000"
+        amount:
+          type: number
+          format: bigdecimal
+          description: Сумма для пополнения или снятия
+          example: 100.00
+        currency:
+          type: string
+          description: Валюта операции
+          example: "USD"
+    CashResponseDto:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - ERROR
+            - BLOCKED
+          description: Статус операции
+          example: "SUCCESS"
+        message:
+          type: string
+          description: Сообщение с результатом операции
+          example: "DEPOSIT успешно завершен"

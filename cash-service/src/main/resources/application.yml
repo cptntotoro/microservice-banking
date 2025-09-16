@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: cash-service
+
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        instance-id: ${spring.application.name}:${random.uuid}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/cash_service
+    username: postgres
+    password: postgres
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 10
+
+  main:
+    web-application-type: reactive
+
+server:
+  port: 8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+    endpoint:
+      health:
+        show-details: always
+
+logging:
+  level:
+    org.springframework: DEBUG
+    ru.practicum: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

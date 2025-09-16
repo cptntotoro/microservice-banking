@@ -10,14 +10,20 @@ import reactor.core.publisher.Mono;
 import ru.practicum.dto.CashRequestDto;
 import ru.practicum.dto.CashResponseDto;
 import ru.practicum.mapper.CashMapper;
-import ru.practicum.service.CashServiceImpl;
+import ru.practicum.service.CashService;
 
 @RestController
 @RequestMapping("/cash")
 @RequiredArgsConstructor
 public class CashController {
+    /**
+     * Сервис пополнения счета
+     */
+    private final CashService cashService;
 
-    private final CashServiceImpl cashService;
+    /**
+     * Маппер запросов на пополнение счета
+     */
     private final CashMapper cashMapper;
 
     @PostMapping("/deposit")

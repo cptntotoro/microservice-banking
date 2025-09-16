@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Ответ на запрос на пополнение счета
+ */
 @Data
 @Builder
 @NoArgsConstructor

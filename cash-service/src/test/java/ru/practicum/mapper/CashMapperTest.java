@@ -7,6 +7,9 @@ import ru.practicum.dto.CashResponseDto;
 import ru.practicum.model.CashRequest;
 import ru.practicum.model.CashResponse;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -17,9 +20,9 @@ class CashMapperTest {
     @Test
     void testToModelCashRequestDto() {
         CashRequestDto dto = CashRequestDto.builder()
-                .accountId("acc123")
-                .userId("user456")
-                .amount(1000.0)
+                .accountId(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .amount(new BigDecimal("1000.0"))
                 .currency("RUB")
                 .build();
 

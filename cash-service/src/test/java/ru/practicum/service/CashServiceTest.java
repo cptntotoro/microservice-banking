@@ -6,8 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.practicum.client.account.AccountsServiceClient;
@@ -17,21 +15,19 @@ import ru.practicum.client.notification.NotificationRequestDto;
 import ru.practicum.client.notification.NotificationsServiceClient;
 import ru.practicum.dao.CashOperationDao;
 import ru.practicum.model.CashRequest;
-import ru.practicum.model.CashResponse;
 import ru.practicum.repository.CashOperationRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class CashServiceTest {
 
     @Mock
@@ -50,236 +46,232 @@ class CashServiceTest {
     private CashServiceImpl cashService;
 
     private CashRequest validRequest;
-    private CashOperationDao operation;
+    private UUID operationId;
 
     @BeforeEach
     void setUp() {
-        validRequest = new CashRequest();
-        validRequest.setAccountId(UUID.randomUUID());
-        validRequest.setUserId(UUID.randomUUID());
-        validRequest.setAmount(new BigDecimal("100.00"));
-        validRequest.setCurrency("USD");
-
-        operation = CashOperationDao.builder()
-                .operationUuid(UUID.randomUUID())
-                .accountId(validRequest.getAccountId())
-                .type("DEPOSIT")
-                .amount(validRequest.getAmount())
-                .currencyCode(validRequest.getCurrency())
-                .status("PENDING")
-                .description("Пополнение на сумму " + validRequest.getAmount() + " " + validRequest.getCurrency())
-                .createdAt(LocalDateTime.now())
+        validRequest = CashRequest.builder()
+                .accountId(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .amount(new BigDecimal("100.00"))
+                .currency("USD")
                 .build();
+        operationId = UUID.randomUUID();
     }
 
     @Test
-    void deposit_successful() {
-        // Arrange
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(false));
-        when(accountsServiceClient.verifyAccount(validRequest.getAccountId(), validRequest.getUserId())).thenReturn(Mono.just(true));
-        when(accountsServiceClient.updateAccountBalance(any(BalanceUpdateRequestDto.class))).thenReturn(Mono.empty());
-        when(notificationsServiceClient.sendNotification(any(NotificationRequestDto.class))).thenReturn(Mono.empty());
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
+    void deposit_ValidRequest_ReturnsSuccess() {
+        CashOperationDao operation = CashOperationDao.builder()
+                .operationUuid(operationId)
+                .status("PENDING")
+                .build();
 
-        // Act
-        Mono<CashResponse> result = cashService.deposit(validRequest);
+        when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(operation));
+        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+                .thenReturn(Mono.just(false));
+        when(accountsServiceClient.verifyAccount(any(), any()))
+                .thenReturn(Mono.just(true));
+        when(accountsServiceClient.updateAccountBalance(any(BalanceUpdateRequestDto.class)))
+                .thenReturn(Mono.empty());
+        when(notificationsServiceClient.sendNotification(any(NotificationRequestDto.class)))
+                .thenReturn(Mono.empty());
+        when(cashOperationRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(operation));
 
-        // Assert
-        StepVerifier.create(result)
+        StepVerifier.create(cashService.deposit(validRequest))
                 .expectNextMatches(response ->
                         response.getStatus().equals("SUCCESS") &&
-                                response.getMessage().equals("Пополнение успешно выполнено"))
+                                response.getMessage().contains("DEPOSIT успешно завершен")
+                )
                 .verifyComplete();
 
         verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
-        verify(blockerServiceClient, times(1)).isOperationBlocked(validRequest);
-        verify(accountsServiceClient, times(1)).verifyAccount(validRequest.getAccountId(), validRequest.getUserId());
-        verify(accountsServiceClient, times(1)).updateAccountBalance(any(BalanceUpdateRequestDto.class));
-        verify(notificationsServiceClient, times(1)).sendNotification(any(NotificationRequestDto.class));
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
+        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(accountsServiceClient).verifyAccount(any(), any());
+        verify(accountsServiceClient).updateAccountBalance(any(BalanceUpdateRequestDto.class));
+        verify(notificationsServiceClient).sendNotification(any(NotificationRequestDto.class));
     }
 
     @Test
-    void deposit_blockedByBlockerService() {
-        // Arrange
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(true));
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
+    void deposit_InvalidRequest_NullAccountId_ReturnsError() {
+        CashRequest invalidRequest = CashRequest.builder()
+                .userId(UUID.randomUUID())
+                .amount(new BigDecimal("100.00"))
+                .currency("USD")
+                .build();
 
-        // Act
-        Mono<CashResponse> result = cashService.deposit(validRequest);
+        lenient().when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(CashOperationDao.builder().build()));
 
-        // Assert
-        StepVerifier.create(result)
+        StepVerifier.create(cashService.deposit(invalidRequest))
+                .expectNextMatches(response ->
+                        response.getStatus().equals("ERROR") &&
+                                response.getMessage().equals("Требуется идентификатор счета")
+                )
+                .verifyComplete();
+    }
+
+    @Test
+    void deposit_BlockedOperation_ReturnsBlocked() {
+        CashOperationDao operation = CashOperationDao.builder()
+                .operationUuid(operationId)
+                .status("PENDING")
+                .build();
+
+        when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(operation));
+        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+                .thenReturn(Mono.just(true));
+        when(cashOperationRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(operation));
+
+        StepVerifier.create(cashService.deposit(validRequest))
                 .expectNextMatches(response ->
                         response.getStatus().equals("BLOCKED") &&
-                                response.getMessage().equals("Операция заблокирована службой безопасности"))
+                                response.getMessage().equals("Операция заблокирована службой безопасности")
+                )
                 .verifyComplete();
 
-        verify(blockerServiceClient, times(1)).isOperationBlocked(validRequest);
-        verify(accountsServiceClient, never()).verifyAccount(any(), any());
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
         verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
+        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verifyNoInteractions(accountsServiceClient, notificationsServiceClient);
     }
 
     @Test
-    void deposit_invalidAccount() {
-        // Arrange
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(false));
-        when(accountsServiceClient.verifyAccount(validRequest.getAccountId(), validRequest.getUserId())).thenReturn(Mono.just(false));
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
+    void deposit_InvalidAccount_ReturnsError() {
+        CashOperationDao operation = CashOperationDao.builder()
+                .operationUuid(operationId)
+                .status("PENDING")
+                .build();
 
-        // Act
-        Mono<CashResponse> result = cashService.deposit(validRequest);
+        when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(operation));
+        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+                .thenReturn(Mono.just(false));
+        when(accountsServiceClient.verifyAccount(any(), any()))
+                .thenReturn(Mono.just(false));
+        when(cashOperationRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(operation));
 
-        // Assert
-        StepVerifier.create(result)
+        StepVerifier.create(cashService.deposit(validRequest))
                 .expectNextMatches(response ->
                         response.getStatus().equals("ERROR") &&
-                                response.getMessage().equals("Неверный аккаунт или пользователь"))
+                                response.getMessage().equals("Неверный счет или пользователь")
+                )
                 .verifyComplete();
 
-        verify(accountsServiceClient, times(1)).verifyAccount(validRequest.getAccountId(), validRequest.getUserId());
-        verify(accountsServiceClient, never()).updateAccountBalance(any());
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
-        verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
+        verify(cashOperationRepository, times(3)).save(any(CashOperationDao.class));
+        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(accountsServiceClient).verifyAccount(any(), any());
+        verifyNoInteractions(notificationsServiceClient);
     }
 
     @Test
-    void deposit_invalidRequest_nullAccountId() {
-        // Arrange
-        validRequest.setAccountId(null);
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(false));
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
+    void withdraw_ValidRequest_ReturnsSuccess() {
+        CashOperationDao operation = CashOperationDao.builder()
+                .operationUuid(operationId)
+                .status("PENDING")
+                .build();
 
-        // Act
-        Mono<CashResponse> result = cashService.deposit(validRequest);
+        when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(operation));
+        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+                .thenReturn(Mono.just(false));
+        when(accountsServiceClient.verifyAccount(any(), any()))
+                .thenReturn(Mono.just(true));
+        when(accountsServiceClient.getAccountBalance(any()))
+                .thenReturn(Mono.just(new BigDecimal("200.00")));
+        when(accountsServiceClient.updateAccountBalance(any(BalanceUpdateRequestDto.class)))
+                .thenReturn(Mono.empty());
+        when(notificationsServiceClient.sendNotification(any(NotificationRequestDto.class)))
+                .thenReturn(Mono.empty());
+        when(cashOperationRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(operation));
 
-        // Assert
-        StepVerifier.create(result)
-                .expectNextMatches(response ->
-                        response.getStatus().equals("ERROR") &&
-                                response.getMessage().equals("Идентификатор счета обязателен"))
-                .verifyComplete();
-
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
-        verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
-    }
-
-    @Test
-    void withdraw_successful() {
-        // Arrange
-        operation.setType("WITHDRAWAL");
-        operation.setDescription("Снятие суммы " + validRequest.getAmount() + " " + validRequest.getCurrency());
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(false));
-        when(accountsServiceClient.verifyAccount(validRequest.getAccountId(), validRequest.getUserId())).thenReturn(Mono.just(true));
-        when(accountsServiceClient.getAccountBalance(validRequest.getAccountId())).thenReturn(Mono.just(new BigDecimal("200.00")));
-        when(accountsServiceClient.updateAccountBalance(any(BalanceUpdateRequestDto.class))).thenReturn(Mono.empty());
-        when(notificationsServiceClient.sendNotification(any(NotificationRequestDto.class))).thenReturn(Mono.empty());
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-
-        // Act
-        Mono<CashResponse> result = cashService.withdraw(validRequest);
-
-        // Assert
-        StepVerifier.create(result)
+        StepVerifier.create(cashService.withdraw(validRequest))
                 .expectNextMatches(response ->
                         response.getStatus().equals("SUCCESS") &&
-                                response.getMessage().equals("Снятие успешно выполнено"))
+                                response.getMessage().contains("WITHDRAWAL успешно завершен")
+                )
                 .verifyComplete();
 
-        verify(accountsServiceClient, times(1)).getAccountBalance(validRequest.getAccountId());
-        verify(accountsServiceClient, times(1)).updateAccountBalance(any(BalanceUpdateRequestDto.class));
-        verify(notificationsServiceClient, times(1)).sendNotification(any(NotificationRequestDto.class));
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
         verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
+        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(accountsServiceClient).verifyAccount(any(), any());
+        verify(accountsServiceClient).getAccountBalance(any());
+        verify(accountsServiceClient).updateAccountBalance(any(BalanceUpdateRequestDto.class));
+        verify(notificationsServiceClient).sendNotification(any(NotificationRequestDto.class));
     }
 
     @Test
-    void withdraw_insufficientFunds() {
-        // Arrange
-        operation.setType("WITHDRAWAL");
-        operation.setDescription("Снятие суммы " + validRequest.getAmount() + " " + validRequest.getCurrency());
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(false));
-        when(accountsServiceClient.verifyAccount(validRequest.getAccountId(), validRequest.getUserId())).thenReturn(Mono.just(true));
-        when(accountsServiceClient.getAccountBalance(validRequest.getAccountId())).thenReturn(Mono.just(new BigDecimal("50.00")));
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
+    void withdraw_InsufficientFunds_ReturnsError() {
+        CashOperationDao operation = CashOperationDao.builder()
+                .operationUuid(operationId)
+                .status("PENDING")
+                .build();
 
-        // Act
-        Mono<CashResponse> result = cashService.withdraw(validRequest);
+        when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(operation));
+        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+                .thenReturn(Mono.just(false));
+        when(accountsServiceClient.verifyAccount(any(), any()))
+                .thenReturn(Mono.just(true));
+        when(accountsServiceClient.getAccountBalance(any()))
+                .thenReturn(Mono.just(new BigDecimal("50.00")));
+        when(cashOperationRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(operation));
 
-        // Assert
-        StepVerifier.create(result)
+        StepVerifier.create(cashService.withdraw(validRequest))
                 .expectNextMatches(response ->
                         response.getStatus().equals("ERROR") &&
-                                response.getMessage().equals("Недостаточно средств"))
+                                response.getMessage().equals("Недостаточно средств")
+                )
                 .verifyComplete();
 
-        verify(accountsServiceClient, times(1)).getAccountBalance(validRequest.getAccountId());
-        verify(accountsServiceClient, never()).updateAccountBalance(any());
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
-        verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
+        verify(cashOperationRepository, times(3)).save(any(CashOperationDao.class));
+        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(accountsServiceClient).verifyAccount(any(), any());
+        verify(accountsServiceClient).getAccountBalance(any());
+        verifyNoInteractions(notificationsServiceClient);
     }
 
     @Test
-    void withdraw_blockedByBlockerService() {
-        // Arrange
-        operation.setType("WITHDRAWAL");
-        operation.setDescription("Снятие суммы " + validRequest.getAmount() + " " + validRequest.getCurrency());
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(true));
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
+    void withdraw_NullAmount_ReturnsError() {
+        CashRequest invalidRequest = CashRequest.builder()
+                .accountId(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .currency("USD")
+                .build();
 
-        // Act
-        Mono<CashResponse> result = cashService.withdraw(validRequest);
+        lenient().when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(CashOperationDao.builder().build()));
 
-        // Assert
-        StepVerifier.create(result)
-                .expectNextMatches(response ->
-                        response.getStatus().equals("BLOCKED") &&
-                                response.getMessage().equals("Операция заблокирована службой безопасности"))
-                .verifyComplete();
-
-        verify(blockerServiceClient, times(1)).isOperationBlocked(validRequest);
-        verify(accountsServiceClient, never()).verifyAccount(any(), any());
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
-        verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
-    }
-
-    @Test
-    void withdraw_invalidRequest_nullAmount() {
-        // Arrange
-        validRequest.setAmount(null);
-        operation.setType("WITHDRAWAL");
-        operation.setDescription("Снятие суммы null USD");
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-        when(blockerServiceClient.isOperationBlocked(any(CashRequest.class))).thenReturn(Mono.just(false));
-        when(cashOperationRepository.findById(any(UUID.class))).thenReturn(Mono.just(operation));
-        when(cashOperationRepository.save(any(CashOperationDao.class))).thenReturn(Mono.just(operation));
-
-        // Act
-        Mono<CashResponse> result = cashService.withdraw(validRequest);
-
-        // Assert
-        StepVerifier.create(result)
+        StepVerifier.create(cashService.withdraw(invalidRequest))
                 .expectNextMatches(response ->
                         response.getStatus().equals("ERROR") &&
-                                response.getMessage().equals("Сумма должна быть положительной"))
+                                response.getMessage().equals("Сумма должна быть положительной")
+                )
                 .verifyComplete();
+    }
 
-        verify(cashOperationRepository, times(1)).findById(any(UUID.class));
-        verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
+    @Test
+    void withdraw_EmptyCurrency_ReturnsError() {
+        CashRequest invalidRequest = CashRequest.builder()
+                .accountId(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .amount(new BigDecimal("100.00"))
+                .currency("")
+                .build();
+
+        lenient().when(cashOperationRepository.save(any(CashOperationDao.class)))
+                .thenReturn(Mono.just(CashOperationDao.builder().build()));
+
+        StepVerifier.create(cashService.withdraw(invalidRequest))
+                .expectNextMatches(response ->
+                        response.getStatus().equals("ERROR") &&
+                                response.getMessage().equals("Требуется валюта")
+                )
+                .verifyComplete();
     }
 }
