@@ -6,8 +6,25 @@ import ru.practicum.dto.CashResponseDto;
 import ru.practicum.model.CashRequest;
 import ru.practicum.model.CashResponse;
 
+/**
+ * Маппер запросов на пополнение счета
+ */
 @Mapper(componentModel = "spring")
 public interface CashMapper {
-    CashRequest toModel(CashRequestDto dto);
-    CashResponseDto toDto(CashResponse model);
+
+    /**
+     * Смаппить DTO запроса на пополнение счета в модель
+     *
+     * @param cashRequestDto DTO запроса на пополнение счета
+     * @return Запрос на пополнение счета
+     */
+    CashRequest toModel(CashRequestDto cashRequestDto);
+
+    /**
+     * Смаппить ответ на запрос на пополнение счета в DTO
+     *
+     * @param cashResponse Ответ на запрос на пополнение счета
+     * @return DTO ответа на запрос на пополнение счета
+     */
+    CashResponseDto toDto(CashResponse cashResponse);
 }

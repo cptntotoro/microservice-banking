@@ -4,6 +4,9 @@ import reactor.core.publisher.Mono;
 import ru.practicum.model.CashRequest;
 import ru.practicum.model.CashResponse;
 
+/**
+ * Сервис внесения и снятия денег
+ */
 public interface CashService {
     /**
      * Пололнить счет

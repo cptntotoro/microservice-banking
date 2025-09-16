@@ -9,52 +9,118 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import ru.practicum.model.CashRequest;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Клиент обращения к сервису блокировки подозрительных операций
+ * Клиент для взаимодействия с сервисом блокировки операций
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class BlockerServiceClient {
 
+    private static final String SERVICE_NAME = "blocker-service";
+    private static final String CHECK_OPERATION_ENDPOINT = "/api/blocker/check";
+
     private final WebClient.Builder webClientBuilder;
     private final DiscoveryClient discoveryClient;
 
-    public Mono<Boolean> isOperationBlocked(CashRequest request) {
-        log.info("Checking if operation is blocked for account {}", request.getAccountId());
+    /**
+     * Проверяет операцию на блокировку
+     *
+     * @param accountId идентификатор счета
+     * @param userId идентификатор пользователя
+     * @param amount сумма операции
+     * @param currency валюта операции
+     * @param operationType тип операции (DEPOSIT/WITHDRAWAL)
+     * @return true если операция заблокирована, false если разрешена
+     */
+    public Mono<Boolean> checkOperation(UUID accountId, UUID userId,
+                                        BigDecimal amount, String currency,
+                                        String operationType) {
+        log.debug("Проверка операции для счета: {}, пользователь: {}, тип: {}",
+                accountId, userId, operationType);
 
-        return getBlockerServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/blocker/check";
-            log.debug("Calling Blocker service at: {}", url);
+        OperationCheckRequestDto request = createOperationCheckRequest(
+                accountId, userId, amount, currency, operationType
+        );
 
-            return webClientBuilder.build()
-                    .post()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(Boolean.class)
-                    .doOnSuccess(response -> log.info("Successfully checked operation"))
-                    .doOnError(error -> log.error("Error checking operation: {}", error.getMessage()));
-        }).onErrorResume(e -> {
-            log.error("Failed to check operation, assuming blocked", e);
-            return Mono.just(true); // Block operation if service is unavailable
-        });
+        return getBlockerServiceUrl()
+                .flatMap(baseUrl -> {
+                    String url = baseUrl + CHECK_OPERATION_ENDPOINT;
+                    log.debug("Вызов сервиса блокировки по адресу: {}", url);
+
+                    return webClientBuilder.build()
+                            .post()
+                            .uri(url)
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .bodyValue(request)
+                            .retrieve()
+                            .bodyToMono(OperationCheckResponseDto.class)
+                            .map(this::processCheckResponse)
+                            .doOnNext(blocked -> logOperationCheckResult(blocked, request))
+                            .doOnSuccess(response -> log.info("Операция успешно проверена"))
+                            .doOnError(error -> log.error("Ошибка проверки операции: {}", error.getMessage()));
+                })
+                .onErrorResume(this::handleServiceError);
     }
 
+    private OperationCheckRequestDto createOperationCheckRequest(UUID accountId, UUID userId,
+                                                                 BigDecimal amount, String currency,
+                                                                 String operationType) {
+        return OperationCheckRequestDto.builder()
+                .operationId(UUID.randomUUID())
+                .operationType(operationType)
+                .userId(userId)
+                .accountId(accountId)
+                .amount(amount)
+                .currency(currency)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    private Boolean processCheckResponse(OperationCheckResponseDto response) {
+        log.debug("Ответ проверки операции: заблокировано={}, кодПричины={}, оценкаРиска={}",
+                response.isBlocked(), response.getReasonCode(), response.getRiskScore());
+        return response.isBlocked();
+    }
+
+    private void logOperationCheckResult(Boolean blocked, OperationCheckRequestDto request) {
+        if (Boolean.TRUE.equals(blocked)) {
+            log.warn("Операция ЗАБЛОКИРОВАНА: accountId={}, userId={}, type={}, amount={} {}",
+                    request.getAccountId(), request.getUserId(), request.getOperationType(),
+                    request.getAmount(), request.getCurrency());
+        } else {
+            log.info("Операция РАЗРЕШЕНА: accountId={}, userId={}, type={}",
+                    request.getAccountId(), request.getUserId(), request.getOperationType());
+        }
+    }
+
+    private Mono<Boolean> handleServiceError(Throwable error) {
+        log.error("Сервис блокировки недоступен. Блокируем операцию для безопасности. Ошибка: {}",
+                error.getMessage());
+        // В случае ошибки сервиса блокируем операцию для безопасности
+        return Mono.just(true);
+    }
+
+    /**
+     * Получает URL активного инстанса сервиса блокировки через Discovery Client
+     */
     private Mono<String> getBlockerServiceUrl() {
         return Mono.fromCallable(() -> {
-            List<ServiceInstance> instances = discoveryClient.getInstances("blocker-service");
+            List<ServiceInstance> instances = discoveryClient.getInstances(SERVICE_NAME);
             if (instances == null || instances.isEmpty()) {
-                throw new RuntimeException("No instances of blocker-service found");
+                throw new RuntimeException("Не найдены экземпляры сервиса " + SERVICE_NAME);
             }
+
             ServiceInstance instance = instances.getFirst();
             String url = "http://" + instance.getHost() + ":" + instance.getPort();
-            log.debug("Discovered blocker-service at: {}", url);
+
+            log.debug("Обнаружен сервис {} по адресу: {}", SERVICE_NAME, url);
             return url;
         });
     }
