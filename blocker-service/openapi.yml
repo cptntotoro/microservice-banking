@@ -1,0 +1,191 @@
+openapi: 3.0.3
+info:
+  title: Blocker Service API
+  description: API для сервиса проверки и блокировки финансовых операций на основе анализа рисков
+  version: 1.0.0
+servers:
+  - url: http://localhost:8082/api/blocker
+    description: Локальный сервер
+paths:
+  /check:
+    post:
+      summary: Проверка операции на риск мошенничества
+      operationId: checkOperation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationCheckRequestDto'
+      responses:
+        '200':
+          description: Результат проверки операции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationCheckResponseDto'
+        '400':
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /history/{userId}:
+    get:
+      summary: Получение истории операций пользователя
+      operationId: getOperationHistory
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор пользователя
+      responses:
+        '200':
+          description: История операций пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OperationHistoryResponseDto'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    OperationCheckRequestDto:
+      type: object
+      required: [operationId, operationType, userId, accountId, amount, currency, timestamp]
+      properties:
+        operationId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор операции
+        operationType:
+          type: string
+          enum: [DEPOSIT, WITHDRAWAL, TRANSFER, PAYMENT]
+          description: Тип операции
+        userId:
+          type: string
+          format: uuid
+          description: Идентификатор пользователя
+        accountId:
+          type: string
+          format: uuid
+          description: Идентификатор счета
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Сумма операции (должна быть положительной)
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: Валюта операции (3-символьный код, например RUB, USD, EUR)
+        timestamp:
+          type: string
+          format: date-time
+          description: Время операции
+
+    OperationCheckResponseDto:
+      type: object
+      properties:
+        blocked:
+          type: boolean
+          description: Флаг блокировки операции
+        reasonCode:
+          type: string
+          nullable: true
+          enum: [DUPLICATE_OPERATION, AMOUNT_ANOMALY, UNUSUAL_TIME, HIGH_FREQUENCY, COMPOSITE_RISK, UNKNOWN]
+          description: Код причины блокировки (null если операция разрешена)
+        description:
+          type: string
+          nullable: true
+          description: Описание причины блокировки (null если операция разрешена)
+        riskScore:
+          type: integer
+          minimum: 0
+          description: Оценка риска (0-100+ баллов)
+
+    OperationHistoryResponseDto:
+      type: object
+      properties:
+        operationId:
+          type: string
+          format: uuid
+          description: Идентификатор операции
+        operationType:
+          type: string
+          enum: [DEPOSIT, WITHDRAWAL, TRANSFER, PAYMENT]
+          description: Тип операции
+        accountId:
+          type: string
+          format: uuid
+          description: Идентификатор счета
+        amount:
+          type: number
+          format: double
+          description: Сумма операции
+        currency:
+          type: string
+          description: Валюта операции
+        timestamp:
+          type: string
+          format: date-time
+          description: Время операции
+        blocked:
+          type: boolean
+          description: Флаг блокировки операции
+        blockReasonCode:
+          type: string
+          nullable: true
+          description: Код причины блокировки
+        riskScore:
+          type: integer
+          description: Оценка риска
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Сообщение об ошибке
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+        path:
+          type: string
+          description: URL запроса
+
+  responses:
+    ValidationError:
+      description: Ошибка валидации входных данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  parameters:
+    UserIdPath:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Идентификатор пользователя
