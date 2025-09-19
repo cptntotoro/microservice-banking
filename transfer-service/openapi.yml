@@ -1,0 +1,180 @@
+openapi: 3.0.3
+info:
+  title: Transfer Service API
+  description: API для обработки переводов между счетами
+  version: 1.0.0
+  contact:
+    name: Transfer Service Team
+    email: transfer@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер разработки
+  - url: http://transfer-service:8080
+    description: Продукционный сервер
+
+tags:
+  - name: transfers
+    description: Операции переводов между счетами
+
+paths:
+  /api/transfer/own:
+    post:
+      tags: [transfers]
+      summary: Перевод между собственными счетами
+      description: Выполняет перевод средств между счетами одного пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          description: Невалидный запрос
+        '404':
+          description: Счет не найден
+        '422':
+          description: Ошибка валидации (недостаточно средств, одинаковые счета и т.д.)
+        '503':
+          description: Сервис временно недоступен
+
+  /api/transfer/other:
+    post:
+      tags: [transfers]
+      summary: Перевод на другой счет
+      description: Выполняет перевод средств на счет другого пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          description: Невалидный запрос
+        '404':
+          description: Счет не найден
+        '422':
+          description: Ошибка валидации
+        '503':
+          description: Сервис временно недоступен
+
+components:
+  schemas:
+    TransferRequest:
+      type: object
+      required:
+        - fromAccountId
+        - amount
+      properties:
+        fromAccountId:
+          type: string
+          format: uuid
+          description: ID счета отправителя
+        toAccountId:
+          type: string
+          format: uuid
+          description: ID счета получателя (для перевода между своими счетами)
+        toAccountNumber:
+          type: string
+          description: Номер счета получателя (для перевода на другой счет)
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          description: Сумма перевода (должна быть больше 0)
+      oneOf:
+        - required: [toAccountId]
+        - required: [toAccountNumber]
+
+    TransferResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS, FAILED]
+          description: Статус выполнения перевода
+        fromAccountId:
+          type: string
+          format: uuid
+          description: ID счета отправителя
+        toAccountId:
+          type: string
+          format: uuid
+          description: ID счета получателя
+        amount:
+          type: number
+          format: decimal
+          description: Исходная сумма перевода
+        convertedAmount:
+          type: number
+          format: decimal
+          description: Конвертированная сумма в валюте получателя
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+        status:
+          type: integer
+          description: HTTP статус код
+        error:
+          type: string
+          description: Тип ошибки
+        message:
+          type: string
+          description: Сообщение об ошибке
+        path:
+          type: string
+          description: URL пути запроса
+
+  responses:
+    BadRequest:
+      description: Невалидный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: Сервис временно недоступен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
