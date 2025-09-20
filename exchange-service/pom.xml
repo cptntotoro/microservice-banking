@@ -107,7 +107,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>ru.practicum.ExchangeServiceApplication</mainClass>
+                    <mainClass>ru.practicum.ExchangeApplication</mainClass>
                     <finalName>exchange-service</finalName>
                 </configuration>
             </plugin>

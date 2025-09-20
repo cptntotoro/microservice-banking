@@ -1,6 +1,6 @@
 services:
   consul-server:
-    image: consul:1.15
+    image: "consul:1.15"
     container_name: consul-server
     ports:
       - "8500:8500"   # UI и HTTP API
@@ -9,10 +9,8 @@ services:
       - "8301:8301"   # Serf LAN
       - "8302:8302"   # Serf WAN
     command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0 -bind=0.0.0.0
-    environment:
-      - CONSUL_BIND_INTERFACE=eth0
     volumes:
-      - consul_data:/consul/data
+      - "consul_data:/consul/data"
     networks:
       - bank-network
     healthcheck:
@@ -44,13 +42,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONSUL_HOST=consul-server
-#      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONSUL_HOST: consul-server
     depends_on:
       - consul-server
-#      - config-server
-#      - discovery-server
     networks:
       - bank-network
 
@@ -76,28 +71,168 @@ services:
       context: ./account-service
       dockerfile: Dockerfile
     container_name: account-service
+    ports:
+      - "8082:8082"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_CLOUD_CONSUL_HOST=consul-server
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONSUL_HOST: consul-server
     depends_on:
       - consul-server
-#      - config-server
-      - postgres
+      - account-db
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
       - bank-network
 
-  postgres:
-    image: postgres:15
+  account-db:
+    image: "postgres:15"
     container_name: postgres
     environment:
-      POSTGRES_DB: bank_accounts
+      POSTGRES_DB: account_service
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - account_data:/var/lib/postgresql/data
+    networks:
+      - bank-network
+
+
+  #  auth-service:
+#    build:
+#      context: ./auth-service
+#      dockerfile: Dockerfile
+#    container_name: auth-service
+#    ports:
+#      - "8083:8083"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - SPRING_CLOUD_CONSUL_HOST=consul-server
+#      - JWT_SECRET=super-secret-jwt-key
+#    depends_on:
+#      - consul-server
+#      - account-service
+#    networks:
+#      - bank-network
+
+  front-ui-service:
+    build:
+      context: ./front-ui-service
+      dockerfile: Dockerfile
+    container_name: front-ui-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker"
+      SPRING_CLOUD_CONSUL_HOST: "consul-server"
+    depends_on:
+      - consul-server
+      - api-gateway
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - bank-network
+
+  blocker-service:
+    build:
+      context: ./blocker-service
+      dockerfile: Dockerfile
+    container_name: blocker-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+    depends_on:
+      - consul-server
+      - blocker-db
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8086/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - bank-network
+
+  blocker-db:
+    image: "postgres:15"
+    container_name: blocker-db
+    environment:
+      POSTGRES_DB: blocker_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - blocker_data:/var/lib/postgresql/data
+      - ./blocker-service/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - bank-network
+
+  cash-service:
+    build:
+      context: ./cash-service
+      dockerfile: Dockerfile
+    container_name: cash-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+    depends_on:
+      - consul-server
+      - cash-db
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - bank-network
+
+  cash-db:
+    image: "postgres:15"
+    container_name: cash-db
+    environment:
+      POSTGRES_DB: cash_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - cash_data:/var/lib/postgresql/data
+    networks:
+      - bank-network
+
+  transfer-service:
+    build:
+      context: ./transfer-service
+      dockerfile: Dockerfile
+    container_name: transfer-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+    depends_on:
+      - consul-server
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
       - bank-network
 
@@ -107,4 +242,6 @@ networks:
 
 volumes:
   consul_data:
-  postgres_data:
+  account_data:
+  blocker_data:
+  cash_data:

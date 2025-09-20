@@ -4,14 +4,20 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.exchange.AvailableCurrenciesDto;
 import ru.practicum.dto.exchange.ExchangeRateDto;
 import ru.practicum.dto.exchange.ExchangeRequestDto;
-import ru.practicum.mapper.exchange.ExchangeRateMapper;
 import ru.practicum.dto.exchange.ExchangeResponseDto;
+import ru.practicum.mapper.exchange.ExchangeRateMapper;
 import ru.practicum.model.operation.OperationType;
 import ru.practicum.service.exchange.ExchangeService;
 
@@ -45,7 +51,6 @@ public class ExchangeRateController {
     public Flux<ExchangeRateDto> getCurrentRates() {
         log.info("Request for all current rates");
         return exchangeService.getCurrentRates()
-                .filter(rate -> "RUB".equals(rate.getBaseCurrency()))
                 .map(exchangeRateMapper::exchangeRateToExchangeRateDto);
     }
 
