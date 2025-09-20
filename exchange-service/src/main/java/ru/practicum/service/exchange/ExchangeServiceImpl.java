@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.practicum.mapper.exchange.ExchangeRateMapper;
 import ru.practicum.model.exchange.ExchangeRate;
 import ru.practicum.model.operation.Operation;
 import ru.practicum.model.operation.OperationType;
@@ -17,6 +16,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -28,19 +28,14 @@ import java.util.stream.Stream;
 public class ExchangeServiceImpl implements ExchangeService {
 
     /**
-     * Маппер курса обмена валют
-     */
-    private final ExchangeRateMapper exchangeRateMapper;
-
-    /**
      * Сервис управления валютными операциями
      */
     private final OperationService operationService;
 
     /**
-     * In-memory кэш курсов
+     * In-memory кэш курсов относительно RUB
      */
-    private final Map<String, ExchangeRate> ratesCache = new ConcurrentHashMap<>();
+    private final Map<String, ExchangeRate> rubRatesCache = new ConcurrentHashMap<>();
 
     /**
      * Доступные валюты
@@ -55,11 +50,11 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public Flux<ExchangeRate> getCurrentRates() {
-        if (ratesCache.isEmpty()) {
-            return Flux.empty(); // Курсы загружаются только через update-rates
+        if (rubRatesCache.isEmpty()) {
+            return Flux.empty();
         }
-        return Flux.fromIterable(ratesCache.values())
-                .doOnSubscribe(s -> log.debug("Providing all current rates from cache"));
+        return Flux.fromIterable(rubRatesCache.values())
+                .doOnSubscribe(s -> log.debug("Предоставление всех текущих курсов RUB из кэша"));
     }
 
     @Override
@@ -68,25 +63,30 @@ public class ExchangeServiceImpl implements ExchangeService {
         String normalizedTo = toCurrency.toUpperCase();
 
         if (!availableCurrencies.contains(normalizedFrom) || !availableCurrencies.contains(normalizedTo)) {
-            return Mono.error(new IllegalArgumentException("Unsupported currency: " + normalizedFrom + " or " + normalizedTo + ". Supported: " + String.join(", ", availableCurrencies)));
-        }
-
-        String cacheKey = generateCacheKey(normalizedFrom, normalizedTo);
-        ExchangeRate cachedRate = ratesCache.get(cacheKey);
-
-        if (cachedRate != null) {
-            return Mono.just(cachedRate);
+            return Mono.error(new IllegalArgumentException("Неподдерживаемая валюта: " + normalizedFrom + " или " + normalizedTo + ". Поддерживаемые: " + String.join(", ", availableCurrencies)));
         }
 
         if (isSameCurrency(normalizedFrom, normalizedTo)) {
-            return Mono.just(createUnitRate(normalizedFrom, normalizedTo))
-                    .doOnSuccess(this::cacheRate);
+            return Mono.just(createUnitRate(normalizedFrom, normalizedTo));
         }
 
-        return Mono.zip(getRate(normalizedFrom, "RUB"), getRate("RUB", normalizedTo))
-                .map(tuple -> calculateCrossRate(normalizedFrom, normalizedTo, tuple.getT1(), tuple.getT2()))
-                .doOnSuccess(this::cacheRate)
-                .onErrorMap(e -> new RuntimeException("Failed to calculate cross rate through RUB", e));
+        if ("RUB".equals(normalizedTo)) {
+            ExchangeRate rubRate = rubRatesCache.get(normalizedFrom);
+            if (rubRate != null) {
+                return Mono.just(rubRate);
+            }
+            return Mono.error(new IllegalArgumentException("Курс не найден для: " + normalizedFrom + "/RUB"));
+        }
+
+        if ("RUB".equals(normalizedFrom)) {
+            ExchangeRate rubRate = rubRatesCache.get(normalizedTo);
+            if (rubRate != null) {
+                return Mono.just(invertRate(rubRate));
+            }
+            return Mono.error(new IllegalArgumentException("Курс не найден для: RUB/" + normalizedTo));
+        }
+
+        return calculateCrossRateThroughRUB(normalizedFrom, normalizedTo);
     }
 
     @Override
@@ -108,16 +108,59 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public Mono<Void> updateRatesFromGenerator(Flux<ExchangeRate> rates) {
         return rates
-                .doOnNext(this::cacheRate)
+                .doOnNext(rate -> {
+                    if ("RUB".equals(rate.getTargetCurrency())) {
+                        rubRatesCache.put(rate.getBaseCurrency(), rate);
+                    }
+                })
                 .collectList()
                 .doOnNext(rateList -> {
-                    availableCurrencies = rateList.stream()
+                    // Гарантируем, что RUB всегда будет в списке доступных валют
+                    Set<String> currencies = rateList.stream()
                             .flatMap(rate -> Stream.of(rate.getBaseCurrency(), rate.getTargetCurrency()))
-                            .distinct()
-                            .collect(Collectors.toList());
-                    log.info("Updated rates from Generator: {} pairs, currencies: {}", rateList.size(), availableCurrencies);
+                            .collect(Collectors.toSet());
+                    currencies.add("RUB"); // Всегда добавляем RUB
+                    availableCurrencies = List.copyOf(currencies);
+                    log.info("Обновлены курсы RUB из генератора: {} пар, валюты: {}",
+                            rubRatesCache.size(), availableCurrencies);
                 })
                 .then();
+    }
+
+    private Mono<ExchangeRate> calculateCrossRateThroughRUB(String fromCurrency, String toCurrency) {
+        return Mono.zip(
+                getRate(fromCurrency, "RUB"), // Например, EUR/RUB
+                getRate(toCurrency, "RUB")    // Например, USD/RUB
+        ).map(tuple -> {
+            ExchangeRate fromToRub = tuple.getT1(); // EUR/RUB
+            ExchangeRate toToRub = tuple.getT2();   // USD/RUB
+
+            // Правильный расчет: EUR/USD = (EUR/RUB) / (USD/RUB)
+            BigDecimal crossBuyRate = fromToRub.getBuyRate()
+                    .divide(toToRub.getSellRate(), 6, RoundingMode.HALF_UP);
+            BigDecimal crossSellRate = fromToRub.getSellRate()
+                    .divide(toToRub.getBuyRate(), 6, RoundingMode.HALF_UP);
+
+            // Добавляем спред к кросс-курсу
+            BigDecimal spreadAmountBuy = crossBuyRate.multiply(spread);
+            BigDecimal spreadAmountSell = crossSellRate.multiply(spread);
+
+            return ExchangeRate.builder()
+                    .baseCurrency(fromCurrency)
+                    .targetCurrency(toCurrency)
+                    .buyRate(crossBuyRate.subtract(spreadAmountBuy).setScale(scale, RoundingMode.HALF_UP))
+                    .sellRate(crossSellRate.add(spreadAmountSell).setScale(scale, RoundingMode.HALF_UP))
+                    .build();
+        });
+    }
+
+    private ExchangeRate invertRate(ExchangeRate rate) {
+        return ExchangeRate.builder()
+                .baseCurrency("RUB")
+                .targetCurrency(rate.getBaseCurrency())
+                .buyRate(BigDecimal.ONE.divide(rate.getSellRate(), scale, RoundingMode.HALF_UP))
+                .sellRate(BigDecimal.ONE.divide(rate.getBuyRate(), scale, RoundingMode.HALF_UP))
+                .build();
     }
 
     private Mono<Void> saveOperation(String from, String to, BigDecimal amount, BigDecimal converted, BigDecimal rate, OperationType type, UUID userId) {
@@ -134,31 +177,8 @@ public class ExchangeServiceImpl implements ExchangeService {
         return operationService.saveOperation(operation).then();
     }
 
-    private ExchangeRate calculateCrossRate(String from, String to, ExchangeRate fromRub, ExchangeRate rubTo) {
-        BigDecimal crossRate = fromRub.getBuyRate().multiply(rubTo.getBuyRate())
-                .setScale(6, RoundingMode.HALF_UP);
-
-        BigDecimal spreadAmount = crossRate.multiply(spread);
-
-        return ExchangeRate.builder()
-                .baseCurrency(from)
-                .targetCurrency(to)
-                .buyRate(crossRate.subtract(spreadAmount).setScale(scale, RoundingMode.HALF_UP))
-                .sellRate(crossRate.add(spreadAmount).setScale(scale, RoundingMode.HALF_UP))
-                .build();
-    }
-
     private BigDecimal calculateConversion(BigDecimal amount, BigDecimal rate) {
         return amount.multiply(rate).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private void cacheRate(ExchangeRate rate) {
-        String key = generateCacheKey(rate.getBaseCurrency(), rate.getTargetCurrency());
-        ratesCache.put(key, rate);
-    }
-
-    private String generateCacheKey(String from, String to) {
-        return from + "_" + to;
     }
 
     private boolean isSameCurrency(String from, String to) {

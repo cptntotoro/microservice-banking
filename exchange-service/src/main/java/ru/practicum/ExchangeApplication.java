@@ -6,10 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class ExchangeServiceApplication {
+public class ExchangeApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ExchangeServiceApplication.class, args);
+        SpringApplication.run(ExchangeApplication.class, args);
     }
 
 }
