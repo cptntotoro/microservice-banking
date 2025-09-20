@@ -1,11 +1,19 @@
 # Переменные среды
 exchange:
-  service:
-    url: http://localhost:8081
   rate:
     generation:
       interval:
         ms: 1000
+
+app:
+  currencies:
+    supported:
+      - RUB
+      - USD
+      - EUR
+      - CNY
+      - GBP
+      - JPY
 
 spring:
   application:

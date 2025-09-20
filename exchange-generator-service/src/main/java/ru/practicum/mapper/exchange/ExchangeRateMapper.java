@@ -1,9 +1,9 @@
-package ru.practicum.mapper;
+package ru.practicum.mapper.exchange;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import ru.practicum.client.ExchangeRateDto;
-import ru.practicum.model.ExchangeRate;
+import ru.practicum.model.exchange.ExchangeRate;
 
 /**
  * Маппер курса обмена валюты

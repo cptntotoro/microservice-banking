@@ -1,3 +1,21 @@
+# Переменные среды
+exchange:
+  rate:
+    generation:
+      interval:
+        ms: 1000
+
+app:
+  currencies:
+    supported:
+      - RUB
+      - USD
+      - EUR
+      - CNY
+      - GBP
+      - JPY
+
+# Конфигурация приложения
 spring:
   cloud:
     consul:

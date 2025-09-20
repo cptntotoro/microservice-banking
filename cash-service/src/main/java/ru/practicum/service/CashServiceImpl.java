@@ -24,7 +24,7 @@ import java.util.UUID;
 @Slf4j
 public class CashServiceImpl implements CashService {
     /**
-     * Клиент обращения к сервису аккаунтов
+     * Клиент для обращений к сервису аккаунтов
      */
     private final AccountsServiceClient accountsServiceClient;
 

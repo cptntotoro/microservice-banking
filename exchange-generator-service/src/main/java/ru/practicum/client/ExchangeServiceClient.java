@@ -58,34 +58,3 @@ public class ExchangeServiceClient {
         });
     }
 }
-
-//@Component
-//@RequiredArgsConstructor
-//@Slf4j
-//public class ExchangeServiceClient {
-//
-//    private final WebClient.Builder webClientBuilder;
-//    @Value("${gateway.url:http://localhost:8080}") // URL gateway из конфигурации
-//    private String gatewayUrl;
-//
-//    public Mono<Void> sendExchangeRates(List<ExchangeRateDto> rates) {
-//        log.info("Sending {} exchange rates to Exchange service via gateway", rates.size());
-//
-//        String url = gatewayUrl + "/exchange-service/api/exchange/update-rates";
-//        log.debug("Calling Exchange service via gateway at: {}", url);
-//
-//        return webClientBuilder.build()
-//                .post()
-//                .uri(url)
-//                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-//                .bodyValue(rates)
-//                .retrieve()
-//                .bodyToMono(Void.class)
-//                .doOnSuccess(response -> log.info("Successfully sent rates to Exchange service"))
-//                .doOnError(error -> log.error("Error sending rates to Exchange: {}", error.getMessage()))
-//                .onErrorResume(e -> {
-//                    log.error("Failed to send rates to Exchange via gateway", e);
-//                    return Mono.error(new RuntimeException("Exchange service unavailable: " + e.getMessage()));
-//                });
-//    }
-//}

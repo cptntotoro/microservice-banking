@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Клиент для взаимодействия с сервисом блокировки операций
+ * Клиент для обращений к сервису блокировки операций
  */
 @Component
 @RequiredArgsConstructor
