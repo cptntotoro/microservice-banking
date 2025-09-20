@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 /**
- * Клиент обращения к сервису оповещений
+ * Клиент для обращений к сервису оповещений
  */
 @Component
 @RequiredArgsConstructor

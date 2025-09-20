@@ -1,7 +1,8 @@
-package ru.practicum.service;
+package ru.practicum.service.exchange;
 
 import reactor.core.publisher.Flux;
-import ru.practicum.model.ExchangeRate;
+import ru.practicum.model.currency.Currency;
+import ru.practicum.model.exchange.ExchangeRate;
 
 /**
  * Сервис генерации курсов обмена валют
@@ -14,4 +15,11 @@ public interface ExchangeRateGeneratorService {
      * @return Список курсов обмена валют
      */
     Flux<ExchangeRate> getCurrentRates();
+
+    /**
+     * Получить доступные валюты
+     *
+     * @return Список валют
+     */
+    Flux<Currency> getAvailableCurrencies();
 }

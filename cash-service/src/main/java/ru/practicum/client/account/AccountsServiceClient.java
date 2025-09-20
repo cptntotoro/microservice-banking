@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Клиент обращения к сервису аккаунтов
+ * Клиент для обращений к сервису аккаунтов
  */
 @Component
 @RequiredArgsConstructor

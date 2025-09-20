@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: Exchange Generator Service API
+  description: Микросервис для генерации курсов валют относительно базовой валюты RUB
+  version: 1.0.0
+  contact:
+    name: Exchange Generator Team
+    email: support@exchange-generator.ru
+
+servers:
+  - url: http://localhost:8084
+    description: Локальный сервер разработки
+  - url: http://exchange-generator-service:8084
+    description: Продукционный сервер
+
+tags:
+  - name: currencies
+    description: Операции с валютами
+  - name: exchange-rates
+    description: Операции с курсами валют
+
+paths:
+  /api/currencies/available:
+    get:
+      tags:
+        - currencies
+      summary: Получение списка доступных валют
+      description: Возвращает список всех поддерживаемых валют, сконфигурированных в системе
+      operationId: getAvailableCurrencies
+      responses:
+        '200':
+          description: Успешный запрос списка валют
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurrencyDto'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/generator/rates:
+    get:
+      tags:
+        - exchange-rates
+      summary: Получение текущих сгенерированных курсов валют
+      description: Возвращает текущие курсы валют относительно базовой валюты RUB
+      operationId: getCurrentRates
+      responses:
+        '200':
+          description: Успешный запрос курсов валют
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeRateDto'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CurrencyDto:
+      type: object
+      description: DTO валюты
+      properties:
+        code:
+          type: string
+          description: Код валюты (ISO 4217)
+          example: USD
+        name:
+          type: string
+          description: Название валюты
+          example: US Dollar
+      required:
+        - code
+        - name
+
+    ExchangeRateDto:
+      type: object
+      description: DTO курса обмена валюты
+      properties:
+        baseCurrency:
+          type: string
+          description: Исходная валюта
+          example: USD
+        targetCurrency:
+          type: string
+          description: Целевая валюта конвертации (всегда RUB)
+          example: RUB
+        buyRate:
+          type: number
+          format: decimal
+          description: Цена покупки (курс для покупки базовой валюты за RUB)
+          example: 74.9426
+        sellRate:
+          type: number
+          format: decimal
+          description: Цена продажи (курс для продажи базовой валюты за RUB)
+          example: 75.6958
+      required:
+        - baseCurrency
+        - targetCurrency
+        - buyRate
+        - sellRate
+
+    ErrorResponse:
+      type: object
+      description: Ответ об ошибке
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+        status:
+          type: integer
+          description: HTTP статус код
+        error:
+          type: string
+          description: Тип ошибки
+        message:
+          type: string
+          description: Сообщение об ошибке
+        path:
+          type: string
+          description: Путь запроса
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
+
+  responses:
+    InternalServerError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  parameters:
+    CurrencyCode:
+      name: currencyCode
+      in: path
+      description: Код валюты (ISO 4217)
+      required: true
+      schema:
+        type: string
+        example: USD
+
+securitySchemes:
+  BearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
