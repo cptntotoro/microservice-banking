@@ -5,7 +5,9 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import ru.practicum.dao.OperationDao;
 
-public interface OperationRepository extends ReactiveCrudRepository<OperationDao, Long> {
+import java.util.UUID;
+
+public interface OperationRepository extends ReactiveCrudRepository<OperationDao, UUID> {
 
     @Query("SELECT * FROM operations ORDER BY created_at DESC LIMIT :limit")
     Flux<OperationDao> findRecentOperations(int limit);

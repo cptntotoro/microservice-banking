@@ -15,42 +15,33 @@ import ru.practicum.mapper.TransferMapper;
 import ru.practicum.model.TransferRequest;
 import ru.practicum.service.TransferService;
 
-/**
- * Контроллер для обработки переводов между счетами
- */
 @RestController
 @RequestMapping("/api/transfer")
 @RequiredArgsConstructor
 public class TransferController {
-
+    /**
+     * Сервис перевода средств между счетами
+     */
     private final TransferService transferService;
-    private final TransferMapper transferMapper;
 
     /**
-     * Перевод между собственными счетами пользователя
-     *
-     * @param requestDto DTO запроса на перевод
-     * @return DTO ответа с информацией о переводе
+     * Маппер запросов на перевод
      */
+    private final TransferMapper transferMapper;
+
     @PostMapping("/own")
     @ResponseStatus(HttpStatus.OK)
     public Mono<TransferResponseDto> transferOwn(@Valid @RequestBody TransferRequestDto requestDto) {
-        TransferRequest request = transferMapper.toModel(requestDto);
+        TransferRequest request = transferMapper.transferRequestDtoToTransferRequest(requestDto);
         return transferService.transferBetweenOwnAccounts(request)
-                .map(transferMapper::toResponseDto);
+                .map(transferMapper::transferResponseToTransferResponseDto);
     }
 
-    /**
-     * Перевод на счет другого пользователя
-     *
-     * @param requestDto DTO запроса на перевод
-     * @return DTO ответа с информацией о переводе
-     */
     @PostMapping("/other")
     @ResponseStatus(HttpStatus.OK)
     public Mono<TransferResponseDto> transferOther(@Valid @RequestBody TransferRequestDto requestDto) {
-        TransferRequest request = transferMapper.toModel(requestDto);
+        TransferRequest request = transferMapper.transferRequestDtoToTransferRequest(requestDto);
         return transferService.transferToOtherAccount(request)
-                .map(transferMapper::toResponseDto);
+                .map(transferMapper::transferResponseToTransferResponseDto);
     }
 }

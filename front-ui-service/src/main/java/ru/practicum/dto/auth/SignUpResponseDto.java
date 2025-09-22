@@ -1,7 +1,7 @@
 package ru.practicum.dto.auth;
 
 import lombok.Data;
-import ru.practicum.client.user.auth.LoginResponseDto;
+import ru.practicum.client.account.user.LoginResponseClientDto;
 
 import java.time.LocalDateTime;
 
@@ -12,5 +12,5 @@ public class SignUpResponseDto {
     private String email;
     private String message;
     private LocalDateTime registeredAt;
-    private LoginResponseDto loginResponse; // Для автоматического логина после регистрации
+    private LoginResponseClientDto loginResponse; // Для автоматического логина после регистрации
 }

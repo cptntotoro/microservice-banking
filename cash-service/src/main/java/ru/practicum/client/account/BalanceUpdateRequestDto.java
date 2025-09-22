@@ -22,7 +22,7 @@ public class BalanceUpdateRequestDto {
     private UUID accountId;
 
     /**
-     * Сумма
+     * Сумма операции
      */
     private BigDecimal amount;
 

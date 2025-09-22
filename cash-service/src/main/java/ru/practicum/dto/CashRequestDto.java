@@ -27,7 +27,7 @@ public class CashRequestDto {
     private UUID userId;
 
     /**
-     * Сумма
+     * Сумма операции
      */
     private BigDecimal amount;
 

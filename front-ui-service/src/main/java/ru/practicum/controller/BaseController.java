@@ -4,20 +4,6 @@ import org.springframework.ui.Model;
 import reactor.core.publisher.Mono;
 
 public abstract class BaseController {
-
-//    /**
-//     * Отрисовать страницу
-//     *
-//     * @param model Модель
-//     * @param page Путь до HTML файла страницы из корня /templates/
-//     * @param title Название страницы (SEO)
-//     * @param description Описание страницы (SEO)
-//     * @return Финальная страница
-//     */
-//    protected Mono<String> renderPage(Model model, String page, String title, String description) {
-//        return renderPage(model, page, title, description, page, page);
-//    }
-
     /**
      * Отрисовать страницу
      *

@@ -1,6 +1,9 @@
 package ru.practicum.model.operation;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,12 +28,12 @@ public class Operation {
     private UUID userId;
 
     /**
-     * Исходная валюта
+     * Код исходной валюты
      */
     private String fromCurrency;
 
     /**
-     * Целевая валюта
+     * Код целевой валюты
      */
     private String toCurrency;
 

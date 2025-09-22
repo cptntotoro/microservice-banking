@@ -13,9 +13,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ConvertCurrencyResponseDto {
+    /**
+     * Код исходной валюты
+     */
     private String fromCurrency;
+
+    /**
+     * Код целевой валюты
+     */
     private String toCurrency;
     private BigDecimal originalAmount;
+
+    /**
+     * Сумма целевой операции
+     */
     private BigDecimal convertedAmount;
     private BigDecimal exchangeRate;
     private BigDecimal commission;

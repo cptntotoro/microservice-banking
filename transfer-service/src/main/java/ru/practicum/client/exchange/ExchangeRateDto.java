@@ -9,21 +9,20 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * DTO для курса валют
+ * DTO курса валют
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExchangeRateDto {
-
     /**
-     * Код валюты отправителя
+     * Код исходной валюты
      */
     private String fromCurrency;
 
     /**
-     * Код валюты получателя
+     * Код целевой валюты
      */
     private String toCurrency;
 

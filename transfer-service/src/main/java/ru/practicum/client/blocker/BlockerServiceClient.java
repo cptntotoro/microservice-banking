@@ -12,10 +12,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.practicum.exception.ServiceClientException;
 
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 @Component
@@ -26,8 +24,7 @@ public class BlockerServiceClient {
     private final WebClient.Builder webClientBuilder;
     private final DiscoveryClient discoveryClient;
 
-    public Mono<Boolean> checkSuspicious(UUID fromId, UUID toId, BigDecimal amount, boolean isOwn) {
-        CheckRequestDto request = new CheckRequestDto(fromId, toId, amount, isOwn);
+    public Mono<OperationCheckResponseDto> checkOperation(OperationCheckRequestDto request) {
         return getBlockerServiceUrl().flatMap(baseUrl -> {
             String url = baseUrl + "/api/blocker/check";
             log.debug("Проверка на подозрительность: {}", url);
@@ -43,14 +40,14 @@ public class BlockerServiceClient {
                                     .defaultIfEmpty("")
                                     .flatMap(body -> Mono.error(ServiceClientException.internalError(
                                             "blocker-service",
-                                            "checkSuspicious",
+                                            "checkOperation",
                                             "Ошибка при проверке безопасности: " + response.statusCode() + " - " + body
                                     )))
                     )
-                    .bodyToMono(Boolean.class)
+                    .bodyToMono(OperationCheckResponseDto.class)
                     .timeout(Duration.ofSeconds(10))
                     .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("blocker-service", "checkSuspicious", "Таймаут при проверке безопасности"))
+                            ServiceClientException.timeout("blocker-service", "checkOperation", "Таймаут при проверке безопасности"))
                     .doOnError(error -> log.error("Ошибка при проверке безопасности: {}", error.getMessage()));
         });
     }

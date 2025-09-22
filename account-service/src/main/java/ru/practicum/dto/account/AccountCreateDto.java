@@ -18,6 +18,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountCreateDto {
+    /**
+     * Идентификатор пользователя
+     */
+    @NotNull(message = "ID пользователя обязателен")
+    private UUID userId;
 
     /**
      * Идентификатор валюты

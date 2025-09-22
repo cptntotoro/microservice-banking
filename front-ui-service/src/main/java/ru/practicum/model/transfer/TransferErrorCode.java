@@ -1,0 +1,19 @@
+package ru.practicum.model.transfer;
+
+/**
+ * Коды ошибок для операций с переводами
+ */
+public enum TransferErrorCode {
+    ACCOUNT_OWNERSHIP_VIOLATION,
+    SAME_ACCOUNT_TRANSFER,
+    FROM_ACCOUNT_NOT_FOUND,
+    TO_ACCOUNT_NOT_FOUND,
+    INSUFFICIENT_BALANCE,
+    INVALID_AMOUNT,
+    RECIPIENT_NOT_FOUND,
+    RECIPIENT_NO_ACCOUNT,
+    TRANSFER_SERVICE_UNAVAILABLE,
+    EXCHANGE_RATE_UNAVAILABLE,
+    BLOCKER_REJECTION,
+    INTERNAL_ERROR
+}

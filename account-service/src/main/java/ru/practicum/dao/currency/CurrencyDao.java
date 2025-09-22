@@ -6,10 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -30,7 +28,7 @@ public class CurrencyDao {
     private UUID id;
 
     /**
-     * Код валюты (USD, EUR, RUB)
+     * Код валюты
      */
     private String code;
 
@@ -38,10 +36,4 @@ public class CurrencyDao {
      * Название валюты
      */
     private String name;
-
-    /**
-     * Дата создания
-     */
-    @Column("created_at")
-    private LocalDateTime createdAt;
 }

@@ -19,6 +19,10 @@ public class CashOperationDao {
     private UUID operationUuid;
     private UUID accountId;
     private String type;
+
+    /**
+     * Сумма операции
+     */
     private BigDecimal amount;
     private String currencyCode;
     private String status;

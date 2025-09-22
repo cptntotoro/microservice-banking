@@ -66,7 +66,7 @@ class TransferServiceTest {
 
     private AccountResponseDto createAccountResponse(UUID id, String currencyCode, BigDecimal balance) {
         return AccountResponseDto.builder()
-                .id(id)
+                .accountId(id)
                 .currencyCode(currencyCode)
                 .balance(balance)
                 .accountNumber("ACC" + id.toString().substring(0, 8))

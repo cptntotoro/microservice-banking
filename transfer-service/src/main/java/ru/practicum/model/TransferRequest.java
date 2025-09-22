@@ -9,14 +9,32 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Запрос на перевод средств
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class TransferRequest {
+    /**
+     * Идентификатор счета отправителя
+     */
     private UUID fromAccountId;
+
+    /**
+     * Идентификатор счета получателя
+     */
     private UUID toAccountId;
+
+    /**
+     * Номер счета получателя
+     */
     private String toAccountNumber;
+
+    /**
+     * Сумма операции
+     */
     private BigDecimal amount;
 }

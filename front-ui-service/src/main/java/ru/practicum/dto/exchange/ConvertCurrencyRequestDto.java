@@ -14,12 +14,21 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ConvertCurrencyRequestDto {
+    /**
+     * Код исходной валюты
+     */
     @NotNull(message = "Исходная валюта обязательна")
     private String fromCurrency;
 
+    /**
+     * Код целевой валюты
+     */
     @NotNull(message = "Целевая валюта обязательна")
     private String toCurrency;
 
+    /**
+     * Сумма операции
+     */
     @NotNull(message = "Сумма обязательна")
     @Positive(message = "Сумма должна быть положительной")
     private BigDecimal amount;

@@ -82,7 +82,7 @@ public class AccountServiceClient {
         });
     }
 
-    public Mono<AccountResponseDto> deposit(UUID accountId, BigDecimal amount) {
+    public Mono<Void> deposit(UUID accountId, BigDecimal amount) {
         DepositWithdrawDto dto = DepositWithdrawDto.builder()
                 .accountId(accountId)
                 .amount(amount)
@@ -104,19 +104,19 @@ public class AccountServiceClient {
                                     .flatMap(body -> Mono.error(ServiceClientException.internalError(
                                             "account-service",
                                             "deposit",
-                                            "Ошибка при пополнении счета: " + response.statusCode() + " - " + body
+                                            "Ошибка при пополнении: " + response.statusCode() + " - " + body
                                     )))
                     )
-                    .bodyToMono(AccountResponseDto.class)
+                    .bodyToMono(Void.class)
                     .timeout(Duration.ofSeconds(10))
                     .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("account-service", "deposit", "Таймаут при пополнении счета"))
-                    .doOnSuccess(account -> log.info("Счет {} успешно пополнен на сумму {}", accountId, amount))
-                    .doOnError(error -> log.error("Ошибка при пополнении счета {} на сумму {}: {}", accountId, amount, error.getMessage()));
+                            ServiceClientException.timeout("account-service", "deposit", "Таймаут при пополнении"))
+                    .doOnSuccess(v -> log.info("Пополнение {} на счет {} выполнено", amount, accountId))
+                    .doOnError(error -> log.error("Ошибка при пополнении счета: {}", error.getMessage()));
         });
     }
 
-    public Mono<AccountResponseDto> withdraw(UUID accountId, BigDecimal amount) {
+    public Mono<Void> withdraw(UUID accountId, BigDecimal amount) {
         DepositWithdrawDto dto = DepositWithdrawDto.builder()
                 .accountId(accountId)
                 .amount(amount)
@@ -138,23 +138,24 @@ public class AccountServiceClient {
                                     .flatMap(body -> Mono.error(ServiceClientException.internalError(
                                             "account-service",
                                             "withdraw",
-                                            "Ошибка при снятии со счета: " + response.statusCode() + " - " + body
+                                            "Ошибка при снятии: " + response.statusCode() + " - " + body
                                     )))
                     )
-                    .bodyToMono(AccountResponseDto.class)
+                    .bodyToMono(Void.class)
                     .timeout(Duration.ofSeconds(10))
                     .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("account-service", "withdraw", "Таймаут при снятии со счета"))
-                    .doOnSuccess(account -> log.info("Снято {} со счета {}", amount, accountId))
-                    .doOnError(error -> log.error("Ошибка при снятии {} со счета {}: {}", amount, accountId, error.getMessage()));
+                            ServiceClientException.timeout("account-service", "withdraw", "Таймаут при снятии"))
+                    .doOnSuccess(v -> log.info("Снятие {} со счета {} выполнено", amount, accountId))
+                    .doOnError(error -> log.error("Ошибка при снятии со счета: {}", error.getMessage()));
         });
     }
 
-    public Mono<Void> transferBetweenOwnAccounts(UUID fromAccountId, UUID toAccountId, BigDecimal amount) {
+    public Mono<Void> transferBetweenOwnAccounts(UUID fromAccountId, UUID toAccountId, BigDecimal amount, BigDecimal convertedAmount) {
         TransferDto dto = TransferDto.builder()
                 .fromAccountId(fromAccountId)
                 .toAccountId(toAccountId)
                 .amount(amount)
+                .amount(convertedAmount)
                 .build();
 
         return getAccountServiceUrl().flatMap(baseUrl -> {
@@ -185,11 +186,12 @@ public class AccountServiceClient {
         });
     }
 
-    public Mono<Void> transferToOtherAccount(UUID fromAccountId, String toAccountNumber, BigDecimal amount) {
+    public Mono<Void> transferToOtherAccount(UUID fromAccountId, UUID toAccountId, BigDecimal amount, BigDecimal convertedAmount) {
         TransferDto dto = TransferDto.builder()
                 .fromAccountId(fromAccountId)
-                .toAccountNumber(toAccountNumber)
+                .toAccountId(toAccountId)
                 .amount(amount)
+                .amount(convertedAmount)
                 .build();
 
         return getAccountServiceUrl().flatMap(baseUrl -> {
@@ -215,7 +217,7 @@ public class AccountServiceClient {
                     .timeout(Duration.ofSeconds(10))
                     .onErrorMap(TimeoutException.class, ex ->
                             ServiceClientException.timeout("account-service", "transferToOtherAccount", "Таймаут при переводе"))
-                    .doOnSuccess(v -> log.info("Перевод {} со счета {} на счет {} выполнен", amount, fromAccountId, toAccountNumber))
+                    .doOnSuccess(v -> log.info("Перевод {} со счета {} на счет {} выполнен", amount, fromAccountId, toAccountId))
                     .doOnError(error -> log.error("Ошибка при переводе на другой счет: {}", error.getMessage()));
         });
     }

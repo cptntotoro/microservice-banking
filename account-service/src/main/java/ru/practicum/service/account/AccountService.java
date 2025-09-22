@@ -4,67 +4,106 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.model.account.Account;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * Сервис для работы со счетами
+ * Сервис управления счетами
  */
 public interface AccountService {
 
     /**
-     * Создание нового счета
+     * Создать счет
      *
-     * @param account Модель счета
-     * @return Модель созданного счета
+     * @param account Счет
+     * @return Созданный счет
      */
     Mono<Account> createAccount(Account account);
 
     /**
-     * Получение счета по идентификатору
+     * Получить счет по идентификатору
      *
      * @param accountId Идентификатор счета
-     * @return Модель счета
+     * @return Счет
      */
     Mono<Account> getAccountById(UUID accountId);
 
     /**
-     * Получение всех счетов пользователя
+     * Получить счета пользователя
      *
      * @param userId Идентификатор пользователя
-     * @return Список моделей счетов
+     * @return Список счетов
      */
     Flux<Account> getUserAccounts(UUID userId);
 
     /**
-     * Получение счета по номеру
+     * Получить счет по номеру
      *
      * @param accountNumber Номер счета
-     * @return Модель счета
+     * @return Счет
      */
     Mono<Account> getAccountByNumber(String accountNumber);
 
     /**
-     * Удаление счета
+     * Удалить счет
      *
      * @param accountId Идентификатор счета
-     * @return Результат операции
+     * @return Пустой результат
      */
     Mono<Void> deleteAccount(UUID accountId);
 
     /**
-     * Проверка существования счета у пользователя в валюте
+     * Проверить наличие счета у пользователя в указанной валюте
      *
-     * @param userId Идентификатор пользователя
+     * @param userId     Идентификатор пользователя
      * @param currencyId Идентификатор валюты
-     * @return true если счет существует
+     * @return Да / Нет
      */
     Mono<Boolean> existsByUserAndCurrency(UUID userId, UUID currencyId);
 
     /**
-     * Проверка наличия средств на счете
+     * Проверить наличие ненулевого баланса на счете
      *
      * @param accountId Идентификатор счета
-     * @return true если на счете есть средства
+     * @return Да / Нет
      */
     Mono<Boolean> hasBalance(UUID accountId);
+
+    /**
+     * Пополнить счет
+     *
+     * @param accountId Идентификатор счета
+     * @param amount    Сумма пополнения
+     * @return Обновленный счет
+     */
+    Mono<Account> deposit(UUID accountId, BigDecimal amount);
+
+    /**
+     * Снять деньги со счета
+     *
+     * @param accountId Идентификатор счета
+     * @param amount    Сумма снятия
+     * @return Обновленный счет
+     */
+    Mono<Account> withdraw(UUID accountId, BigDecimal amount);
+
+    /**
+     * Перевести деньги между счетами одного пользователя
+     *
+     * @param fromAccountId Идентификатор счета отправителя
+     * @param toAccountId   Идентификатор счета получателя
+     * @param amount        Сумма перевода
+     * @return Пустой результат
+     */
+    Mono<Void> transferBetweenOwnAccounts(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
+
+    /**
+     * Перевести деньги на счет другого пользователя
+     *
+     * @param fromAccountId Идентификатор счета отправителя
+     * @param toAccountNumber Номер счета получателя
+     * @param amount        Сумма перевода
+     * @return Пустой результат
+     */
+    Mono<Void> transferToOtherAccount(UUID fromAccountId, String toAccountNumber, BigDecimal amount);
 }

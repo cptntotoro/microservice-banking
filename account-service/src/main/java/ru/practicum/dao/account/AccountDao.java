@@ -47,11 +47,11 @@ public class AccountDao {
      */
     private BigDecimal balance;
 
-    /**
-     * Номер счета
-     */
-    @Column("account_number")
-    private String accountNumber;
+//    /**
+//     * Номер счета
+//     */
+//    @Column("account_number")
+//    private String accountNumber;
 
     /**
      * Дата создания

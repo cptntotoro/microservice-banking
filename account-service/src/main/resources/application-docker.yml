@@ -12,7 +12,7 @@ spring:
         register: true
 
   r2dbc:
-    url: r2dbc:postgresql://postgres:5432/bank_accounts
+    url: r2dbc:postgresql://postgres:5432/account_service
     username: postgres
     password: postgres
     pool:

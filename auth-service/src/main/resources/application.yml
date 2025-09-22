@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: auth-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instance-id: ${spring.application.name}:${random.uuid}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        register: true
+#      config:
+#        enabled: true
+#        format: yaml
+#        prefix: config
+#        default-context: application
+#        profile-separator: ','
+#        data-key: data
+
+server:
+  port: 8083
+
+jwt:
+  secret: super-secret-jwt-key
+  expiration: 3600
+  issuer: auth-service
+
+user-service:
+  url: http://account-service:8082/api/users
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework: INFO
+    ru.practicum: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.consul: INFO

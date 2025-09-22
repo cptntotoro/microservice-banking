@@ -5,27 +5,45 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.practicum.dao.user.UserDao;
+import ru.practicum.exception.ErrorReasons;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.mapper.user.UserMapper;
+import ru.practicum.model.account.Account;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.user.UserRepository;
+import ru.practicum.repository.user.UserRoleRepository;
+import ru.practicum.service.account.AccountServiceImpl;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserRoleRepository userRoleRepository;
+
+    @Mock
+    private AccountServiceImpl accountService;
 
     @Mock
     private UserMapper userMapper;
@@ -71,28 +89,44 @@ public class UserServiceTest {
                 .build();
     }
 
-//    @Test
-//    void registerUser_ValidUser_ReturnsRegisteredUser() {
-//        User user = createTestUser();
-//        UserDao userDao = createTestUserDao();
-//        String password = "password123";
-//
-//        when(userRepository.existsByUsername(user.getUsername())).thenReturn(Mono.just(false));
-//        when(userRepository.existsByEmail(user.getEmail())).thenReturn(Mono.just(false));
-//        when(passwordEncoder.encode(password)).thenReturn("encodedPassword");
-//        when(userMapper.userToUserDao(user)).thenReturn(userDao);
-//        when(userRepository.save(any(UserDao.class))).thenReturn(Mono.just(userDao));
-//        when(userMapper.userDaoToUser(userDao)).thenReturn(user);
-//
-//        StepVerifier.create(userService.registerUser(user, password))
-//                .expectNext(user)
-//                .verifyComplete();
-//
-//        verify(userRepository).existsByUsername(user.getUsername());
-//        verify(userRepository).existsByEmail(user.getEmail());
-//        verify(passwordEncoder).encode(password);
-//        verify(userRepository).save(any(UserDao.class));
-//    }
+    @Test
+    void registerUser_ValidUser_ReturnsRegisteredUser() {
+        User user = createTestUser();
+        UserDao userDao = createTestUserDao();
+        String password = "password123";
+        String roleName = "ROLE_USER";
+
+        when(userRepository.existsByUsername(user.getUsername())).thenReturn(Mono.just(false));
+        when(userRepository.existsByEmail(user.getEmail())).thenReturn(Mono.just(false));
+        when(passwordEncoder.encode(password)).thenReturn("encodedPassword");
+        when(userMapper.userToUserDao(user)).thenReturn(userDao);
+        when(userRepository.save(any(UserDao.class))).thenReturn(Mono.just(userDao));
+        when(userRepository.findById(userId)).thenReturn(Mono.just(userDao));
+        when(userRoleRepository.userHasRole(userId, roleName)).thenReturn(Mono.just(false));
+        when(userRoleRepository.addUserRole(userId, roleName)).thenReturn(Mono.empty());
+        when(userMapper.userDaoToUser(userDao)).thenReturn(user);
+        user.setRoles(List.of(roleName));
+
+        StepVerifier.create(userService.registerUser(user, password))
+                .expectNextMatches(savedUser -> {
+                    assertEquals(user.getUsername(), savedUser.getUsername());
+                    assertEquals(user.getEmail(), savedUser.getEmail());
+                    assertEquals(List.of(roleName), savedUser.getRoles());
+                    return true;
+                })
+                .verifyComplete();
+
+        verify(userRepository).existsByUsername(user.getUsername());
+        verify(userRepository).existsByEmail(user.getEmail());
+        verify(passwordEncoder).encode(password);
+        verify(userRepository).save(argThat(dao -> dao.getPasswordHash().equals("encodedPassword") &&
+                dao.isEnabled() && dao.isAccountNonLocked() &&
+                dao.getCreatedAt() != null && dao.getUpdatedAt() != null));
+        verify(userRepository).findById(userId);
+        verify(userRoleRepository).userHasRole(userId, roleName);
+        verify(userRoleRepository).addUserRole(userId, roleName);
+        verify(userMapper).userDaoToUser(userDao);
+    }
 
     @Test
     void registerUser_UserUnder18_ThrowsValidationException() {
@@ -124,20 +158,28 @@ public class UserServiceTest {
         verify(userRepository, never()).save(any());
     }
 
-//    @Test
-//    void getUserById_UserExists_ReturnsUser() {
-//        UserDao userDao = createTestUserDao();
-//        User expectedUser = createTestUser();
-//
-//        when(userRepository.findById(userId)).thenReturn(Mono.just(userDao));
-//        when(userMapper.userDaoToUser(userDao)).thenReturn(expectedUser);
-//
-//        StepVerifier.create(userService.getUserByUuid(userId))
-//                .expectNext(expectedUser)
-//                .verifyComplete();
-//
-//        verify(userRepository).findById(userId);
-//    }
+    @Test
+    void getUserById_UserExists_ReturnsUser() {
+        UserDao userDao = createTestUserDao();
+        User expectedUser = createTestUser();
+        String roleName = "ROLE_USER";
+
+        when(userRepository.findById(userId)).thenReturn(Mono.just(userDao));
+        when(userRoleRepository.findRoleNamesByUserUuid(userId)).thenReturn(Flux.just(roleName));
+        when(userMapper.userDaoToUser(userDao)).thenReturn(expectedUser);
+
+        StepVerifier.create(userService.getUserByUuid(userId))
+                .expectNextMatches(user -> {
+                    assertEquals(expectedUser.getUsername(), user.getUsername());
+                    assertEquals(List.of(roleName), user.getRoles());
+                    return true;
+                })
+                .verifyComplete();
+
+        verify(userRepository).findById(userId);
+        verify(userRoleRepository).findRoleNamesByUserUuid(userId);
+        verify(userMapper).userDaoToUser(userDao);
+    }
 
     @Test
     void getUserById_UserNotFound_ThrowsNotFoundException() {
@@ -150,47 +192,70 @@ public class UserServiceTest {
         verify(userRepository).findById(userId);
     }
 
-//    @Test
-//    void getUserByLogin_UserExists_ReturnsUser() {
-//        String login = "testuser";
-//        UserDao userDao = createTestUserDao();
-//        User expectedUser = createTestUser();
-//
-//        when(userRepository.findByUsername(login)).thenReturn(Mono.just(userDao));
-//        when(userMapper.userDaoToUser(userDao)).thenReturn(expectedUser);
-//
-//        StepVerifier.create(userService.getUserByUsername(login))
-//                .expectNext(expectedUser)
-//                .verifyComplete();
-//
-//        verify(userRepository).findByUsername(login);
-//    }
+    @Test
+    void getUserByLogin_UserExists_ReturnsUser() {
+        String login = "testuser";
+        UserDao userDao = createTestUserDao();
+        User expectedUser = createTestUser();
+        String roleName = "ROLE_USER";
 
-//    @Test
-//    void updateUser_ValidUpdate_ReturnsUpdatedUser() {
-//        User updatedUser = createTestUser();
-//        updatedUser.setFirstName("Jane");
-//        updatedUser.setLastName("Smith");
-//
-//        UserDao existingUserDao = createTestUserDao();
-//        UserDao updatedUserDao = createTestUserDao();
-//        updatedUserDao.setFirstName("Jane");
-//        updatedUserDao.setLastName("Smith");
-//
-//        when(userRepository.findById(userId)).thenReturn(Mono.just(existingUserDao));
-//        when(userMapper.userToUserDao(updatedUser)).thenReturn(updatedUserDao);
-//        when(userRepository.save(any(UserDao.class))).thenReturn(Mono.just(updatedUserDao));
-//        when(userMapper.userDaoToUser(updatedUserDao)).thenReturn(updatedUser);
-//
-//        StepVerifier.create(userService.updateUser(userId, updatedUser))
-//                .expectNext(updatedUser)
-//                .verifyComplete();
-//
-//        verify(userRepository).findById(userId);
-//        verify(userRepository, never()).existsByUsername(any());
-//        verify(userRepository, never()).existsByEmail(any());
-//        verify(userRepository).save(any(UserDao.class));
-//    }
+        when(userRepository.findByUsername(login)).thenReturn(Mono.just(userDao));
+        when(userRoleRepository.findRoleNamesByUserUuid(userId)).thenReturn(Flux.just(roleName));
+        when(userMapper.userDaoToUser(userDao)).thenReturn(expectedUser);
+
+        StepVerifier.create(userService.getUserByUsername(login))
+                .expectNextMatches(user -> {
+                    assertEquals(expectedUser.getUsername(), user.getUsername());
+                    assertEquals(List.of(roleName), user.getRoles());
+                    return true;
+                })
+                .verifyComplete();
+
+        verify(userRepository).findByUsername(login);
+        verify(userRoleRepository).findRoleNamesByUserUuid(userId);
+        verify(userMapper).userDaoToUser(userDao);
+    }
+
+    @Test
+    void updateUser_ValidUpdate_ReturnsUpdatedUser() {
+        User updatedUser = createTestUser();
+        updatedUser.setFirstName("Jane");
+        updatedUser.setLastName("Smith");
+        String roleName = "ROLE_USER";
+
+        UserDao existingUserDao = createTestUserDao();
+        UserDao updatedUserDao = createTestUserDao();
+        updatedUserDao.setFirstName("Jane");
+        updatedUserDao.setLastName("Smith");
+
+        when(userRepository.findById(userId)).thenReturn(Mono.just(existingUserDao));
+        when(userMapper.userToUserDao(updatedUser)).thenReturn(updatedUserDao);
+        when(userRepository.save(any(UserDao.class))).thenReturn(Mono.just(updatedUserDao));
+        when(userRoleRepository.findRoleNamesByUserUuid(userId)).thenReturn(Flux.just(roleName));
+        when(userMapper.userDaoToUser(updatedUserDao)).thenReturn(updatedUser);
+
+        StepVerifier.create(userService.updateUser(userId, updatedUser))
+                .expectNextMatches(user -> {
+                    assertEquals("Jane", user.getFirstName());
+                    assertEquals("Smith", user.getLastName());
+                    assertEquals(List.of(roleName), user.getRoles());
+                    return true;
+                })
+                .verifyComplete();
+
+        verify(userRepository).findById(userId);
+        verify(userRepository, never()).existsByUsername(any());
+        verify(userRepository, never()).existsByEmail(any());
+        verify(userRoleRepository).findRoleNamesByUserUuid(userId);
+        verify(userRepository).save(argThat(dao ->
+                dao.getFirstName().equals("Jane") &&
+                        dao.getLastName().equals("Smith") &&
+                        dao.getUuid().equals(existingUserDao.getUuid()) &&
+                        dao.getPasswordHash().equals(existingUserDao.getPasswordHash()) &&
+                        dao.getCreatedAt().equals(existingUserDao.getCreatedAt()) &&
+                        dao.isEnabled() == existingUserDao.isEnabled() &&
+                        dao.isAccountNonLocked() == existingUserDao.isAccountNonLocked()));
+    }
 
     @Test
     void changePassword_UserExists_PasswordChanged() {
@@ -273,45 +338,37 @@ public class UserServiceTest {
         assert !userDao.isAccountNonLocked();
     }
 
-//    @Test
-//    void deleteUser_UserWithZeroBalance_DeletesUser() {
-//        // Arrange
-//        UserDao userDao = createTestUserDao();
-//
-//        when(userRepository.findById(userId)).thenReturn(Mono.just(userDao));
-//        when(accountService.getUserAccounts(userId)).thenReturn(Mono.empty());
-//        when(userRepository.deleteById(userId)).thenReturn(Mono.empty());
-//
-//        // Act & Assert
-//        StepVerifier.create(userService.deleteUser(userId))
-//                .verifyComplete();
-//
-//        verify(accountService).getUserAccounts(userId);
-//        verify(userRepository).deleteById(userId);
-//    }
-//
-//    @Test
-//    void deleteUser_UserWithNonZeroBalance_ThrowsValidationException() {
-//        // Arrange
-//        UserDao userDao = createTestUserDao();
-//
-//        when(userRepository.findById(userId)).thenReturn(Mono.just(userDao));
-//        // Симулируем наличие счетов с ненулевым балансом
-//        when(accountService.getUserAccounts(userId)).thenReturn(Mono.just(
-//                new Account() {{
-//                    setBalance(java.math.BigDecimal.TEN);
-//                }}
-//        ));
-//
-//        // Act & Assert
-//        StepVerifier.create(userService.deleteUser(userId))
-//                .expectErrorMatches(throwable -> throwable instanceof ValidationException &&
-//                        ((ValidationException) throwable).getStatus() == HttpStatus.CONFLICT)
-//                .verify();
-//
-//        verify(accountService).getUserAccounts(userId);
-//        verify(userRepository, never()).deleteById(any());
-//    }
+    @Test
+    void deleteUser_UserWithZeroBalance_DeletesUser() {
+        when(accountService.getUserAccounts(userId)).thenReturn(Flux.empty());
+        when(userRepository.deleteById(userId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(userService.deleteUser(userId))
+                .verifyComplete();
+
+        verify(accountService).getUserAccounts(userId);
+        verify(userRepository).deleteById(userId);
+    }
+
+    @Test
+    void deleteUser_UserWithNonZeroBalance_ThrowsValidationException() {
+        Account account = Account.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .balance(new BigDecimal("10.00"))
+                .build();
+
+        when(accountService.getUserAccounts(userId)).thenReturn(Flux.just(account));
+
+        StepVerifier.create(userService.deleteUser(userId))
+                .expectErrorMatches(throwable -> throwable instanceof ValidationException &&
+                        throwable.getMessage().equals("Невозможно удалить пользователя с ненулевыми счетами") &&
+                        ((ValidationException) throwable).getStatus() == HttpStatus.CONFLICT &&
+                        ((ValidationException) throwable).getErrorCode().equals(ErrorReasons.DUPLICATE_ENTITY))
+                .verify();
+
+        verify(accountService).getUserAccounts(userId);
+    }
 
     @Test
     void updateUser_UserNotFound_ThrowsNotFoundException() {

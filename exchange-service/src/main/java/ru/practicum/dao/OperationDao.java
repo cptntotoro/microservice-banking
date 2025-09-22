@@ -31,12 +31,12 @@ public class OperationDao {
     private UUID userId;
 
     /**
-     * Исходная валюта
+     * Код исходной валюты
      */
     private String fromCurrency;
 
     /**
-     * Целевая валюта
+     * Код целевой валюты
      */
     private String toCurrency;
 

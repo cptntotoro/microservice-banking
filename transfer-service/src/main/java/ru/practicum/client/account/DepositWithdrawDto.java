@@ -20,10 +20,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class DepositWithdrawDto {
-
+    /**
+     * Идентификатор счета
+     */
     @NotNull(message = "ID счета обязательно")
     private UUID accountId;
 
+    /**
+     * Сумма операции
+     */
     @Positive(message = "Сумма должна быть положительной")
     private BigDecimal amount;
 }

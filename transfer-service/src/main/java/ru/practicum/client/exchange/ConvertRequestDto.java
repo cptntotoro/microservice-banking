@@ -11,20 +11,28 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 /**
- * DTO для запроса конвертации
+ * DTO запроса конвертации
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConvertRequestDto {
-
+    /**
+     * Код исходной валюты
+     */
     @NotBlank(message = "Код валюты отправителя обязателен")
     private String fromCurrency;
 
+    /**
+     * Код целевой валюты
+     */
     @NotBlank(message = "Код валюты получателя обязателен")
     private String toCurrency;
 
+    /**
+     * Сумма операции
+     */
     @NotNull(message = "Сумма обязательна")
     @Positive(message = "Сумма должна быть положительной")
     private BigDecimal amount;

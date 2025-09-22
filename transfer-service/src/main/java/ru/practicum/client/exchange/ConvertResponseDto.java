@@ -8,21 +8,20 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 /**
- * DTO для ответа конвертации
+ * DTO ответа конвертации
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConvertResponseDto {
-
     /**
      * Исходная сумма
      */
     private BigDecimal originalAmount;
 
     /**
-     * Исходная валюта
+     * Код исходной валюты
      */
     private String fromCurrency;
 
@@ -32,7 +31,7 @@ public class ConvertResponseDto {
     private BigDecimal convertedAmount;
 
     /**
-     * Целевая валюта
+     * Код целевой валюты
      */
     private String toCurrency;
 

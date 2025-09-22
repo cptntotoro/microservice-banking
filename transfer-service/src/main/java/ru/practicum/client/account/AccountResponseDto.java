@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -17,16 +16,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountResponseDto {
+    /**
+     * Идентификатор пользователя
+     */
+    private UUID userId;
 
     /**
      * Идентификатор счета
      */
-    private UUID id;
-
-    /**
-     * Идентификатор валюты
-     */
-    private UUID currencyId;
+    private UUID accountId;
 
     /**
      * Код валюты
@@ -34,22 +32,7 @@ public class AccountResponseDto {
     private String currencyCode;
 
     /**
-     * Название валюты
-     */
-    private String currencyName;
-
-    /**
      * Баланс счета
      */
     private BigDecimal balance;
-
-    /**
-     * Номер счета
-     */
-    private String accountNumber;
-
-    /**
-     * Дата создания счета
-     */
-    private LocalDateTime createdAt;
 }

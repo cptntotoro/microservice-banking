@@ -1,6 +1,5 @@
 package ru.practicum.client.account;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,14 +19,24 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class TransferDto {
-
+    /**
+     * Идентификатор счета отправителя
+     */
     private UUID fromAccountId;
 
+    /**
+     * Идентификатор счета получателя
+     */
     private UUID toAccountId;
 
-    @NotBlank(message = "Номер счета получателя обязателен для перевода на другой аккаунт")
-    private String toAccountNumber;
-
+    /**
+     * Сумма операции
+     */
     @Positive(message = "Сумма должна быть положительной")
     private BigDecimal amount;
+
+    /**
+     * Конвертированная сумма для зачисления
+     */
+    private BigDecimal convertedAmount;
 }

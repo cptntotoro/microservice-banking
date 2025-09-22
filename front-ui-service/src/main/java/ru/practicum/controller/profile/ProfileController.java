@@ -5,14 +5,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.user.auth.AuthServiceClient;
+import ru.practicum.client.account.user.AuthServiceClient;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.auth.ChangePasswordRequestDto;
-import ru.practicum.dto.auth.UpdateProfileRequestDto;
 import ru.practicum.dto.auth.UserProfileResponseDto;
+import ru.practicum.dto.user.EditUserProfileDto;
 
 @Controller
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class ProfileController extends BaseController {
     private final AuthServiceClient authServiceClient;
 
     @PostMapping("/update")
-    public Mono<String> updateProfile(@ModelAttribute @Valid UpdateProfileRequestDto updateRequest,
+    public Mono<String> updateProfile(@ModelAttribute @Valid EditUserProfileDto updateRequest,
                                       BindingResult bindingResult,
                                       ServerWebExchange exchange,
                                       Model model) {

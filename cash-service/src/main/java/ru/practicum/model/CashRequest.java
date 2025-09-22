@@ -23,7 +23,7 @@ public class CashRequest {
     private UUID userId;
 
     /**
-     * Сумма
+     * Сумма операции
      */
     private BigDecimal amount;
 

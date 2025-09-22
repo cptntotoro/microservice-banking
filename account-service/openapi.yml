@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: Account Service API
+  description: API для управления банковскими счетами
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Локальный сервер
+  - url: http://account-service/api
+    description: Продакшен сервер
+
+tags:
+  - name: Accounts
+    description: Операции со счетами
+
+paths:
+  /accounts:
+    post:
+      tags: [Accounts]
+      summary: Создание нового счета
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateDto'
+      responses:
+        '201':
+          description: Счет успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseDto'
+        '400':
+          description: Неверные входные данные
+        '409':
+          description: Конфликт (счет в этой валюте уже существует)
+
+  /accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      summary: Получение счета по идентификатору
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Счет найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseDto'
+        '404':
+          description: Счет не найден
+
+    delete:
+      tags: [Accounts]
+      summary: Удаление счета
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Счет успешно удален
+        '404':
+          description: Счет не найден
+        '409':
+          description: Невозможно удалить счет с ненулевым балансом
+
+  /accounts/user/{userId}:
+    get:
+      tags: [Accounts]
+      summary: Получение всех счетов пользователя
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Счета пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponseDto'
+
+  /accounts/by-number/{accountNumber}:
+    get:
+      tags: [Accounts]
+      summary: Получение счета по номеру
+      parameters:
+        - name: accountNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Счет найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseDto'
+        '404':
+          description: Счет не найден
+
+  /accounts/deposit:
+    post:
+      tags: [Accounts]
+      summary: Пополнение счета
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositWithdrawDto'
+      responses:
+        '200':
+          description: Счет успешно пополнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseDto'
+        '400':
+          description: Неверная сумма или счет не найден
+        '404':
+          description: Счет не найден
+
+  /accounts/withdraw:
+    post:
+      tags: [Accounts]
+      summary: Снятие со счета
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositWithdrawDto'
+      responses:
+        '200':
+          description: Снятие успешно выполнено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseDto'
+        '400':
+          description: Недостаточно средств или неверная сумма
+        '404':
+          description: Счет не найден
+
+  /accounts/transfer/own:
+    post:
+      tags: [Accounts]
+      summary: Перевод между своими счетами
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferDto'
+      responses:
+        '200':
+          description: Перевод выполнен успешно
+        '400':
+          description: Неверные параметры перевода
+        '404':
+          description: Счет не найден
+
+  /accounts/transfer/other:
+    post:
+      tags: [Accounts]
+      summary: Перевод на счет другого пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferDto'
+      responses:
+        '200':
+          description: Перевод выполнен успешно
+        '400':
+          description: Неверные параметры перевода
+        '404':
+          description: Счет не найден
+
+components:
+  schemas:
+    AccountCreateDto:
+      type: object
+      required:
+        - userId
+        - currencyId
+        - accountNumber
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Идентификатор пользователя
+        currencyId:
+          type: string
+          format: uuid
+          description: Идентификатор валюты
+        accountNumber:
+          type: string
+          maxLength: 20
+          description: Номер счета
+
+    AccountResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор счета
+        currencyId:
+          type: string
+          format: uuid
+          description: Идентификатор валюты
+        currencyCode:
+          type: string
+          description: Код валюты
+        currencyName:
+          type: string
+          description: Название валюты
+        balance:
+          type: number
+          format: double
+          description: Баланс счета
+        accountNumber:
+          type: string
+          description: Номер счета
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания счета
+
+    DepositWithdrawDto:
+      type: object
+      required:
+        - accountId
+        - amount
+      properties:
+        accountId:
+          type: string
+          format: uuid
+          description: Идентификатор счета
+        amount:
+          type: number
+          format: double
+          minimum: 0
+          exclusiveMinimum: true
+          description: Сумма операции
+
+    TransferDto:
+      type: object
+      required:
+        - fromAccountId
+        - amount
+      properties:
+        fromAccountId:
+          type: string
+          format: uuid
+          description: Идентификатор счета отправителя
+        toAccountId:
+          type: string
+          format: uuid
+          description: Идентификатор счета получателя (для своих счетов)
+        toAccountNumber:
+          type: string
+          description: Номер счета получателя (для чужих счетов)
+        amount:
+          type: number
+          format: double
+          minimum: 0
+          exclusiveMinimum: true
+          description: Сумма перевода

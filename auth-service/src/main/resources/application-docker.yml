@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    consul:
+      host: consul-server
+      port: 8500
+      discovery:
+        instance-id: ${spring.application.name}:${random.uuid}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        register: true
+
+user-service:
+  url: http://account-service:8082/api/users
+
+server:
+  port: 8083

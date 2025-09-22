@@ -32,7 +32,7 @@ class TransferMapperTest {
                 .amount(amount)
                 .build();
 
-        TransferRequest result = mapper.toModel(dto);
+        TransferRequest result = mapper.transferRequestDtoToTransferRequest(dto);
 
         assertNotNull(result);
         assertEquals(fromAccountId, result.getFromAccountId());
@@ -42,14 +42,14 @@ class TransferMapperTest {
     }
 
     @Test
-    void toModel_shouldHandleNullDto() {
-        TransferRequest result = mapper.toModel(null);
+    void transferRequestDtoToTransferRequest_shouldHandleNullDto() {
+        TransferRequest result = mapper.transferRequestDtoToTransferRequest(null);
 
         assertNull(result);
     }
 
     @Test
-    void toResponseDto_shouldMapTransferResponseToTransferResponseDto() {
+    void toResponseDto_shouldMapTransferResponseTransferResponseToTransferTransferResponseDto() {
         UUID fromAccountId = UUID.randomUUID();
         UUID toAccountId = UUID.randomUUID();
         BigDecimal amount = new BigDecimal("1000.50");
@@ -63,7 +63,7 @@ class TransferMapperTest {
                 .convertedAmount(convertedAmount)
                 .build();
 
-        TransferResponseDto result = mapper.toResponseDto(response);
+        TransferResponseDto result = mapper.transferResponseToTransferResponseDto(response);
 
         assertNotNull(result);
         assertEquals("SUCCESS", result.getStatus());
@@ -74,20 +74,20 @@ class TransferMapperTest {
     }
 
     @Test
-    void toResponseDto_shouldHandleNullResponse() {
-        TransferResponseDto result = mapper.toResponseDto(null);
+    void transferResponseToTransferResponseDto_shouldHandleNullResponse() {
+        TransferResponseDto result = mapper.transferResponseToTransferResponseDto(null);
 
         assertNull(result);
     }
 
     @Test
-    void toResponseDto_shouldHandlePartialData() {
+    void transferResponseToTransferResponseDto_shouldHandlePartialData() {
         TransferResponse response = TransferResponse.builder()
                 .status("SUCCESS")
                 .amount(new BigDecimal("100.00"))
                 .build();
 
-        TransferResponseDto result = mapper.toResponseDto(response);
+        TransferResponseDto result = mapper.transferResponseToTransferResponseDto(response);
 
         assertNotNull(result);
         assertEquals("SUCCESS", result.getStatus());

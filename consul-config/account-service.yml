@@ -1,0 +1,29 @@
+server:
+  port: 8081
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: account-service
+  r2dbc:
+    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/postgres}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_USERNAME:postgres}
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 30m
+      max-life-time: 60m
+      validation-query: SELECT 1
+  sql:
+    init:
+      mode: always
+  # Настройки для клиентов OAuth (микросервисы)
+  logging:
+    level:
+      org.springframework: INFO
+      org.springframework.security: INFO
+      pattern:
+        console: %d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n

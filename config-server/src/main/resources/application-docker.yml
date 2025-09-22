@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    consul:
+      host: consul-server
+    config:
+      server:
+        consul:
+          host: consul-server

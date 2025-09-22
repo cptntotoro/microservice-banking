@@ -6,7 +6,7 @@
         </thead>
         <tbody>
         <tr th:each="r : ${rates}">
-            <td th:text="${r.code}">Доллар США</td>
+            <td th:text="${r.code}"></td>
             <td th:text="${#numbers.formatDecimal(r.value, 1, 'DEFAULT', 4, 'DEFAULT')}">85.3221</td>
             <td th:text="${#numbers.formatDecimal(r.value, 1, 'DEFAULT', 4, 'DEFAULT')}">90.1234</td>
         </tr>

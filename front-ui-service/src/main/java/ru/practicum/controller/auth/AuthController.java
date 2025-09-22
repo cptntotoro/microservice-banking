@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.user.account.AccountServiceClient;
-import ru.practicum.client.user.auth.AuthServiceClient;
+import ru.practicum.client.account.account.AccountServiceClient;
+import ru.practicum.client.account.user.AuthServiceClient;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.auth.LoginRequestDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
@@ -25,7 +25,7 @@ public class AuthController extends BaseController {
     private final AuthServiceClient authServiceClient;
 
     /**
-     * Клиент обращения к сервису аккаунтов
+     * Клиент для обращений к сервису аккаунтов
      */
     private final AccountServiceClient accountServiceClient;
 
