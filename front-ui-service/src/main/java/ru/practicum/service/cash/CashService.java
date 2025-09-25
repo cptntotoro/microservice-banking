@@ -4,23 +4,23 @@ import reactor.core.publisher.Mono;
 import ru.practicum.model.cash.Cash;
 
 /**
- * Интерфейс сервиса обналичивания денег
+ * Сервис обналичивания денег
  */
 public interface CashService {
 
     /**
-     * Пополнение счета.
+     * Пополнить свой счета
      *
-     * @param model модель запроса
-     * @return Mono с моделью ответа
+     * @param cash Операция с наличными
+     * @return Операция с наличными
      */
-    Mono<Cash> deposit(Cash model);
+    Mono<Cash> deposit(Cash cash);
 
     /**
-     * Снятие средств со счета.
+     * Снять средства со своего счета
      *
-     * @param model модель запроса
-     * @return Mono с моделью ответа
+     * @param cash Операция с наличными
+     * @return Операция с наличными
      */
-    Mono<Cash> withdraw(Cash model);
+    Mono<Cash> withdraw(Cash cash);
 }

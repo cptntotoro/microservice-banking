@@ -125,7 +125,9 @@
 
         <div id="cash" class="dashboard-section">
             <h2 class="card__title">Наличные</h2>
-            <form class="form" th:action="@{'/user/' + ${userData.login} + '/cash'}" method="post">
+            <form class="form" method="post">
+                <input type="hidden" name="accountId" th:value="${userData.accountId}" />
+                <input type="hidden" name="userId" th:value="${userData.userId}" />
                 <div class="grid grid--2">
                     <div class="form__row">
                         <label class="label">Валюта</label>
@@ -135,14 +137,15 @@
                     </div>
                     <div class="form__row">
                         <label class="label">Сумма</label>
-                        <input class="input" name="value" type="number" step="0.01" min="0" required/>
+                        <input class="input" name="amount" type="number" step="0.01" min="0" required/>
                     </div>
                 </div>
                 <div class="row between center">
                     <span class="error" th:each="e : ${cashErrors}" th:text="${e}"></span>
+                    <span class="success" th:if="${cashSuccess}" th:text="${cashSuccess}"></span>
                     <div class="row" style="gap:10px">
-                        <button class="btn btn--ghost" name="action" value="PUT">Положить</button>
-                        <button class="btn btn--ghost" name="action" value="GET">Снять</button>
+                        <button class="btn btn--ghost" type="submit" formaction="/cash/deposit">Положить</button>
+                        <button class="btn btn--ghost" type="submit" formaction="/cash/withdraw">Снять</button>
                     </div>
                 </div>
             </form>
@@ -156,7 +159,7 @@
                     <div class="form__row">
                         <label class="label">Со счёта</label>
                         <select class="select" th:field="*{fromAccountId}" required>
-                            <option value="">Выберите счет отправителя</option>
+                            <option value="">Выберите счет снятия</option>
                             <option th:each="account : ${userAccounts}"
                                     th:value="${account.id}"
                                     th:text="${account.currency.code + ' (' + account.balance + ')'}"></option>
@@ -165,7 +168,7 @@
                     <div class="form__row">
                         <label class="label">На счёт</label>
                         <select class="select" th:field="*{toAccountId}" required>
-                            <option value="">Выберите счет получателя</option>
+                            <option value="">Выберите счет пополнения</option>
                             <option th:each="account : ${userAccounts}"
                                     th:value="${account.id}"
                                     th:text="${account.currency.code + ' (' + account.balance + ')'}"></option>
@@ -230,7 +233,6 @@
                 </div>
 
                 <div class="row between center">
-<!--                    <span class="error" th:each="e : ${transferOtherErrors}" th:text="${e}"></span>-->
                     <button class="btn btn--ghost" type="submit">Перевести</button>
                 </div>
             </form>

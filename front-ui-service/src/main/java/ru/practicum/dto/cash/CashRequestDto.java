@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO для запроса на операции с наличными (внесение/снятие).
+ * DTO запроса на операции с наличными (внесение/снятие)
  */
 @Data
 @NoArgsConstructor

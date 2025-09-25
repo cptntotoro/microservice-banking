@@ -1,27 +1,25 @@
 package ru.practicum.mapper;
 
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
+import ru.practicum.client.cash.CashRequestClientDto;
+import ru.practicum.client.cash.CashResponseClientDto;
 import ru.practicum.dto.cash.CashRequestDto;
 import ru.practicum.dto.cash.CashResponseDto;
 import ru.practicum.model.cash.Cash;
 
-import java.util.List;
-
 /**
- * Маппер для операций с наличными с использованием MapStruct.
+ * Маппер операций с наличными
  */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.WARN)
 public interface CashMapper {
 
     /**
-     * Маппинг DTO запроса в модель.
+     * Смаппить DTO запроса на операцию с наличными в модель
      *
-     * @param dto DTO запроса
-     * @return модель для внутренней обработки
+     * @param cashRequestDto DTO запроса на операцию с наличными
+     * @return Модель операции с наличными
      */
     @Mapping(target = "operationId", ignore = true)
     @Mapping(target = "operationType", ignore = true)
@@ -29,41 +27,29 @@ public interface CashMapper {
     @Mapping(target = "operationDate", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "message", ignore = true)
-    Cash toModel(CashRequestDto dto);
+    Cash cashRequestDtoToCash(CashRequestDto cashRequestDto);
 
     /**
-     * Маппинг модели в DTO ответа.
+     * Смаппить операцию с наличными в DTO ответа
      *
-     * @param model внутренняя модель
-     * @return DTO ответа
+     * @param cash Модель операции с наличными
+     * @return DTO ответа на операции с наличными
      */
-    CashResponseDto toDto(Cash model);
+    CashResponseDto cashToCashResponseDto(Cash cash);
 
     /**
-     * Маппинг списка моделей в список DTO ответов.
+     * Смаппить операцию с наличными в DTO запроса клиента
      *
-     * @param models список внутренних моделей
-     * @return список DTO ответов
+     * @param cash Модель операции с наличными
+     * @return DTO запроса клиента на операции с наичными
      */
-    List<CashResponseDto> toDtoList(List<Cash> models);
+    CashRequestClientDto cashToCashRequestClientDto(Cash cash);
 
     /**
-     * Обновление существующего DTO на основе модели.
+     * Смаппить DTO ответа клиента на операцию с наличными в модель
      *
-     * @param entity модель
-     * @param update DTO для обновления
+     * @param cashResponseDto DTO ответа клиента на операцию с наличными
+     * @return Модель операции с наличными
      */
-    void updateDtoFromModel(Cash entity, @MappingTarget CashResponseDto update);
-
-    /**
-     * Создание DTO ошибки на основе исключения.
-     *
-     * @param dto целевой DTO
-     * @param exception исключение
-     */
-    @AfterMapping
-    default void createErrorDto(@MappingTarget CashResponseDto dto, Exception exception) {
-        dto.setStatus("ERROR");
-        dto.setMessage(exception.getMessage() != null ? exception.getMessage() : "Произошла ошибка");
-    }
+    Cash cashResponseClientDtoToCash(CashResponseClientDto cashResponseDto);
 }
