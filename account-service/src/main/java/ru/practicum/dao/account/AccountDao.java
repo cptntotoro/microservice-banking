@@ -25,7 +25,7 @@ import java.util.UUID;
 public class AccountDao {
 
     /**
-     * Идентификатор
+     * Идентификатор счета
      */
     @Id
     private UUID id;
@@ -46,12 +46,6 @@ public class AccountDao {
      * Баланс счета
      */
     private BigDecimal balance;
-
-//    /**
-//     * Номер счета
-//     */
-//    @Column("account_number")
-//    private String accountNumber;
 
     /**
      * Дата создания

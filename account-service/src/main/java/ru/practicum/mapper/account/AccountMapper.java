@@ -15,19 +15,23 @@ public interface AccountMapper {
 
     /**
      * Смаппить DTO создания в модель счета
+     *
+     * @param accountCreateDto DTO для создания счета
+     * @return Счет
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "balance", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    Account createDtoToAccount(AccountCreateDto dto);
+    Account createDtoToAccount(AccountCreateDto accountCreateDto);
 
     /**
      * Смаппить модель счета в DTO ответа
+     *
+     * @param account Счет
+     * @return DTO ответа с данными счета
      */
-    @Mapping(target = "currencyCode", ignore = true)
-    @Mapping(target = "currencyName", ignore = true)
-    AccountResponseDto accountToResponseDto(Account account);
+    AccountResponseDto accountToAccountResponseDto(Account account);
 
     /**
      * Смаппить счет в DAO счета

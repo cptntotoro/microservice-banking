@@ -41,4 +41,6 @@ public interface CurrencyService {
      * @return Список валют
      */
     Flux<Currency> getAllCurrencies();
+
+    Mono<Boolean> isValidCurrency(String code);
 }

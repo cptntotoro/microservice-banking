@@ -6,14 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.ExchangeServiceClient;
+import ru.practicum.config.CurrencyConfig;
 import ru.practicum.dao.currency.CurrencyDao;
-import ru.practicum.exception.ErrorReasons;
-import ru.practicum.exception.ValidationException;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.currency.CurrencyMapper;
 import ru.practicum.model.currency.Currency;
 import ru.practicum.repository.currency.CurrencyRepository;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -34,75 +34,98 @@ public class CurrencyServiceImpl implements CurrencyService {
     private final CurrencyMapper currencyMapper;
 
     /**
-     * Клиент для обращения к сервису обмена валют
+     * Конфигурация валют
      */
-    private final ExchangeServiceClient exchangeServiceClient;
+    private final CurrencyConfig currencyConfig;
+
+    // Маппинг кодов валют на их названия
+    private static final Map<String, String> CURRENCY_NAMES = Map.of(
+            "RUB", "Russian Ruble",
+            "USD", "US Dollar",
+            "EUR", "Euro",
+            "CNY", "Chinese Yuan",
+            "GBP", "British Pound",
+            "JPY", "Japanese Yen"
+    );
 
     @PostConstruct
     public void initCurrencies() {
-        exchangeServiceClient.getAvailableCurrencies()
-                .flatMapMany(dto -> Flux.fromIterable(dto.getCurrencies()))
+        log.info("Начало инициализации валют из конфигурации");
+
+        Flux.fromIterable(currencyConfig.getSupported())
                 .flatMap(this::createCurrencyIfNotExists)
                 .subscribe(
-                        currency -> log.info("Валюта инициализирована: {}", currency.getCode()),
-                        error -> log.error("Ошибка при инициализации валют: ", error)
+                        currency -> log.info("Валюта инициализирована: {} - {}", currency.getCode(), currency.getName()),
+                        error -> log.error("Ошибка при инициализации валют: ", error),
+                        () -> log.info("Инициализация валют завершена")
                 );
     }
 
     private Mono<Currency> createCurrencyIfNotExists(String code) {
         return getCurrencyByCode(code)
                 .switchIfEmpty(Mono.defer(() -> {
+                    String name = CURRENCY_NAMES.getOrDefault(code, code);
                     Currency currency = Currency.builder()
                             .id(UUID.randomUUID())
                             .code(code)
-                            .name(code)
+                            .name(name)
                             .build();
                     return createCurrency(currency);
-                }));
+                }))
+                .onErrorResume(e -> {
+                    log.warn("Ошибка при создании валюты {}: {}", code, e.getMessage());
+                    return Mono.empty();
+                });
     }
 
     @Override
     public Mono<Currency> createCurrency(Currency currency) {
-        return checkIfInitialized()
-                .then(Mono.defer(() -> {
-                    CurrencyDao dao = currencyMapper.currencyToCurrencyDao(currency);
-                    return currencyRepository.save(dao)
-                            .map(currencyMapper::currencyDaoToCurrency);
-                }));
+        log.debug("Создание валюты: {}", currency.getCode());
+
+        CurrencyDao dao = currencyMapper.currencyToCurrencyDao(currency);
+        return currencyRepository.save(dao)
+                .map(currencyMapper::currencyDaoToCurrency)
+                .doOnSuccess(c -> log.info("Валюта создана: {} - {}", c.getCode(), c.getName()))
+                .doOnError(e -> log.error("Ошибка при создании валюты {}: {}", currency.getCode(), e.getMessage()));
     }
 
     @Override
     public Mono<Currency> getCurrencyById(UUID id) {
-        return checkIfInitialized()
-                .then(currencyRepository.findById(id)
-                        .map(currencyMapper::currencyDaoToCurrency));
+        log.debug("Получение валюты по ID: {}", id);
+
+        return currencyRepository.findById(id)
+                .map(currencyMapper::currencyDaoToCurrency)
+                .switchIfEmpty(Mono.error(new NotFoundException("Валюта", id.toString())));
     }
 
     @Override
     public Mono<Currency> getCurrencyByCode(String code) {
-        return checkIfInitialized()
-                .then(currencyRepository.findByCode(code)
-                        .map(currencyMapper::currencyDaoToCurrency));
+        log.debug("Получение валюты по коду: {}", code);
+
+        return currencyRepository.findByCode(code)
+                .map(currencyMapper::currencyDaoToCurrency)
+                .switchIfEmpty(Mono.error(new NotFoundException("Валюта", code)));
     }
 
     @Override
     public Flux<Currency> getAllCurrencies() {
-        return checkIfInitialized()
-                .thenMany(currencyRepository.findAll()
-                        .map(currencyMapper::currencyDaoToCurrency));
+        log.debug("Получение всех валют");
+
+        return currencyRepository.findAll()
+                .map(currencyMapper::currencyDaoToCurrency);
     }
 
-    private Mono<Void> checkIfInitialized() {
-        return currencyRepository.count()
-                .flatMap(count -> {
-                    if (count == 0) {
-                        return Mono.error(new ValidationException(
-                                "Валюты не инициализированы. Пожалуйста, подождите или проверьте подключение к exchange-service.",
-                                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                                ErrorReasons.CURRENCIES_NOT_INITIALIZED
-                        ));
-                    }
-                    return Mono.empty();
-                });
+    @Override
+    public Mono<Boolean> isValidCurrency(String code) {
+        return currencyRepository.findByCode(code)
+                .map(currency -> true)
+                .defaultIfEmpty(false);
+    }
+
+    /**
+     * Получить название валюты по коду
+     */
+    public String getCurrencyName(String code) {
+        return CURRENCY_NAMES.getOrDefault(code, code);
     }
 }

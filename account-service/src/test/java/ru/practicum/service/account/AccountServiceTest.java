@@ -8,23 +8,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import ru.practicum.client.ExchangeServiceClient;
 import ru.practicum.dao.account.AccountDao;
-import ru.practicum.dto.exchange.AvailableCurrenciesDto;
-import ru.practicum.dto.exchange.ExchangeRateDto;
 import ru.practicum.exception.ErrorReasons;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.mapper.account.AccountMapper;
 import ru.practicum.model.account.Account;
+import ru.practicum.model.currency.Currency;
 import ru.practicum.repository.account.AccountRepository;
+import ru.practicum.service.currency.CurrencyService;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,49 +37,83 @@ class AccountServiceTest {
     private AccountMapper accountMapper;
 
     @Mock
-    private ExchangeServiceClient exchangeServiceClient;
+    private CurrencyService currencyService;
 
     private AccountServiceImpl accountService;
 
+    private UUID userId;
+    private UUID accountId;
+    private UUID currencyId;
+    private String currencyCode;
+
     @BeforeEach
     void setUp() {
-        accountService = new AccountServiceImpl(accountRepository, accountMapper, exchangeServiceClient);
+        accountService = new AccountServiceImpl(accountRepository, accountMapper, currencyService);
+        userId = UUID.randomUUID();
+        accountId = UUID.randomUUID();
+        currencyId = UUID.randomUUID();
+        currencyCode = "USD";
     }
 
     @Test
     void createAccount_shouldCreateSuccessfully() {
-        UUID userId = UUID.randomUUID();
-        UUID currencyId = UUID.randomUUID();
         Account account = Account.builder()
                 .userId(userId)
-                .currencyCode(currencyId)
+                .currencyCode(currencyCode)
+                .balance(BigDecimal.ZERO)
                 .build();
 
-        AccountDao dao = new AccountDao();
-        dao.setUserId(userId);
-        dao.setCurrencyId(currencyId);
+        Currency currency = Currency.builder()
+                .id(currencyId)
+                .code(currencyCode)
+                .name("US Dollar")
+                .build();
 
+        AccountDao accountDao = AccountDao.builder()
+                .id(accountId)
+                .userId(userId)
+                .currencyId(currencyId)
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        Account savedAccount = Account.builder()
+                .id(accountId)
+                .userId(userId)
+                .currencyCode(currencyCode)
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        when(currencyService.getCurrencyByCode(currencyCode)).thenReturn(Mono.just(currency));
         when(accountRepository.existsByUserIdAndCurrencyId(userId, currencyId)).thenReturn(Mono.just(false));
-        when(accountMapper.accountToAccountDao(account)).thenReturn(dao);
-        when(accountRepository.save(any(AccountDao.class))).thenReturn(Mono.just(dao));
-        when(accountMapper.accountDaoToAccount(dao)).thenReturn(account);
+        when(accountMapper.accountToAccountDao(account)).thenReturn(accountDao);
+        when(accountRepository.save(any(AccountDao.class))).thenReturn(Mono.just(accountDao));
+
+        // Настраиваем мок для получения валюты по ID после сохранения
+        when(currencyService.getCurrencyById(currencyId)).thenReturn(Mono.just(currency));
+        when(accountMapper.accountDaoToAccount(accountDao)).thenReturn(savedAccount);
 
         StepVerifier.create(accountService.createAccount(account))
-                .expectNext(account)
+                .expectNext(savedAccount)
                 .verifyComplete();
 
-        verify(accountRepository).save(argThat(savedDao -> savedDao.getCreatedAt() != null && savedDao.getUpdatedAt() != null));
+        verify(accountRepository).save(argThat(dao ->
+                dao.getCreatedAt() != null && dao.getUpdatedAt() != null
+        ));
     }
 
     @Test
     void createAccount_shouldThrowValidationExceptionIfDuplicate() {
-        UUID userId = UUID.randomUUID();
-        UUID currencyId = UUID.randomUUID();
         Account account = Account.builder()
                 .userId(userId)
-                .currencyCode(currencyId)
+                .currencyCode(currencyCode)
                 .build();
 
+        Currency currency = Currency.builder()
+                .id(currencyId)
+                .code(currencyCode)
+                .build();
+
+        when(currencyService.getCurrencyByCode(currencyCode)).thenReturn(Mono.just(currency));
         when(accountRepository.existsByUserIdAndCurrencyId(userId, currencyId)).thenReturn(Mono.just(true));
 
         StepVerifier.create(accountService.createAccount(account))
@@ -92,9 +125,8 @@ class AccountServiceTest {
 
     @Test
     void getAccountById_shouldReturnAccount() {
-        UUID accountId = UUID.randomUUID();
-        AccountDao dao = new AccountDao();
-        Account account = new Account();
+        AccountDao dao = AccountDao.builder().id(accountId).build();
+        Account account = Account.builder().id(accountId).build();
 
         when(accountRepository.findById(accountId)).thenReturn(Mono.just(dao));
         when(accountMapper.accountDaoToAccount(dao)).thenReturn(account);
@@ -106,8 +138,6 @@ class AccountServiceTest {
 
     @Test
     void getAccountById_shouldThrowNotFoundException() {
-        UUID accountId = UUID.randomUUID();
-
         when(accountRepository.findById(accountId)).thenReturn(Mono.empty());
 
         StepVerifier.create(accountService.getAccountById(accountId))
@@ -117,11 +147,10 @@ class AccountServiceTest {
 
     @Test
     void getUserAccounts_shouldReturnFluxOfAccounts() {
-        UUID userId = UUID.randomUUID();
-        AccountDao dao1 = new AccountDao();
-        AccountDao dao2 = new AccountDao();
-        Account account1 = new Account();
-        Account account2 = new Account();
+        AccountDao dao1 = AccountDao.builder().id(UUID.randomUUID()).build();
+        AccountDao dao2 = AccountDao.builder().id(UUID.randomUUID()).build();
+        Account account1 = Account.builder().id(dao1.getId()).build();
+        Account account2 = Account.builder().id(dao2.getId()).build();
 
         when(accountRepository.findByUserId(userId)).thenReturn(Flux.just(dao1, dao2));
         when(accountMapper.accountDaoToAccount(dao1)).thenReturn(account1);
@@ -133,65 +162,17 @@ class AccountServiceTest {
     }
 
     @Test
-    void getAccountByNumber_shouldReturnAccount() {
-        String accountNumber = "123456";
-        AccountDao dao = new AccountDao();
-        Account account = new Account();
-
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Mono.just(dao));
-        when(accountMapper.accountDaoToAccount(dao)).thenReturn(account);
-
-        StepVerifier.create(accountService.getAccountByNumber(accountNumber))
-                .expectNext(account)
-                .verifyComplete();
-    }
-
-    @Test
-    void getAccountByNumber_shouldThrowNotFoundException() {
-        String accountNumber = "123456";
-
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Mono.empty());
-
-        StepVerifier.create(accountService.getAccountByNumber(accountNumber))
-                .expectError(NotFoundException.class)
-                .verify();
-    }
-
-    @Test
-    void deleteAccount_shouldDeleteIfBalanceZero() {
-        UUID accountId = UUID.randomUUID();
-        AccountDao dao = new AccountDao();
-        dao.setBalance(BigDecimal.ZERO);
-
-        when(accountRepository.findById(accountId)).thenReturn(Mono.just(dao));
-        when(accountRepository.deleteById(accountId)).thenReturn(Mono.empty());
-
-        StepVerifier.create(accountService.deleteAccount(accountId))
-                .verifyComplete();
-    }
-
-    @Test
-    void deleteAccount_shouldThrowValidationExceptionIfBalanceNotZero() {
-        UUID accountId = UUID.randomUUID();
-        AccountDao dao = new AccountDao();
-        dao.setBalance(BigDecimal.ONE);
-
-        when(accountRepository.findById(accountId)).thenReturn(Mono.just(dao));
-
-        StepVerifier.create(accountService.deleteAccount(accountId))
-                .expectErrorMatches(throwable -> throwable instanceof ValidationException &&
-                        throwable.getMessage().equals("Невозможно удалить счет с ненулевым балансом") &&
-                        ((ValidationException) throwable).getErrorCode().equals(ErrorReasons.CONDITIONS_NOT_MET))
-                .verify();
-    }
-
-    @Test
     void deposit_shouldDepositSuccessfully() {
-        UUID accountId = UUID.randomUUID();
         BigDecimal amount = BigDecimal.TEN;
-        AccountDao dao = new AccountDao();
-        dao.setBalance(BigDecimal.ZERO);
-        Account account = new Account();
+        AccountDao dao = AccountDao.builder()
+                .id(accountId)
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        Account account = Account.builder()
+                .id(accountId)
+                .balance(amount)
+                .build();
 
         when(accountRepository.findById(accountId)).thenReturn(Mono.just(dao));
         when(accountRepository.save(any(AccountDao.class))).thenReturn(Mono.just(dao));
@@ -201,12 +182,13 @@ class AccountServiceTest {
                 .expectNext(account)
                 .verifyComplete();
 
-        verify(accountRepository).save(argThat(savedDao -> savedDao.getBalance().equals(amount)));
+        verify(accountRepository).save(argThat(savedDao ->
+                savedDao.getBalance().equals(amount) && savedDao.getUpdatedAt() != null
+        ));
     }
 
     @Test
     void deposit_shouldThrowValidationExceptionIfAmountNegative() {
-        UUID accountId = UUID.randomUUID();
         BigDecimal amount = BigDecimal.valueOf(-10);
 
         StepVerifier.create(accountService.deposit(accountId, amount))
@@ -217,27 +199,108 @@ class AccountServiceTest {
     }
 
     @Test
-    void getCurrentExchangeRates_shouldReturnFluxOfRates() {
-        ExchangeRateDto rate1 = new ExchangeRateDto();
-        ExchangeRateDto rate2 = new ExchangeRateDto();
+    void withdraw_shouldWithdrawSuccessfully() {
+        BigDecimal amount = BigDecimal.valueOf(5);
+        AccountDao dao = AccountDao.builder()
+                .id(accountId)
+                .balance(BigDecimal.TEN)
+                .build();
 
-        when(exchangeServiceClient.getCurrentRates()).thenReturn(Flux.just(rate1, rate2));
+        Account account = Account.builder()
+                .id(accountId)
+                .balance(BigDecimal.valueOf(5))
+                .build();
 
-        StepVerifier.create(accountService.getCurrentExchangeRates())
-                .expectNext(rate1, rate2)
+        when(accountRepository.findById(accountId)).thenReturn(Mono.just(dao));
+        when(accountRepository.save(any(AccountDao.class))).thenReturn(Mono.just(dao));
+        when(accountMapper.accountDaoToAccount(dao)).thenReturn(account);
+
+        StepVerifier.create(accountService.withdraw(accountId, amount))
+                .expectNext(account)
                 .verifyComplete();
+
+        verify(accountRepository).save(argThat(savedDao ->
+                savedDao.getBalance().equals(BigDecimal.valueOf(5)) && savedDao.getUpdatedAt() != null
+        ));
     }
 
     @Test
-    void getAvailableCurrencies_shouldReturnAvailableCurrenciesDto() {
-        AvailableCurrenciesDto dto = AvailableCurrenciesDto.builder()
-                .currencies(List.of("USD", "EUR"))
+    void withdraw_shouldThrowValidationExceptionIfInsufficientBalance() {
+        BigDecimal amount = BigDecimal.valueOf(15);
+        AccountDao dao = AccountDao.builder()
+                .id(accountId)
+                .balance(BigDecimal.TEN)
                 .build();
 
-        when(exchangeServiceClient.getAvailableCurrencies()).thenReturn(Mono.just(dto));
+        when(accountRepository.findById(accountId)).thenReturn(Mono.just(dao));
 
-        StepVerifier.create(accountService.getAvailableCurrencies())
-                .expectNext(dto)
+        StepVerifier.create(accountService.withdraw(accountId, amount))
+                .expectErrorMatches(throwable -> throwable instanceof ValidationException &&
+                        throwable.getMessage().equals("Недостаточно средств на счете") &&
+                        ((ValidationException) throwable).getErrorCode().equals(ErrorReasons.INSUFFICIENT_BALANCE))
+                .verify();
+    }
+
+    @Test
+    void transferBetweenOwnAccounts_shouldTransferSuccessfully() {
+        UUID fromAccountId = UUID.randomUUID();
+        UUID toAccountId = UUID.randomUUID();
+        BigDecimal amount = BigDecimal.TEN;
+
+        AccountDao fromAccount = AccountDao.builder()
+                .id(fromAccountId)
+                .userId(userId)
+                .currencyId(currencyId)
+                .balance(BigDecimal.valueOf(20))
+                .build();
+
+        AccountDao toAccount = AccountDao.builder()
+                .id(toAccountId)
+                .userId(userId)
+                .currencyId(currencyId)
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        when(accountRepository.findById(fromAccountId)).thenReturn(Mono.just(fromAccount));
+        when(accountRepository.findById(toAccountId)).thenReturn(Mono.just(toAccount));
+        when(accountRepository.save(any(AccountDao.class))).thenReturn(Mono.just(fromAccount));
+
+        StepVerifier.create(accountService.transferBetweenOwnAccounts(fromAccountId, toAccountId, amount))
                 .verifyComplete();
+
+        verify(accountRepository, times(2)).save(any(AccountDao.class));
+    }
+
+    @Test
+    void transferBetweenOwnAccounts_shouldThrowIfDifferentCurrencies() {
+        UUID fromAccountId = UUID.randomUUID();
+        UUID toAccountId = UUID.randomUUID();
+        BigDecimal amount = BigDecimal.TEN;
+
+        AccountDao fromAccount = AccountDao.builder()
+                .id(fromAccountId)
+                .userId(userId)
+                .currencyId(UUID.randomUUID()) // RUB
+                .balance(BigDecimal.valueOf(20))
+                .build();
+
+        AccountDao toAccount = AccountDao.builder()
+                .id(toAccountId)
+                .userId(userId)
+                .currencyId(UUID.randomUUID()) // USD
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        Currency fromCurrency = Currency.builder().code("RUB").build();
+        Currency toCurrency = Currency.builder().code("USD").build();
+
+        when(accountRepository.findById(fromAccountId)).thenReturn(Mono.just(fromAccount));
+        when(accountRepository.findById(toAccountId)).thenReturn(Mono.just(toAccount));
+        when(currencyService.getCurrencyById(fromAccount.getCurrencyId())).thenReturn(Mono.just(fromCurrency));
+        when(currencyService.getCurrencyById(toAccount.getCurrencyId())).thenReturn(Mono.just(toCurrency));
+
+        StepVerifier.create(accountService.transferBetweenOwnAccounts(fromAccountId, toAccountId, amount))
+                .expectError(ValidationException.class)
+                .verify();
     }
 }

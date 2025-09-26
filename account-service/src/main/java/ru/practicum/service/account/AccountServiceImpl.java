@@ -7,15 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.ExchangeServiceClient;
 import ru.practicum.dao.account.AccountDao;
-import ru.practicum.dto.exchange.ExchangeRateDto;
 import ru.practicum.exception.ErrorReasons;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.mapper.account.AccountMapper;
 import ru.practicum.model.account.Account;
+import ru.practicum.model.currency.Currency;
 import ru.practicum.repository.account.AccountRepository;
+import ru.practicum.service.currency.CurrencyService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -39,21 +39,33 @@ public class AccountServiceImpl implements AccountService {
     private final AccountMapper accountMapper;
 
     /**
-     * Клиент для обращения к сервису обмена валют
+     * Сервис для работы с валютами
      */
-    private final ExchangeServiceClient exchangeServiceClient;
+    private final CurrencyService currencyService;
 
     @Override
     @Transactional
     public Mono<Account> createAccount(Account account) {
+        account.setBalance(BigDecimal.ZERO);
+
         return validateUniqueAccountForCurrency(account.getUserId(), account.getCurrencyCode())
-                .then(Mono.defer(() -> {
-                    AccountDao accountDao = accountMapper.accountToAccountDao(account);
-                    accountDao.setCreatedAt(LocalDateTime.now());
-                    accountDao.setUpdatedAt(LocalDateTime.now());
-                    return accountRepository.save(accountDao);
-                }))
-                .map(accountMapper::accountDaoToAccount)
+                .then(Mono.defer(() -> currencyService.getCurrencyByCode(account.getCurrencyCode())
+                        .flatMap(currency -> {
+                            AccountDao accountDao = accountMapper.accountToAccountDao(account);
+                            accountDao.setCurrencyId(currency.getId());
+                            accountDao.setCreatedAt(LocalDateTime.now());
+                            accountDao.setUpdatedAt(LocalDateTime.now());
+                            return accountRepository.save(accountDao);
+                        })))
+                .flatMap(savedAccountDao -> {
+                    // После сохранения получаем полную информацию о валюте для маппинга
+                    return currencyService.getCurrencyById(savedAccountDao.getCurrencyId())
+                            .map(currency -> {
+                                Account savedAccount = accountMapper.accountDaoToAccount(savedAccountDao);
+                                savedAccount.setCurrencyCode(currency.getCode());
+                                return savedAccount;
+                            });
+                })
                 .doOnSuccess(createdAccount -> log.info("Счет создан для пользователя: {}", createdAccount.getUserId()));
     }
 
@@ -68,13 +80,6 @@ public class AccountServiceImpl implements AccountService {
     public Flux<Account> getUserAccounts(UUID userId) {
         return accountRepository.findByUserId(userId)
                 .map(accountMapper::accountDaoToAccount);
-    }
-
-    @Override
-    public Mono<Account> getAccountByNumber(String accountNumber) {
-        return accountRepository.findByAccountNumber(accountNumber)
-                .map(accountMapper::accountDaoToAccount)
-                .switchIfEmpty(Mono.error(new NotFoundException("Счет с номером", accountNumber)));
     }
 
     @Override
@@ -173,6 +178,7 @@ public class AccountServiceImpl implements AccountService {
                     ErrorReasons.INVALID_OPERATION
             ));
         }
+
         return Mono.zip(
                 accountRepository.findById(fromAccountId)
                         .switchIfEmpty(Mono.error(new NotFoundException("Счет отправителя", fromAccountId.toString()))),
@@ -181,6 +187,7 @@ public class AccountServiceImpl implements AccountService {
         ).flatMap(tuple -> {
             AccountDao fromAccount = tuple.getT1();
             AccountDao toAccount = tuple.getT2();
+
             if (!fromAccount.getUserId().equals(toAccount.getUserId())) {
                 return Mono.error(new ValidationException(
                         "Перевод возможен только между счетами одного пользователя",
@@ -195,21 +202,26 @@ public class AccountServiceImpl implements AccountService {
                         ErrorReasons.INSUFFICIENT_BALANCE
                 ));
             }
-            // Если валюты разные, используем exchange-service для конвертации
+
+            // Если валюты разные, возвращаем ошибку (конвертация временно не поддерживается)
             if (!fromAccount.getCurrencyId().equals(toAccount.getCurrencyId())) {
-                return exchangeServiceClient.getRate(getCurrencyCode(fromAccount.getCurrencyId()), getCurrencyCode(toAccount.getCurrencyId()))
-                        .flatMap(rate -> {
-                            BigDecimal convertedAmount = amount.multiply(rate.getBuyRate());
-                            fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
-                            toAccount.setBalance(toAccount.getBalance().add(convertedAmount));
-                            fromAccount.setUpdatedAt(LocalDateTime.now());
-                            toAccount.setUpdatedAt(LocalDateTime.now());
-                            return Mono.when(
-                                    accountRepository.save(fromAccount),
-                                    accountRepository.save(toAccount)
-                            );
-                        });
+                return Mono.zip(
+                        getCurrencyCode(fromAccount.getCurrencyId()),
+                        getCurrencyCode(toAccount.getCurrencyId())
+                ).flatMap(currencyCodes -> {
+                    String fromCurrencyCode = currencyCodes.getT1();
+                    String toCurrencyCode = currencyCodes.getT2();
+
+                    return Mono.error(new ValidationException(
+                            String.format("Конвертация между разными валютами временно не поддерживается. Перевод с %s на %s",
+                                    fromCurrencyCode, toCurrencyCode),
+                            HttpStatus.BAD_REQUEST,
+                            ErrorReasons.INVALID_OPERATION
+                    ));
+                });
             }
+
+            // Если валюты одинаковые, выполняем перевод
             fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
             toAccount.setBalance(toAccount.getBalance().add(amount));
             fromAccount.setUpdatedAt(LocalDateTime.now());
@@ -223,7 +235,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    public Mono<Void> transferToOtherAccount(UUID fromAccountId, String toAccountNumber, BigDecimal amount) {
+    public Mono<Void> transferToOtherAccount(UUID fromAccountId, UUID toAccountId, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             return Mono.error(new ValidationException(
                     "Сумма перевода должна быть больше нуля",
@@ -231,14 +243,23 @@ public class AccountServiceImpl implements AccountService {
                     ErrorReasons.INVALID_AMOUNT
             ));
         }
+        if (fromAccountId.equals(toAccountId)) {
+            return Mono.error(new ValidationException(
+                    "Счета отправителя и получателя не могут быть одинаковыми",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorReasons.INVALID_OPERATION
+            ));
+        }
+
         return Mono.zip(
                 accountRepository.findById(fromAccountId)
                         .switchIfEmpty(Mono.error(new NotFoundException("Счет отправителя", fromAccountId.toString()))),
-                accountRepository.findByAccountNumber(toAccountNumber)
-                        .switchIfEmpty(Mono.error(new NotFoundException("Счет получателя с номером", toAccountNumber)))
+                accountRepository.findById(toAccountId)
+                        .switchIfEmpty(Mono.error(new NotFoundException("Счет получателя", toAccountId.toString())))
         ).flatMap(tuple -> {
             AccountDao fromAccount = tuple.getT1();
             AccountDao toAccount = tuple.getT2();
+
             if (fromAccount.getUserId().equals(toAccount.getUserId())) {
                 return Mono.error(new ValidationException(
                         "Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts",
@@ -253,21 +274,26 @@ public class AccountServiceImpl implements AccountService {
                         ErrorReasons.INSUFFICIENT_BALANCE
                 ));
             }
-            // Если валюты разные, используем exchange-service для конвертации
+
+            // Если валюты разные, возвращаем ошибку (конвертация временно не поддерживается)
             if (!fromAccount.getCurrencyId().equals(toAccount.getCurrencyId())) {
-                return exchangeServiceClient.getRate(getCurrencyCode(fromAccount.getCurrencyId()), getCurrencyCode(toAccount.getCurrencyId()))
-                        .flatMap(rate -> {
-                            BigDecimal convertedAmount = amount.multiply(rate.getBuyRate());
-                            fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
-                            toAccount.setBalance(toAccount.getBalance().add(convertedAmount));
-                            fromAccount.setUpdatedAt(LocalDateTime.now());
-                            toAccount.setUpdatedAt(LocalDateTime.now());
-                            return Mono.when(
-                                    accountRepository.save(fromAccount),
-                                    accountRepository.save(toAccount)
-                            );
-                        });
+                return Mono.zip(
+                        getCurrencyCode(fromAccount.getCurrencyId()),
+                        getCurrencyCode(toAccount.getCurrencyId())
+                ).flatMap(currencyCodes -> {
+                    String fromCurrencyCode = currencyCodes.getT1();
+                    String toCurrencyCode = currencyCodes.getT2();
+
+                    return Mono.error(new ValidationException(
+                            String.format("Конвертация между разными валютами временно не поддерживается. Перевод с %s на %s",
+                                    fromCurrencyCode, toCurrencyCode),
+                            HttpStatus.BAD_REQUEST,
+                            ErrorReasons.INVALID_OPERATION
+                    ));
+                });
             }
+
+            // Если валюты одинаковые, выполняем перевод
             fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
             toAccount.setBalance(toAccount.getBalance().add(amount));
             fromAccount.setUpdatedAt(LocalDateTime.now());
@@ -276,31 +302,16 @@ public class AccountServiceImpl implements AccountService {
                     accountRepository.save(fromAccount),
                     accountRepository.save(toAccount)
             );
-        }).doOnSuccess(v -> log.info("Перевод {} со счета {} на счет {} выполнен", amount, fromAccountId, toAccountNumber));
+        }).doOnSuccess(v -> log.info("Перевод {} со счета {} на счет {} выполнен", amount, fromAccountId, toAccountId));
     }
 
-    /**
-     * Получить актуальные курсы валют
-     *
-     * @return Список DTO курсов валют
-     */
-    public Flux<ExchangeRateDto> getCurrentExchangeRates() {
-        return exchangeServiceClient.getCurrentRates()
-                .doOnComplete(() -> log.info("Получены актуальные курсы валют"));
-    }
-
-//    /**
-//     * Получить список доступных валют
-//     *
-//     * @return DTO доступных валют
-//     */
-//    public Mono<AvailableCurrenciesDto> getAvailableCurrencies() {
-//        return exchangeServiceClient.getAvailableCurrencies()
-//                .doOnSuccess(currencies -> log.info("Получены доступные валюты: {}", currencies));
-//    }
-
-    private Mono<Void> validateUniqueAccountForCurrency(UUID userId, UUID currencyId) {
-        return accountRepository.existsByUserIdAndCurrencyId(userId, currencyId)
+    private Mono<Void> validateUniqueAccountForCurrency(UUID userId, String currencyCode) {
+        // Сначала находим валюту по коду, затем проверяем существование счета
+        return currencyService.getCurrencyByCode(currencyCode)
+                .switchIfEmpty(Mono.error(new NotFoundException("Валюта", currencyCode)))
+                .flatMap(currency ->
+                        accountRepository.existsByUserIdAndCurrencyId(userId, currency.getId())
+                )
                 .flatMap(exists -> {
                     if (exists) {
                         return Mono.error(new ValidationException(
@@ -313,9 +324,9 @@ public class AccountServiceImpl implements AccountService {
                 });
     }
 
-    // Временный метод для получения кода валюты (должен быть заменен на реальный вызов к currencies таблице)
-    private String getCurrencyCode(UUID currencyId) {
-        // Заглушка: в реальной системе нужно получить код валюты из таблицы currencies
-        return "USD"; // Заменить на реальный вызов, например, через CurrencyRepository
+    private Mono<String> getCurrencyCode(UUID currencyId) {
+        return currencyService.getCurrencyById(currencyId)
+                .map(Currency::getCode)
+                .switchIfEmpty(Mono.error(new NotFoundException("Валюта", currencyId.toString())));
     }
 }

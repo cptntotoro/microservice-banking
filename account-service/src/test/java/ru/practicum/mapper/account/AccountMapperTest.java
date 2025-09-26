@@ -27,73 +27,66 @@ class AccountMapperTest {
 
     @Test
     void createDtoToAccount_shouldMapCorrectly() {
-        UUID currencyId = UUID.randomUUID();
-        String accountNumber = "1234567890";
+        UUID userId = UUID.randomUUID();
+        String currencyCode = "USD";
+
         AccountCreateDto dto = AccountCreateDto.builder()
-                .currencyId(currencyId)
-                .accountNumber(accountNumber)
+                .userId(userId)
+                .currencyCode(currencyCode)
                 .build();
 
         Account account = accountMapper.createDtoToAccount(dto);
 
         assertNotNull(account);
-        assertEquals(currencyId, account.getCurrencyCode());
-        assertEquals(accountNumber, account.getAccountNumber());
+        assertEquals(userId, account.getUserId());
+        assertEquals(currencyCode, account.getCurrencyCode());
         assertNull(account.getId());
-        assertNull(account.getUserId());
         assertNull(account.getBalance());
         assertNull(account.getCreatedAt());
         assertNull(account.getUpdatedAt());
     }
 
     @Test
-    void accountToResponseDto_shouldMapCorrectly() {
+    void accountToAccountResponseDto_shouldMapCorrectly() {
         UUID id = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        UUID currencyId = UUID.randomUUID();
+        String currencyCode = "USD";
         BigDecimal balance = BigDecimal.valueOf(100.50);
-        String accountNumber = "1234567890";
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime updatedAt = LocalDateTime.now();
 
         Account account = Account.builder()
                 .id(id)
                 .userId(userId)
-                .currencyCode(currencyId)
+                .currencyCode(currencyCode)
                 .balance(balance)
-                .accountNumber(accountNumber)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
 
-        AccountResponseDto dto = accountMapper.accountToResponseDto(account);
+        AccountResponseDto dto = accountMapper.accountToAccountResponseDto(account);
 
         assertNotNull(dto);
         assertEquals(id, dto.getId());
-        assertEquals(currencyId, dto.getCurrencyId());
+        assertEquals(currencyCode, dto.getCurrencyCode());
         assertEquals(balance, dto.getBalance());
-        assertEquals(accountNumber, dto.getAccountNumber());
         assertEquals(createdAt, dto.getCreatedAt());
-        assertNull(dto.getCurrencyCode());
-        assertNull(dto.getCurrencyName());
     }
 
     @Test
     void accountToAccountDao_shouldMapCorrectly() {
         UUID id = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        UUID currencyId = UUID.randomUUID();
+        String currencyCode = "USD";
         BigDecimal balance = BigDecimal.valueOf(100.50);
-        String accountNumber = "1234567890";
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime updatedAt = LocalDateTime.now();
 
         Account account = Account.builder()
                 .id(id)
                 .userId(userId)
-                .currencyCode(currencyId)
+                .currencyCode(currencyCode)
                 .balance(balance)
-                .accountNumber(accountNumber)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
@@ -103,11 +96,10 @@ class AccountMapperTest {
         assertNotNull(dao);
         assertEquals(id, dao.getId());
         assertEquals(userId, dao.getUserId());
-        assertEquals(currencyId, dao.getCurrencyId());
         assertEquals(balance, dao.getBalance());
-        assertEquals(accountNumber, dao.getAccountNumber());
         assertEquals(createdAt, dao.getCreatedAt());
         assertEquals(updatedAt, dao.getUpdatedAt());
+        assertNull(dao.getCurrencyId());
     }
 
     @Test
@@ -116,7 +108,6 @@ class AccountMapperTest {
         UUID userId = UUID.randomUUID();
         UUID currencyId = UUID.randomUUID();
         BigDecimal balance = BigDecimal.valueOf(100.50);
-        String accountNumber = "1234567890";
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime updatedAt = LocalDateTime.now();
 
@@ -125,7 +116,6 @@ class AccountMapperTest {
                 .userId(userId)
                 .currencyId(currencyId)
                 .balance(balance)
-                .accountNumber(accountNumber)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
@@ -135,10 +125,9 @@ class AccountMapperTest {
         assertNotNull(account);
         assertEquals(id, account.getId());
         assertEquals(userId, account.getUserId());
-        assertEquals(currencyId, account.getCurrencyCode());
         assertEquals(balance, account.getBalance());
-        assertEquals(accountNumber, account.getAccountNumber());
         assertEquals(createdAt, account.getCreatedAt());
         assertEquals(updatedAt, account.getUpdatedAt());
+        assertNull(account.getCurrencyCode());
     }
 }

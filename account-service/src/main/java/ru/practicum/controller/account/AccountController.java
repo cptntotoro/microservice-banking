@@ -23,7 +23,6 @@ import ru.practicum.mapper.account.AccountMapper;
 import ru.practicum.model.account.Account;
 import ru.practicum.service.account.AccountService;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -51,31 +50,23 @@ public class AccountController {
         log.info("Создание счета для пользователя: {}", accountDto.getUserId());
 
         Account account = accountMapper.createDtoToAccount(accountDto);
-        account.setBalance(BigDecimal.ZERO);
 
         return accountService.createAccount(account)
-                .map(accountMapper::accountToResponseDto);
+                .map(accountMapper::accountToAccountResponseDto);
     }
 
     @GetMapping("/{accountId}")
     public Mono<AccountResponseDto> getAccountById(@PathVariable UUID accountId) {
         log.info("Получение счета по ID: {}", accountId);
         return accountService.getAccountById(accountId)
-                .map(accountMapper::accountToResponseDto);
+                .map(accountMapper::accountToAccountResponseDto);
     }
 
     @GetMapping("/user/{userId}")
     public Flux<AccountResponseDto> getUserAccounts(@PathVariable UUID userId) {
         log.info("Получение счетов пользователя: {}", userId);
         return accountService.getUserAccounts(userId)
-                .map(accountMapper::accountToResponseDto);
-    }
-
-    @GetMapping("/by-number/{accountNumber}")
-    public Mono<AccountResponseDto> getAccountByNumber(@PathVariable String accountNumber) {
-        log.info("Получение счета по номеру: {}", accountNumber);
-        return accountService.getAccountByNumber(accountNumber)
-                .map(accountMapper::accountToResponseDto);
+                .map(accountMapper::accountToAccountResponseDto);
     }
 
     @DeleteMapping("/{accountId}")
@@ -89,14 +80,14 @@ public class AccountController {
     public Mono<AccountResponseDto> deposit(@Valid @RequestBody DepositWithdrawDto dto) {
         log.info("Пополнение счета {} на сумму {}", dto.getAccountId(), dto.getAmount());
         return accountService.deposit(dto.getAccountId(), dto.getAmount())
-                .map(accountMapper::accountToResponseDto);
+                .map(accountMapper::accountToAccountResponseDto);
     }
 
     @PostMapping("/withdraw")
     public Mono<AccountResponseDto> withdraw(@Valid @RequestBody DepositWithdrawDto dto) {
         log.info("Снятие со счета {} суммы {}", dto.getAccountId(), dto.getAmount());
         return accountService.withdraw(dto.getAccountId(), dto.getAmount())
-                .map(accountMapper::accountToResponseDto);
+                .map(accountMapper::accountToAccountResponseDto);
     }
 
     @PostMapping("/transfer/own")
@@ -107,7 +98,7 @@ public class AccountController {
 
     @PostMapping("/transfer/other")
     public Mono<Void> transferToOtherAccount(@Valid @RequestBody TransferDto dto) {
-        log.info("Перевод на другой счет: с {} на номер {} сумма {}", dto.getFromAccountId(), dto.getToAccountNumber(), dto.getAmount());
-        return accountService.transferToOtherAccount(dto.getFromAccountId(), dto.getToAccountNumber(), dto.getAmount());
+        log.info("Перевод на другой счет: с {} на номер {} сумма {}", dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
+        return accountService.transferToOtherAccount(dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
     }
 }

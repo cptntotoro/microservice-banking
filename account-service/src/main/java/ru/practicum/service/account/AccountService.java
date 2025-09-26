@@ -37,14 +37,6 @@ public interface AccountService {
     Flux<Account> getUserAccounts(UUID userId);
 
     /**
-     * Получить счет по номеру
-     *
-     * @param accountNumber Номер счета
-     * @return Счет
-     */
-    Mono<Account> getAccountByNumber(String accountNumber);
-
-    /**
      * Удалить счет
      *
      * @param accountId Идентификатор счета
@@ -101,9 +93,9 @@ public interface AccountService {
      * Перевести деньги на счет другого пользователя
      *
      * @param fromAccountId Идентификатор счета отправителя
-     * @param toAccountNumber Номер счета получателя
+     * @param toAccountId   Идентификатор счета получателя
      * @param amount        Сумма перевода
      * @return Пустой результат
      */
-    Mono<Void> transferToOtherAccount(UUID fromAccountId, String toAccountNumber, BigDecimal amount);
+    Mono<Void> transferToOtherAccount(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
 }

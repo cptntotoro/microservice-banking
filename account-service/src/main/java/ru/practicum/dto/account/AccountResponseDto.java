@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * DTO для ответа с данными счета
+ * DTO ответа с данными счета
  */
 @Data
 @Builder
@@ -24,29 +24,14 @@ public class AccountResponseDto {
     private UUID id;
 
     /**
-     * Идентификатор валюты
-     */
-    private UUID currencyId;
-
-    /**
      * Код валюты
      */
     private String currencyCode;
 
     /**
-     * Название валюты
-     */
-    private String currencyName;
-
-    /**
      * Баланс счета
      */
     private BigDecimal balance;
-
-    /**
-     * Номер счета
-     */
-    private String accountNumber;
 
     /**
      * Дата создания счета
