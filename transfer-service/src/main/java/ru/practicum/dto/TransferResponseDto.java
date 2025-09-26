@@ -10,12 +10,18 @@ import ru.practicum.model.OperationStatus;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * DTO ответа на перевод средств
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class TransferResponseDto {
+    /**
+     * Статус операции
+     */
     private OperationStatus status;
 
     /**

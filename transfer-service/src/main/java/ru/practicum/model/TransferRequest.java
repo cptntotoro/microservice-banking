@@ -29,11 +29,6 @@ public class TransferRequest {
     private UUID toAccountId;
 
     /**
-     * Номер счета получателя
-     */
-    private String toAccountNumber;
-
-    /**
      * Сумма операции
      */
     private BigDecimal amount;

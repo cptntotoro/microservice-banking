@@ -54,10 +54,10 @@ public class AccountServiceClient {
         });
     }
 
-    public Mono<AccountResponseDto> getAccountByNumber(String accountNumber) {
+    public Mono<AccountResponseDto> getAccountByUserUsername(String username) {
         return getAccountServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/api/accounts/by-number/" + accountNumber;
-            log.debug("Запрос на получение счета по номеру: {}", url);
+            String url = baseUrl + "/api/accounts/by-username/" + username;
+            log.debug("Запрос на получение счета по username: {}", url);
 
             return webClientBuilder.build()
                     .get()
@@ -69,16 +69,16 @@ public class AccountServiceClient {
                                     .defaultIfEmpty("")
                                     .flatMap(body -> Mono.error(ServiceClientException.internalError(
                                             "account-service",
-                                            "getAccountByNumber",
+                                            "getAccountByUserUsername",
                                             "Ошибка при получении счета: " + response.statusCode() + " - " + body
                                     )))
                     )
                     .bodyToMono(AccountResponseDto.class)
                     .timeout(Duration.ofSeconds(10))
                     .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("account-service", "getAccountByNumber", "Таймаут при получении счета"))
-                    .doOnSuccess(account -> log.info("Счет с номером {} успешно получен", accountNumber))
-                    .doOnError(error -> log.error("Ошибка при получении счета с номером {}: {}", accountNumber, error.getMessage()));
+                            ServiceClientException.timeout("account-service", "getAccountByUserUsername", "Таймаут при получении счета"))
+                    .doOnSuccess(account -> log.info("Счет пользователя с username {} успешно получен", username))
+                    .doOnError(error -> log.error("Ошибка при получении счета пользователя с username {}: {}", username, error.getMessage()));
         });
     }
 

@@ -10,28 +10,33 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO запроса на перевод
+ * DTO запроса на перевод другому человеку
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TransferRequestDto {
+public class OtherTransferRequestDto {
+    /**
+     * Идентификатор пользователя
+     */
+    private UUID fromUserId;
+
     /**
      * Идентификатор счета отправителя
      */
     private UUID fromAccountId;
 
     /**
-     * Идентификатор счета получателя
+     * Электронная почта получателя
      */
-    private UUID toAccountId;
+    private String recipientEmail;
 
     /**
-     * Номер счета получателя
+     * Валюта счета получателя
      */
-    private String toAccountNumber;
+    private String toCurrency;
 
     /**
      * Сумма операции

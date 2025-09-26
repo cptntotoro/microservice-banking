@@ -2,7 +2,8 @@ package ru.practicum.mapper;
 
 import org.mapstruct.Mapper;
 import ru.practicum.dao.TransferDao;
-import ru.practicum.dto.TransferRequestDto;
+import ru.practicum.dto.OtherTransferRequestDto;
+import ru.practicum.dto.OwnTransferRequestDto;
 import ru.practicum.dto.TransferResponseDto;
 import ru.practicum.model.TransferRequest;
 import ru.practicum.model.TransferResponse;
@@ -18,10 +19,18 @@ public interface TransferMapper {
     /**
      * Смаппить DTO запроса на перевод в модель
      *
-     * @param transferRequestDto DTO запроса на перевод
+     * @param ownTransferRequestDto DTO запроса на перевод
      * @return Запрос на перевод средств
      */
-    TransferRequest transferRequestDtoToTransferRequest(TransferRequestDto transferRequestDto);
+    TransferRequest transferRequestDtoToTransferRequest(OwnTransferRequestDto ownTransferRequestDto);
+
+    /**
+     * Смаппить DTO запроса на перевод другому человеку в модель
+     *
+     * @param otherTransferRequestDto DTO запроса на перевод другому человеку
+     * @return Запрос на перевод средств
+     */
+    TransferRequest otherTransferRequestDtoToTransferRequest(OtherTransferRequestDto otherTransferRequestDto);
 
     /**
      * Смаппить запроса на перевод в DTO
@@ -42,8 +51,8 @@ public interface TransferMapper {
      * @param errorDescription Описание ошибки (если FAILED)
      * @return TransferDao
      */
-    default TransferDao toDao(TransferResponse response, String fromCurrency, String toCurrency, LocalDateTime timestamp,
-                              TransferType type, String errorDescription) {
+    default TransferDao transferResponseToTransferDao(TransferResponse response, String fromCurrency, String toCurrency, LocalDateTime timestamp,
+                                                      TransferType type, String errorDescription) {
         return TransferDao.builder()
                 .fromAccountId(response.getFromAccountId())
                 .toAccountId(response.getToAccountId())

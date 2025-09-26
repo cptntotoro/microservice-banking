@@ -177,29 +177,34 @@ public class TransferServiceImpl implements TransferService {
     @Override
     public Mono<TransferResponse> transferToOtherAccount(TransferRequest request) {
         UUID fromAccountId = request.getFromAccountId();
-        String toAccountNumber = request.getToAccountNumber();
+        UUID toAccountId = request.getToAccountId();
         BigDecimal amount = request.getAmount();
         LocalDateTime timestamp = LocalDateTime.now();
         TransferType type = TransferType.EXTERNAL_TRANSFER;
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return saveFailedTransfer(fromAccountId, null, amount, null, null, null, timestamp, type, "Сумма перевода должна быть больше нуля")
+            return saveFailedTransfer(fromAccountId, toAccountId, amount, null, null, null, timestamp, type, "Сумма перевода должна быть больше нуля")
                     .then(Mono.error(new ValidationException("Сумма перевода должна быть больше нуля")));
+        }
+
+        if (fromAccountId.equals(toAccountId)) {
+            return saveFailedTransfer(fromAccountId, toAccountId, amount, null, null, null, timestamp, type, "Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")
+                    .then(Mono.error(new ValidationException("Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")));
         }
 
         return Mono.zip(
                         accountServiceClient.getAccountById(fromAccountId)
                                 .onErrorResume(NotFoundException.class, e -> Mono.error(new ValidationException("Счет отправителя не найден")))
                                 .onErrorResume(ServiceUnavailableException.class, e -> Mono.error(new ServiceUnavailableException("account-service", "Не удалось получить счет отправителя"))),
-                        accountServiceClient.getAccountByNumber(toAccountNumber)
+                        accountServiceClient.getAccountById(toAccountId)
                                 .onErrorResume(NotFoundException.class, e -> Mono.error(new ValidationException("Счет получателя не найден")))
                                 .onErrorResume(ServiceUnavailableException.class, e -> Mono.error(new ServiceUnavailableException("account-service", "Не удалось получить счет получателя")))
                 ).flatMap(tuple -> {
                     AccountResponseDto fromAccount = tuple.getT1();
                     AccountResponseDto toAccount = tuple.getT2();
-                    UUID toAccountId = toAccount.getAccountId();
 
-                    if (fromAccountId.equals(toAccountId)) {
+                    // Проверяем, что счет получателя принадлежит другому пользователю
+                    if (fromAccount.getUserId().equals(toAccount.getUserId())) {
                         return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")
                                 .then(Mono.error(new ValidationException("Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")));
                     }
@@ -242,24 +247,17 @@ public class TransferServiceImpl implements TransferService {
                                                         .then(Mono.error(new ServiceUnavailableException("exchange-service", "Не удалось выполнить конвертацию"))))
                                         .flatMap(convertResponse -> {
                                             BigDecimal converted = convertResponse.getConvertedAmount();
-                                            return accountServiceClient.transferToOtherAccount(fromAccountId, toAccountNumber, amount, converted)
+                                            return accountServiceClient.transferToOtherAccount(fromAccountId, toAccountId, amount, converted)
                                                     .onErrorResume(e ->
                                                             saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, converted, timestamp, type, "Ошибка при переводе: " + e.getMessage())
                                                                     .then(Mono.error(e)))
                                                     .thenReturn(converted);
                                         })
                                         .flatMap(converted ->
-                                                Mono.when(
-                                                        notificationsServiceClient.sendNotification(
-                                                                fromAccountId,
-                                                                String.format("Перевод на другой счет на сумму %s %s выполнен. Конвертировано в %s %s",
-                                                                        amount, fromCode, converted, toCode)
-                                                        ),
-                                                        notificationsServiceClient.sendNotification(
-                                                                toAccountId,
-                                                                String.format("Получен перевод на сумму %s %s от счета %s",
-                                                                        converted, toCode, fromAccountId)
-                                                        )
+                                                notificationsServiceClient.sendNotification(
+                                                        fromAccountId,
+                                                        String.format("Перевод на другой счет на сумму %s %s выполнен. Конвертировано в %s %s",
+                                                                amount, fromCode, converted, toCode)
                                                 ).onErrorResume(e -> {
                                                     log.warn("Не удалось отправить уведомление: {}", e.getMessage());
                                                     return Mono.empty();
@@ -277,7 +275,7 @@ public class TransferServiceImpl implements TransferService {
                                                         .then(Mono.just(response))
                                         );
                             });
-                }).doOnSuccess(response -> log.info("Перевод со счета {} на счет {} на сумму {} выполнен", fromAccountId, toAccountNumber, amount))
+                }).doOnSuccess(response -> log.info("Перевод со счета {} на счет {} на сумму {} выполнен", fromAccountId, toAccountId, amount))
                 .doOnError(error -> {
                     if (error instanceof ValidationException) {
                         log.warn("Ошибка валидации при переводе: {}", error.getMessage());
@@ -288,7 +286,7 @@ public class TransferServiceImpl implements TransferService {
     }
 
     private Mono<Void> saveSuccessfulTransfer(TransferResponse response, String fromCurrency, String toCurrency, LocalDateTime timestamp, TransferType type) {
-        TransferDao dao = transferMapper.toDao(response, fromCurrency, toCurrency, timestamp, type, null);
+        TransferDao dao = transferMapper.transferResponseToTransferDao(response, fromCurrency, toCurrency, timestamp, type, null);
         return Mono.fromCallable(() -> transferRepository.save(dao)).then();
     }
 
@@ -300,7 +298,7 @@ public class TransferServiceImpl implements TransferService {
                 .amount(amount)
                 .convertedAmount(convertedAmount)
                 .build();
-        TransferDao dao = transferMapper.toDao(failedResponse, fromCurrency, toCurrency, timestamp, type, errorDescription);
+        TransferDao dao = transferMapper.transferResponseToTransferDao(failedResponse, fromCurrency, toCurrency, timestamp, type, errorDescription);
         return Mono.fromCallable(() -> transferRepository.save(dao)).then();
     }
 }
