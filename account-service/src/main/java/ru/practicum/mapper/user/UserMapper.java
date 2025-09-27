@@ -5,8 +5,10 @@ import org.mapstruct.Mapping;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.dto.user.PasswordChangeDto;
 import ru.practicum.dto.user.SignUpRequestDto;
+import ru.practicum.dto.user.UserFullResponseDto;
 import ru.practicum.dto.user.UserResponseDto;
 import ru.practicum.model.user.User;
+import ru.practicum.model.user.UserWithAccounts;
 
 /**
  * Маппер пользователей
@@ -37,6 +39,14 @@ public interface UserMapper {
     default String passwordChangeDtoToString(PasswordChangeDto dto) {
         return dto != null ? dto.getNewPassword() : null;
     }
+
+    /**
+     * Смаппить модель пользователя с его счетами в полное DTO ответа
+     *
+     * @param userWithAccounts Модель пользователя с его счетами
+     * @return Полное DTO ответа
+     */
+    UserFullResponseDto userWithAccountsToFullResponseDto(UserWithAccounts userWithAccounts);
 
     /**
      * Смаппить пользователя в DAO пользователя

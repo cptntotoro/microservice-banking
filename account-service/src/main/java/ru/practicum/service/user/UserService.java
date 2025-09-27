@@ -1,9 +1,9 @@
 package ru.practicum.service.user;
 
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.model.user.User;
+import ru.practicum.model.user.UserWithAccounts;
 
 import java.util.UUID;
 
@@ -20,10 +20,29 @@ public interface UserService {
      */
     Mono<User> registerUser(User user, String password);
 
+    /**
+     * Добавление новой роли пользователю
+     *
+     * @param userId Идентификатор пользователя
+     * @param roleName Название роли
+     */
     Mono<Void> addUserRole(UUID userId, String roleName);
 
+    /**
+     * Убрать роль у пользователя
+     *
+     * @param userId Идентификатор пользователя
+     * @param roleName Название роли
+     */
     Mono<Void> removeUserRole(UUID userId, String roleName);
 
+    /**
+     * Проверить наличие роли у пользователя
+     *
+     * @param userId Идентификатор пользователя
+     * @param roleName Название роли
+     * @return Да / Нет
+     */
     Mono<Boolean> userHasRole(UUID userId, String roleName);
 
     /**
@@ -33,8 +52,6 @@ public interface UserService {
      * @return Модель пользователя
      */
     Mono<User> getUserByUuid(UUID userId);
-
-    Mono<User> getUserWithRoles(String username);
 
     /**
      * Получение пользователя по логину
@@ -114,9 +131,34 @@ public interface UserService {
      */
     Mono<Boolean> existsByEmail(String email);
 
+    /**
+     * Получить всех пользователей
+     *
+     * @return Список пользователей
+     */
     Flux<User> getAllUsers();
 
+    /**
+     * Получить пользователей по флагу активности
+     *
+     * @param enabled Да / Нет
+     * @return Список пользователей
+     */
     Flux<User> getUsersByStatus(boolean enabled);
 
+    /**
+     * Получить пользователей по флагу блокирокви
+     *
+     * @param locked Да / Нет
+     * @return Список пользователей
+     */
     Flux<User> getUsersByLockStatus(boolean locked);
+
+    /**
+     * Получить пользователя со счетами по идентификатору
+     *
+     * @param userId Идентификатор пользователя
+     * @return Пользователь с его счетами
+     */
+    Mono<UserWithAccounts> getUserWithAccountsByUuid(UUID userId);
 }
