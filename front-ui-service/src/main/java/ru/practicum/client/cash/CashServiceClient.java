@@ -15,6 +15,9 @@ import ru.practicum.exception.ServiceUnavailableException;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Клиент для сервиса обналичивания денег
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

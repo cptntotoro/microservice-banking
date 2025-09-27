@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.user.PasswordChangeDto;
+import ru.practicum.dto.user.SignUpRequestDto;
 import ru.practicum.dto.user.UserResponseDto;
-import ru.practicum.dto.user.UserSignUpDto;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
 import ru.practicum.service.user.UserService;
@@ -45,7 +45,7 @@ public class UserController {
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<UserResponseDto> registerUser(@Valid @RequestBody UserSignUpDto userDto) {
+    public Mono<UserResponseDto> registerUser(@Valid @RequestBody SignUpRequestDto userDto) {
         User user = userMapper.registrationDtoToUser(userDto);
         return userService.registerUser(user, userDto.getPassword())
                 .map(userMapper::userToResponseDto);
@@ -74,7 +74,7 @@ public class UserController {
     @PutMapping("/{userId}")
     public Mono<UserResponseDto> updateUser(
             @PathVariable UUID userId,
-            @Valid @RequestBody UserSignUpDto userDto) {
+            @Valid @RequestBody SignUpRequestDto userDto) {
         log.info("Обновление данных пользователя: {}", userId);
 
         User user = userMapper.registrationDtoToUser(userDto);

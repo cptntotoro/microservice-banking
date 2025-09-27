@@ -1,4 +1,4 @@
-package ru.practicum.mapper;
+package ru.practicum.mapper.cash;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -23,8 +23,6 @@ public interface CashMapper {
      */
     @Mapping(target = "operationId", ignore = true)
     @Mapping(target = "operationType", ignore = true)
-    @Mapping(target = "newBalance", ignore = true)
-    @Mapping(target = "operationDate", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "message", ignore = true)
     Cash cashRequestDtoToCash(CashRequestDto cashRequestDto);
@@ -51,5 +49,11 @@ public interface CashMapper {
      * @param cashResponseDto DTO ответа клиента на операцию с наличными
      * @return Модель операции с наличными
      */
+    @Mapping(target = "operationId", ignore = true)
+    @Mapping(target = "accountId", ignore = true)
+    @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "operationType", ignore = true)
+    @Mapping(target = "amount", ignore = true)
+    @Mapping(target = "currency", ignore = true)
     Cash cashResponseClientDtoToCash(CashResponseClientDto cashResponseDto);
 }

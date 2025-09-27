@@ -13,7 +13,7 @@ import ru.practicum.dto.auth.SignUpRequestDto;
 import ru.practicum.dto.user.EditUserProfileDto;
 
 /**
- * Клиент обращения к сервису аутентификации
+ * Клиент для сервиса аутентификации
  */
 @Component
 @RequiredArgsConstructor

@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO запроса клиента на операции с наичными
+ * Клиентский DTO запроса клиента на операции с наличными
  */
 @Data
 @Builder

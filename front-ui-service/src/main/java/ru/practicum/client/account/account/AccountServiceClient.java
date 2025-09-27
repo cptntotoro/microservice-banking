@@ -190,20 +190,4 @@ public class AccountServiceClient {
                             "Проверьте подключение к сервису аккаунтов"));
                 });
     }
-
-    /**
-     * Обработка ошибок для Mono потоков
-     */
-    private Mono<?> handleServiceError(ServiceUnavailableException e) {
-        log.error("Service unavailable error: {}", e.getMessage(), e);
-        return Mono.error(e);
-    }
-
-    /**
-     * Обработка ошибок для Flux потоков
-     */
-    private <T> Flux<T> handleServiceErrorFlux(ServiceUnavailableException e) {
-        log.error("Service unavailable error: {}", e.getMessage(), e);
-        return Flux.error(e);
-    }
 }

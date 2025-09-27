@@ -1,13 +1,20 @@
 package ru.practicum.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+/**
+ * DTO для удаления аккаунта пользователя
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DeleteUserProfileDto {
-    /**
-     * Логин пользователя для удаления.
-     */
+
     @NotBlank(message = "Логин обязателен")
     private String login;
 }

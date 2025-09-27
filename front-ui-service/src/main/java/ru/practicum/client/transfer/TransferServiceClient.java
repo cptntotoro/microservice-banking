@@ -10,8 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import ru.practicum.dto.transfer.OtherTransferRequestDto;
-import ru.practicum.dto.transfer.OwnTransferRequestDto;
 import ru.practicum.exception.ServiceUnavailableException;
 
 import java.time.Duration;
@@ -29,7 +27,7 @@ public class TransferServiceClient {
     private final WebClient.Builder webClientBuilder;
     private final DiscoveryClient discoveryClient;
 
-    public Mono<Void> performOwnTransfer(OwnTransferRequestDto dto, UUID userId) {
+    public Mono<Void> performOwnTransfer(OwnTransferRequestClientDto dto, UUID userId) {
         log.info("Performing own transfer for user {}: amount {}", userId, dto.getAmount());
 
         return getTransferServiceUrl()
@@ -65,7 +63,7 @@ public class TransferServiceClient {
                 });
     }
 
-    public Mono<Void> performOtherTransfer(OtherTransferRequestDto dto, UUID userId) {
+    public Mono<Void> performOtherTransfer(OtherTransferRequestClientDto dto, UUID userId) {
         log.info("Performing other transfer for user {} to email {}: amount {}",
                 userId, dto.getRecipientEmail(), dto.getAmount());
 

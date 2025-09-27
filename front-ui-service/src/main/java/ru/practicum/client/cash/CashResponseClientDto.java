@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO ответа на запрос на пополнение счета
+ * Клиентский DTO ответа на запрос на пополнение счета
  */
 @Data
 @Builder

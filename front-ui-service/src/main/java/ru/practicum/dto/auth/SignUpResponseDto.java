@@ -1,11 +1,17 @@
 package ru.practicum.dto.auth;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.practicum.client.account.user.LoginResponseClientDto;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignUpResponseDto {
     private Long userId;
     private String username;

@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 import ru.practicum.client.account.user.AuthServiceClient;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.auth.ChangePasswordRequestDto;
-import ru.practicum.dto.auth.UserProfileResponseDto;
 import ru.practicum.dto.user.EditUserProfileDto;
 
 @Controller
@@ -93,20 +92,9 @@ public class ProfileController extends BaseController {
                         });
             }
 
-            if (!changeRequest.getNewPassword().equals(changeRequest.getConfirmPassword())) {
-                return authServiceClient.getProfile("Bearer " + token)
-                        .flatMap(profile -> {
-                            model.addAttribute("userProfile", profile);
-                            model.addAttribute("passwordError", "Пароли не совпадают");
-                            return renderPage(model, "auth/profile",
-                                    "Профиль", "Управление профилем",
-                                    "auth/profile", null);
-                        });
-            }
-
             return authServiceClient.changePassword(changeRequest, "Bearer " + token)
                     .flatMap(response -> {
-                        model.addAttribute("userProfile", (UserProfileResponseDto) exchange.getSession()
+                        model.addAttribute("userProfile", exchange.getSession()
                                 .map(session -> session.getAttributes().get("user_profile"))
                                 .block());
                         model.addAttribute("passwordSuccess", "Пароль успешно изменен");

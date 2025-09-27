@@ -10,9 +10,9 @@ import ru.practicum.model.transfer.TransferResult;
  */
 public interface TransferService {
     /**
-     * Перевести средства на свой счет
+     * Перевести средства между своими счетами
      *
-     * @param ownTransfer Перевод средств на свой счет
+     * @param ownTransfer Перевод средств между своими счетами
      * @return Результат перевода
      */
     Mono<TransferResult> performOwnTransfer(OwnTransfer ownTransfer);

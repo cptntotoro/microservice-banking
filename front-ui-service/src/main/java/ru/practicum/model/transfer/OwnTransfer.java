@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * Перевод средств на свой счет
+ * Перевод средств между своими счетами
  */
 @Data
 @NoArgsConstructor
@@ -17,17 +17,17 @@ import java.util.UUID;
 @Builder
 public class OwnTransfer {
     /**
-     * Идентификатор пользователя-отправителя
+     * Идентификатор пользователя
      */
     private UUID userId;
 
     /**
-     * Идентификатор счета отправителя
+     * Идентификатор исходного счета
      */
     private UUID fromAccountId;
 
     /**
-     * Идентификатор счета получателя
+     * Идентификатор целевого счета
      */
     private UUID toAccountId;
 

@@ -4,14 +4,16 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.dto.user.PasswordChangeDto;
-import ru.practicum.dto.user.UserSignUpDto;
+import ru.practicum.dto.user.SignUpRequestDto;
 import ru.practicum.dto.user.UserResponseDto;
 import ru.practicum.model.user.User;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class UserMapperTest {
 
@@ -21,7 +23,7 @@ class UserMapperTest {
 
     @Test
     void registrationDtoToUser_shouldMapCorrectly() {
-        UserSignUpDto dto = new UserSignUpDto();
+        SignUpRequestDto dto = new SignUpRequestDto();
         dto.setEmail("test@example.com");
         dto.setFirstName("John");
         dto.setLastName("Doe");

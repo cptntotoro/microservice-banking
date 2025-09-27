@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-
+/**
+ * Клиентский DTO ответа с данными о счете пользователя
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,5 +21,4 @@ public class AccountResponseClientDto {
     private String currencyCode;
     private String currencyName;
     private BigDecimal balance;
-    private String accountNumber;
 }

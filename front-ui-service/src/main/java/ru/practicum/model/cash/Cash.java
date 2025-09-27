@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -36,10 +35,24 @@ public class Cash {
      * Тип операции
      */
     private String operationType;
+
+    /**
+     * Сумма операции
+     */
     private BigDecimal amount;
+
+    /**
+     * Код валюты
+     */
     private String currency;
-    private BigDecimal newBalance;
-    private LocalDateTime operationDate;
+
+    /**
+     * Статус операции
+     */
     private String status;
+
+    /**
+     * Сообщение
+     */
     private String message;
 }

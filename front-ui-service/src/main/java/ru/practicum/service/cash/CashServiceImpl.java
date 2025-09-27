@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.cash.CashServiceClient;
-import ru.practicum.mapper.CashMapper;
+import ru.practicum.mapper.cash.CashMapper;
 import ru.practicum.model.cash.Cash;
 
 @Service
