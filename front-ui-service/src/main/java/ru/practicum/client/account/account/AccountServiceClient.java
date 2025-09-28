@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,10 +20,11 @@ import ru.practicum.exception.ServiceUnavailableException;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 /**
- * Клиент для обращений к сервису аккаунтов
+ * Клиент для сервиса аккаунтов
  */
 @Component
 @RequiredArgsConstructor
@@ -31,163 +33,153 @@ public class AccountServiceClient {
 
     private final WebClient.Builder webClientBuilder;
     private final DiscoveryClient discoveryClient;
+    private final Random random = new Random();
 
-    public Mono<SignUpResponseDto> createAccount(SignUpRequestDto signUpRequestDto) {
-        log.info("Creating account: {}", signUpRequestDto);
-
-        return getAccountServiceUrl().flatMap(baseUrl -> {
-                    String url = baseUrl + "/api/users/signup";
-                    log.debug("Calling account service at: {}", url);
-
-                    return webClientBuilder.build()
-                            .post()
-                            .uri(url)
-                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .bodyValue(signUpRequestDto)
-                            .retrieve()
-                            .onStatus(HttpStatusCode::isError, response -> {
-                                log.error("Account service error during signup: {}", response.statusCode());
-                                return Mono.error(new ServiceUnavailableException(
-                                        "Ошибка регистрации аккаунта: " + response.statusCode().value(),
-                                        "account-service",
-                                        "Сервис аккаунтов вернул ошибку: " + response.statusCode()));
-                            })
-                            .bodyToMono(SignUpResponseDto.class)
-                            .timeout(Duration.ofSeconds(10))
-                            .doOnSuccess(response -> log.info("Account created: {}", response))
-                            .doOnError(error -> log.error("Error creating account: {}", error.getMessage(), error));
-                })
-                .onErrorResume(e -> {
-                    log.error("Failed to create account", e);
-                    return Mono.error(new ServiceUnavailableException(
-                            "Сервис аккаунтов временно недоступен: " + e.getMessage(),
-                            "account-service",
-                            "Проверьте подключение к сервису аккаунтов"));
-                });
-    }
-
-    public Mono<AccountResponseClientDto> getAccount(UUID accountId) {
-        log.info("Getting account by ID: {}", accountId);
-
-        return getAccountServiceUrl().flatMap(baseUrl -> {
-                    String url = baseUrl + "/api/accounts/" + accountId;
-                    log.debug("Calling account service at: {}", url);
-
-                    return webClientBuilder.build()
-                            .get()
-                            .uri(url)
-                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .retrieve()
-                            .onStatus(HttpStatusCode::isError, response -> {
-                                log.error("Account service error getting account {}: {}", accountId, response.statusCode());
-                                return Mono.error(new ServiceUnavailableException(
-                                        "Ошибка получения счета: " + response.statusCode().value(),
-                                        "account-service",
-                                        "Сервис аккаунтов вернул ошибку: " + response.statusCode()));
-                            })
-                            .bodyToMono(AccountResponseClientDto.class)
-                            .timeout(Duration.ofSeconds(10))
-                            .doOnSuccess(response -> log.info("Account retrieved: {}", accountId))
-                            .doOnError(error -> log.error("Error getting account {}: {}", accountId, error.getMessage(), error));
-                })
-                .onErrorResume(e -> {
-                    log.error("Failed to get account {}", accountId, e);
-                    return Mono.error(new ServiceUnavailableException(
-                            "Сервис аккаунтов временно недоступен: " + e.getMessage(),
-                            "account-service",
-                            "Проверьте подключение к сервису аккаунтов"));
-                });
-    }
-
-    public Flux<AccountResponseClientDto> getUserAccounts(UUID userId) {
-        log.info("Getting accounts for user: {}", userId);
-
-        return getAccountServiceUrl().flatMapMany(baseUrl -> {
-                    String url = baseUrl + "/api/accounts/user/" + userId;
-                    log.debug("Calling account service at: {}", url);
-
-                    return webClientBuilder.build()
-                            .get()
-                            .uri(url)
-                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .retrieve()
-                            .onStatus(HttpStatusCode::isError, response -> {
-                                log.error("Account service error getting user accounts for {}: {}", userId, response.statusCode());
-                                return Mono.error(new ServiceUnavailableException(
-                                        "Ошибка получения счетов пользователя: " + response.statusCode().value(),
-                                        "account-service",
-                                        "Сервис аккаунтов вернул ошибку: " + response.statusCode()));
-                            })
-                            .bodyToFlux(AccountResponseClientDto.class)
-                            .timeout(Duration.ofSeconds(10));
-                })
-                .doOnNext(account -> log.debug("Retrieved account {} for user {}", account.getId(), userId))
-                .doOnComplete(() -> log.info("Successfully retrieved accounts for user {}", userId))
-                .doOnError(error -> log.error("Error getting user accounts for {}: {}", userId, error.getMessage(), error))
-                .onErrorResume(e -> {
-                    log.error("Failed to get user accounts for {}", userId, e);
-                    return Flux.error(new ServiceUnavailableException(
-                            "Сервис аккаунтов временно недоступен: " + e.getMessage(),
-                            "account-service",
-                            "Проверьте подключение к сервису аккаунтов"));
-                });
-    }
-
+    /**
+     * Получение URL сервиса аккаунтов через DiscoveryClient
+     */
     private Mono<String> getAccountServiceUrl() {
         return Mono.fromCallable(() -> {
             List<ServiceInstance> instances = discoveryClient.getInstances("account-service");
             if (instances == null || instances.isEmpty()) {
-                log.error("No instances of account-service found");
+                log.error("Экземпляры сервиса аккаунтов не найдены в реестре");
                 throw new ServiceUnavailableException(
-                        "Сервис аккаунтов не найден в реестре",
+                        "Ошибка обнаружения сервиса: экземпляры не найдены",
                         "account-service",
-                        "Не удалось обнаружить экземпляры сервиса в Eureka/Consul");
+                        "Проверьте регистрацию сервиса аккаунтов в Consul");
             }
 
-            ServiceInstance instance = instances.getFirst();
+            ServiceInstance instance = instances.get(random.nextInt(instances.size()));
             String url = "http://" + instance.getHost() + ":" + instance.getPort();
-            log.debug("Discovered account-service at: {}", url);
+            log.debug("Вызов сервиса аккаунтов по адресу: {}", url);
             return url;
         }).onErrorResume(throwable -> {
-            log.error("Error discovering account-service: {}", throwable.getMessage(), throwable);
+            log.error("Ошибка при получении адреса сервиса аккаунтов: {}", throwable.getMessage());
             return Mono.error(new ServiceUnavailableException(
-                    "Ошибка обнаружения сервиса аккаунтов",
+                    "Ошибка обнаружения сервиса: " + throwable.getMessage(),
                     "account-service",
-                    "Проблема с реестром сервисов: " + throwable.getMessage()));
+                    "Проверьте работу реестра сервисов"));
         });
     }
 
-    public Mono<LoginResponseClientDto> login(LoginRequestDto loginRequest) {
-        log.info("Login attempt for user: {}", loginRequest.getLogin());
-
+    /**
+     * Выполнение GET-запроса к сервису аккаунтов
+     */
+    private <T> Mono<T> executeGet(String path, Class<T> responseType, UUID id, String logMessageSuccess) {
+        log.info("Начало {}: {}", logMessageSuccess, id);
         return getAccountServiceUrl().flatMap(baseUrl -> {
-                    String url = baseUrl + "/api/auth/login";
-                    log.debug("Calling account service login at: {}", url);
+            String url = baseUrl + String.format(path, id);
+            log.debug("Вызов сервиса аккаунтов по адресу: {}", url);
+            return webClientBuilder.build()
+                    .get()
+                    .uri(url)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, response -> handleError(response, "GET", url, logMessageSuccess, id))
+                    .bodyToMono(responseType)
+                    .timeout(Duration.ofSeconds(10))
+                    .doOnSuccess(response -> log.info("Успешное завершение {}: {}", logMessageSuccess, id))
+                    .doOnError(error -> log.error("Ошибка при {} {}: {}", logMessageSuccess, id, error.getMessage()));
+        }).onErrorResume(throwable -> handleGeneralError(throwable, logMessageSuccess, id));
+    }
 
-                    return webClientBuilder.build()
-                            .post()
-                            .uri(url)
-                            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .bodyValue(loginRequest)
-                            .retrieve()
-                            .onStatus(HttpStatusCode::isError, response -> {
-                                log.error("Login failed with status: {}", response.statusCode());
-                                return Mono.error(new ServiceUnavailableException(
-                                        "Ошибка аутентификации: " + response.statusCode().value(),
-                                        "account-service",
-                                        "Сервис аккаунтов вернул ошибку при входе: " + response.statusCode()));
-                            })
-                            .bodyToMono(LoginResponseClientDto.class)
-                            .timeout(Duration.ofSeconds(10))
-                            .doOnSuccess(response -> log.info("Login successful for user: {}", loginRequest.getLogin()))
-                            .doOnError(error -> log.error("Error during login for user {}: {}", loginRequest.getLogin(), error.getMessage(), error));
-                })
-                .onErrorResume(e -> {
-                    log.error("Failed to login", e);
-                    return Mono.error(new ServiceUnavailableException(
-                            "Сервис аккаунтов временно недоступен: " + e.getMessage(),
-                            "account-service",
-                            "Проверьте подключение к сервису аккаунтов"));
-                });
+    /**
+     * Выполнение POST-запроса к сервису аккаунтов
+     */
+    private <T, B> Mono<T> executePost(String path, B body, Class<T> responseType, String logMessage, Object logParam) {
+        log.info("Начало {}: {}", logMessage, logParam);
+        return getAccountServiceUrl().flatMap(baseUrl -> {
+            String url = baseUrl + path;
+            log.debug("Вызов сервиса аккаунтов по адресу: {}", url);
+            return webClientBuilder.build()
+                    .post()
+                    .uri(url)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .bodyValue(body)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, response -> handleError(response, "POST", url, logMessage, logParam))
+                    .bodyToMono(responseType)
+                    .timeout(Duration.ofSeconds(10))
+                    .doOnSuccess(response -> log.info("Успешное завершение {}: {}", logMessage, logParam))
+                    .doOnError(error -> log.error("Ошибка при {} {}: {}", logMessage, logParam, error.getMessage()));
+        }).onErrorResume(throwable -> handleGeneralError(throwable, logMessage, logParam));
+    }
+
+    /**
+     * Обработка HTTP-ошибок от сервиса
+     */
+    private Mono<? extends Throwable> handleError(ClientResponse response, String method, String url, String operation, Object identifier) {
+        log.error("Ошибка сервиса аккаунтов при {} {} по адресу {}: код состояния {}", operation, identifier, url, response.statusCode());
+        return Mono.error(new ServiceUnavailableException(
+                String.format("Ошибка %s %s: код состояния %d", operation, identifier, response.statusCode().value()),
+                "account-service",
+                "Проверьте доступность сервиса аккаунтов"));
+    }
+
+    /**
+     * Обработка общих ошибок (например, таймаут или недоступность сервиса)
+     */
+    private <T> Mono<T> handleGeneralError(Throwable throwable, String operation, Object identifier) {
+        log.error("Ошибка при {} {}: {}", operation, identifier, throwable.getMessage());
+        return Mono.error(new ServiceUnavailableException(
+                String.format("Ошибка %s %s: %s", operation, identifier, throwable.getMessage()),
+                "account-service",
+                "Проверьте подключение к сервису аккаунтов"));
+    }
+
+    /**
+     * Создание нового пользователя
+     */
+    public Mono<SignUpResponseDto> createAccount(SignUpRequestDto signUpRequestDto) {
+        return executePost("/api/users/signup", signUpRequestDto, SignUpResponseDto.class,
+                "создания пользователя", signUpRequestDto.getUsername());
+    }
+
+    /**
+     * Получение счета по идентификатору
+     */
+    public Mono<AccountResponseClientDto> getAccount(UUID accountId) {
+        return executeGet("/api/accounts/%s", AccountResponseClientDto.class, accountId, "получения счета");
+    }
+
+    /**
+     * Получение счетов пользователя
+     */
+    public Flux<AccountResponseClientDto> getUserAccounts(UUID userId) {
+        log.info("Начало получения счетов пользователя: {}", userId);
+        return getAccountServiceUrl().flatMapMany(baseUrl -> {
+            String url = baseUrl + "/api/accounts/user/" + userId;
+            log.debug("Вызов сервиса аккаунтов по адресу: {}", url);
+            return webClientBuilder.build()
+                    .get()
+                    .uri(url)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, response -> handleError(response, "GET", url, "получения счетов пользователя", userId))
+                    .bodyToFlux(AccountResponseClientDto.class)
+                    .timeout(Duration.ofSeconds(10))
+                    .doOnNext(account -> log.debug("Получен счет {} для пользователя {}", account.getId(), userId))
+                    .doOnComplete(() -> log.info("Успешное завершение получения счетов пользователя: {}", userId))
+                    .doOnError(error -> log.error("Ошибка при получении счетов пользователя {}: {}", userId, error.getMessage()));
+        }).onErrorResume(throwable -> Flux.error(new ServiceUnavailableException(
+                String.format("Ошибка получения счетов пользователя %s: %s", userId, throwable.getMessage()),
+                "account-service",
+                "Проверьте подключение к сервису аккаунтов")));
+    }
+
+    /**
+     * Аутентификация пользователя
+     */
+    public Mono<LoginResponseClientDto> login(LoginRequestDto loginRequest) {
+        return executePost("/api/auth/login", loginRequest, LoginResponseClientDto.class,
+                "аутентификации пользователя", loginRequest.getLogin());
+    }
+
+    /**
+     * Получение полной информации о пользователе
+     */
+    public Mono<UserFullResponseClientDto> getFullUser(UUID userId) {
+        return executeGet("/api/users/full/%s", UserFullResponseClientDto.class, userId,
+                "получения полной информации о пользователе");
     }
 }

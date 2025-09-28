@@ -8,34 +8,34 @@
             <button class="dashboard-nav__btn" data-target="transfer-other">Перевод другому</button>
         </nav>
 
+        <!-- Сообщения -->
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+        <div th:if="${success}" class="success" th:text="${success}"></div>
+
         <!-- Секции -->
         <div id="account" class="dashboard-section active">
 
             <!-- Редактирование профиля -->
-            <form class="form" th:action="@{'/user/' + ${userData.login} + '/editProfile'}" method="post">
+            <form class="form" th:action="@{/update-profile}" method="post">
                 <div class="grid grid--2">
                     <div class="form__row">
                         <label class="label">Фамилия</label>
-                        <input class="input" name="lastName" th:value="${userData.lastName}" required/>
+                        <input class="input" name="lastName" th:value="${user.lastName}" required/>
                     </div>
                     <div class="form__row">
                         <label class="label">Имя</label>
-                        <input class="input" name="firstName" th:value="${userData.firstName}" required/>
+                        <input class="input" name="firstName" th:value="${user.firstName}" required/>
                     </div>
                     <div class="form__row">
                         <label class="label" for="email">Электронная почта</label>
-                        <input class="input" id="email" name="email" type="email" data-validate="email" th:value="${userData.email}" required/>
+                        <input class="input" id="email" name="email" type="email" data-validate="email" th:value="${user.email}" required/>
                         <div class="client-error" style="display: none;"></div>
                     </div>
-
-
                     <div class="form__row">
                         <label class="label" for="birthdate">Дата рождения</label>
-                        <input class="input" id="birthdate" th:value="*{userData.birthdate}" type="date"
-                               data-validate="birthdate" />
+                        <input class="input" id="birthdate" th:value="${user.birthDate}" type="date" data-validate="birthdate"/>
                         <div class="client-error" style="display: none;"></div>
                     </div>
-
                 </div>
                 <div class="row between center">
                     <button class="btn btn--ghost" type="submit">Сохранить профиль</button>
@@ -43,16 +43,12 @@
             </form>
 
             <!-- Изменение пароля -->
-            <form class="form" th:action="@{'/user/' + ${userData.login} + '/editPassword'}" method="post">
+            <form class="form" th:action="@{/change-password}" method="post" onsubmit="return validatePassword()">
                 <div class="grid grid--2">
                     <div class="form__row">
                         <label class="label" for="password">Новый пароль</label>
-                        <input class="input" id="password" name="password" type="password" data-validate="password"
-                               autocomplete="new-password" required/>
-                        <!--                        oninput="checkPasswordStrength(this.value)"-->
+                        <input class="input" id="password" name="password" type="password" data-validate="password" autocomplete="new-password" required/>
                         <div class="client-error" style="display: none;"></div>
-
-                        <!-- Индикатор сложности -->
                         <div class="password-strength-container">
                             <div class="password-strength">
                                 <div class="password-strength__bar"></div>
@@ -62,11 +58,8 @@
                     </div>
                     <div class="form__row">
                         <label class="label" for="confirmPassword">Повторите пароль</label>
-                        <input class="input" id="confirmPassword" name="confirm_password" type="password"
-                               data-validate="confirm-password" autocomplete="new-password" required/>
-                        <div class="client-error" id="passwordMatchError" style="display: none;">
-                            Пароли не совпадают
-                        </div>
+                        <input class="input" id="confirmPassword" name="confirm_password" type="password" data-validate="confirm-password" autocomplete="new-password" required/>
+                        <div class="client-error" id="passwordMatchError" style="display: none;">Пароли не совпадают</div>
                     </div>
                 </div>
                 <div class="row between center">
@@ -75,44 +68,44 @@
             </form>
 
             <!-- Управление счетами -->
-            <form class="form" th:action="@{'/user/' + ${userData.login} + '/editAccounts'}" method="post">
+            <form class="form" th:action="@{/add-account}" method="post">
                 <div class="form__row">
                     <label class="label">Счета</label>
                     <div class="grid grid--3">
-                        <div class="card" th:each="acc : ${userData.accounts}">
+                        <div class="card" th:each="account : ${userAccounts}" th:if="${userAccounts} and ${userAccounts.size() > 0}">
                             <div class="row between center">
-                                <span th:text="${acc.currency.title}">USD</span>
-                                <span class="muted" th:text="${acc.value + ' ' + acc.currency.name()}"></span>
+                                <span th:text="${account.currencyCode}"></span>
+                                <span class="muted" th:text="${account.balance}"></span>
                             </div>
                             <div class="row" style="gap:8px">
-                                <button class="btn btn--ghost" name="action" value="edit"
-                                        th:formaction="@{'/user/' + ${userData.login} + '/editAccount/' + ${acc.id}}">Редактировать</button>
-                                <button class="btn btn--ghost" name="action" value="delete"
-                                        th:formaction="@{'/user/' + ${userData.login} + '/deleteAccount/' + ${acc.id}}">Удалить</button>
+                                <button class="btn btn--ghost" name="action" value="edit" th:formaction="@{/edit-account(id=${account.id})}">Редактировать</button>
+                                <button class="btn btn--ghost" name="action" value="delete" th:formaction="@{/delete-account(id=${account.id})}">Удалить</button>
                             </div>
+                        </div>
+                        <div class="card" th:if="${userAccounts} == null or ${userAccounts.size() == 0}">
+                            <span>Счета отсутствуют</span>
                         </div>
                     </div>
                 </div>
                 <div class="form__row">
                     <label class="label">Добавить счёт</label>
-                    <select class="select" name="currency">
-                        <option th:each="c : ${userData.availableCurrencies}" th:value="${c.name()}" th:text="${c.title}"></option>
+                    <select class="select" name="currencyCode">
+                        <option value="" disabled selected>Выберите валюту</option>
+                        <option th:each="rate : ${rates}" th:value="${rate.currencyCode}" th:text="${rate.currencyCode}"></option>
                     </select>
                 </div>
                 <div class="row between center">
-                    <span class="error" th:each="e : ${accountErrors}" th:text="${e}"></span>
                     <button class="btn btn--ghost" type="submit">Добавить</button>
                 </div>
             </form>
 
             <!-- Логин + кнопка удаления -->
-            <form class="form" th:action="@{'/user/' + ${userData.login} + '/delete'}" method="post">
+            <form class="form" th:action="@{/delete-account}" method="post">
                 <div class="form__row">
                     <label class="label">Логин</label>
-                    <input class="input" name="login" type="text" th:value="${userData.login}" readonly disabled/>
+                    <input class="input" name="username" type="text" th:value="${user.username}" readonly disabled/>
                 </div>
                 <div class="row between center">
-                    <span class="error" th:each="e : ${deleteErrors}" th:text="${e}"></span>
                     <button class="btn btn--ghost" type="submit">Удалить аккаунт</button>
                 </div>
             </form>
@@ -123,16 +116,17 @@
             </div>
         </div>
 
+        <!-- Секция Наличные -->
         <div id="cash" class="dashboard-section">
             <h2 class="card__title">Наличные</h2>
-            <form class="form" method="post">
-                <input type="hidden" name="accountId" th:value="${userData.accountId}" />
-                <input type="hidden" name="userId" th:value="${userData.userId}" />
+            <form class="form" th:action="@{/cash-operation}" method="post">
                 <div class="grid grid--2">
                     <div class="form__row">
                         <label class="label">Валюта</label>
-                        <select class="select" name="currency">
-                            <option th:each="c : ${userData.availableCurrencies}" th:value="${c.name()}" th:text="${c.title}"></option>
+                        <select class="select" name="currencyCode">
+                            <option value="" disabled selected>Выберите валюту</option>
+                            <option th:each="rate : ${rates}" th:value="${rate.currencyCode}" th:text="${rate.currencyCode}"></option>
+                            <option th:if="${rates} == null or ${rates.size() == 0}" value="" disabled>Валюты недоступны</option>
                         </select>
                     </div>
                     <div class="form__row">
@@ -141,12 +135,8 @@
                     </div>
                 </div>
                 <div class="row between center">
-                    <span class="error" th:each="e : ${cashErrors}" th:text="${e}"></span>
-                    <span class="success" th:if="${cashSuccess}" th:text="${cashSuccess}"></span>
-                    <div class="row" style="gap:10px">
-                        <button class="btn btn--ghost" type="submit" formaction="/cash/deposit">Положить</button>
-                        <button class="btn btn--ghost" type="submit" formaction="/cash/withdraw">Снять</button>
-                    </div>
+                    <button class="btn btn--ghost" type="submit" name="operation" value="deposit">Положить</button>
+                    <button class="btn btn--ghost" type="submit" name="operation" value="withdraw">Снять</button>
                 </div>
             </form>
         </div>
@@ -154,24 +144,20 @@
         <!-- Блок перевода между своими счетами -->
         <div id="transfer-self" class="dashboard-section">
             <h2 class="card__title">Перевод между своими счетами</h2>
-            <form class="form" th:action="@{'/transfer/own'}" method="post" th:object="${ownTransferRequest}">
+            <form class="form" th:action="@{/own-transfer}" method="post" th:object="${ownTransferRequest}">
                 <div class="grid grid--3">
                     <div class="form__row">
                         <label class="label">Со счёта</label>
                         <select class="select" th:field="*{fromAccountId}" required>
-                            <option value="">Выберите счет снятия</option>
-                            <option th:each="account : ${userAccounts}"
-                                    th:value="${account.id}"
-                                    th:text="${account.currency.code + ' (' + account.balance + ')'}"></option>
+                            <option value="">Выберите счет</option>
+                            <option th:each="account : ${userAccounts}" th:value="${account.id}" th:text="${account.currencyCode + ' (' + account.balance + ')'}"></option>
                         </select>
                     </div>
                     <div class="form__row">
                         <label class="label">На счёт</label>
                         <select class="select" th:field="*{toAccountId}" required>
-                            <option value="">Выберите счет пополнения</option>
-                            <option th:each="account : ${userAccounts}"
-                                    th:value="${account.id}"
-                                    th:text="${account.currency.code + ' (' + account.balance + ')'}"></option>
+                            <option value="">Выберите счет</option>
+                            <option th:each="account : ${userAccounts}" th:value="${account.id}" th:text="${account.currencyCode + ' (' + account.balance + ')'}"></option>
                         </select>
                     </div>
                     <div class="form__row">
@@ -179,9 +165,7 @@
                         <input class="input" type="number" th:field="*{amount}" min="0.01" step="0.01" required/>
                     </div>
                 </div>
-<!--                <input type="hidden" name="to_login" th:value="${userData.login}"/>-->
                 <div class="row between center">
-<!--                    <span class="error" th:each="e : ${transferErrors}" th:text="${e}"></span>-->
                     <button class="btn btn--ghost" type="submit">Перевести</button>
                 </div>
             </form>
@@ -190,21 +174,18 @@
         <!-- Блок перевода другому пользователю -->
         <div id="transfer-other" class="dashboard-section">
             <h2 class="card__title">Перевод другому пользователю</h2>
-            <form class="form" th:action="@{/transfer/other}" method="post" th:object="${otherTransferRequest}">
+            <form class="form" th:action="@{/other-transfer}" method="post" th:object="${otherTransferRequest}">
                 <div class="grid grid--3">
                     <div class="form__row">
                         <label class="label">Со счёта</label>
                         <select class="select" th:field="*{fromAccountId}" required>
-                            <option value="">Выберите счет отправителя</option>
-                            <option th:each="account : ${userAccounts}"
-                                    th:value="${account.id}"
-                                    th:text="${account.currency.code + ' (' + account.balance + ')'}"></option>
+                            <option value="">Выберите счет</option>
+                            <option th:each="account : ${userAccounts}" th:value="${account.id}" th:text="${account.currencyCode + ' (' + account.balance + ')'}"></option>
                         </select>
                     </div>
-
                     <div class="form__row">
-                        <label class="label">Валюта получателя:</label>
-                        <select class="select" th:field="*{toCurrency}" required>
+                        <label class="label">Валюта получателя</label>
+                        <select class="select" th:field="*{toCurrencyCode}" required>
                             <option value="">Выберите валюту</option>
                             <option value="RUB">RUB - Российский рубль</option>
                             <option value="USD">USD - Доллар США</option>
@@ -212,26 +193,20 @@
                             <option value="EUR">EUR - Евро</option>
                         </select>
                     </div>
-
                     <div class="form__row">
-                        <label class="label">Получатель:</label>
-                        <input type="text" th:field="*{recipientUsername}" placeholder="Введите email получателя" required>
-                        <div th:if="${#fields.hasErrors('recipientUsername')}"
-                             th:errors="*{recipientUsername}" style="color: red;"></div>
+                        <label class="label">Получатель</label>
+                        <input class="input" type="text" th:field="*{toUsername}" placeholder="Введите логин получателя" required/>
+                        <div th:if="${#fields.hasErrors('toUsername')}" th:errors="*{toUsername}" class="error"></div>
                     </div>
-
                     <div class="form__row">
                         <label class="label">На счёт</label>
-                        <select class="select" name="to_currency">
-                            <option th:each="c : ${userData.availableCurrencies}" th:value="${c.name()}" th:text="${c.title}"></option>
-                        </select>
+                        <input class="input" type="text" th:field="*{toAccountId}" required/>
                     </div>
                     <div class="form__row">
                         <label class="label">Сумма</label>
-                        <input class="input" type="number" step="0.01" min="0" required/>
+                        <input class="input" type="number" th:field="*{amount}" step="0.01" min="0" required/>
                     </div>
                 </div>
-
                 <div class="row between center">
                     <button class="btn btn--ghost" type="submit">Перевести</button>
                 </div>
@@ -239,7 +214,7 @@
         </div>
     </div>
 
-    <!-- 6. Курсы валют -->
+    <!-- Курсы валют -->
     <aside class="rates-sidebar">
         <div th:replace="~{../fragments/rates :: section}"></div>
     </aside>

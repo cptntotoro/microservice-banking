@@ -1,4 +1,4 @@
-package ru.practicum.client.account.account;
+package ru.practicum.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,17 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Клиентский DTO ответа с данными о счете пользователя
+ * DTO для отображения данных счета на дашборде
  */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class AccountResponseClientDto {
+public class AccountDashboardDto {
+
     /**
      * Идентификатор счета
      */
@@ -31,9 +31,4 @@ public class AccountResponseClientDto {
      * Баланс счета
      */
     private BigDecimal balance;
-
-    /**
-     * Дата создания счета
-     */
-    private LocalDateTime createdAt;
 }

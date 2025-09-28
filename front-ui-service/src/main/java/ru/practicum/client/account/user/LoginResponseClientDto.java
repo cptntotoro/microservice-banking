@@ -26,7 +26,6 @@ public class LoginResponseClientDto {
     private String birthdate;
     private List<AccountDto> accounts;
     private List<Currency> availableCurrencies;
-    private List<UserDto> otherUsers;
 
     @Data
     @Builder
@@ -39,12 +38,4 @@ public class LoginResponseClientDto {
         private String value;
     }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UserDto {
-        private String login;
-        private String name;
-    }
 }

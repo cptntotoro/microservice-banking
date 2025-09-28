@@ -1,4 +1,4 @@
-package ru.practicum.client.account.account;
+package ru.practicum.model.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,15 +10,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Клиентский DTO ответа с данными о счете пользователя
+ * Счет
  */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class AccountResponseClientDto {
+public class Account {
+
     /**
-     * Идентификатор счета
+     * Идентификатор
      */
     private UUID id;
 
