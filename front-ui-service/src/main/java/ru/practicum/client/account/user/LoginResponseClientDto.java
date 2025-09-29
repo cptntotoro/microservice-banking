@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.model.Currency;
+import ru.practicum.client.account.account.AccountResponseClientDto;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,24 +18,43 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class LoginResponseClientDto {
+    /**
+     * Идентификатор пользователя
+     */
     private UUID userId;
-    private String login;
+
+    /**
+     * Имя пользователя
+     */
+    private String username;
+
+    /**
+     * Имя
+     */
     private String firstName;
+
+    /**
+     * Фамилия
+     */
     private String lastName;
+
+    /**
+     * Email пользователя
+     */
     private String email;
-    private String birthdate;
-    private List<AccountDto> accounts;
-    private List<Currency> availableCurrencies;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AccountDto {
-        private UUID id;
-        private Currency currency;
-        private BigDecimal balance;
-        private String value;
-    }
+    /**
+     * Дата рождения
+     */
+    private LocalDate birthDate;
 
+    /**
+     * Счета
+     */
+    private List<AccountResponseClientDto> accounts;
+
+    /**
+     * Доступные валюты
+     */
+    private List<String> availableCurrencies;
 }

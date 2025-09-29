@@ -2,15 +2,25 @@
     <div class="dashboard-main card">
         <!-- Навигация -->
         <nav class="dashboard-nav">
-            <button class="dashboard-nav__btn active" data-target="account">Аккаунт</button>
+            <button class="dashboard-nav__btn active" data-target="account">Профиль</button>
             <button class="dashboard-nav__btn" data-target="cash">Наличные</button>
             <button class="dashboard-nav__btn" data-target="transfer-self">Перевод между счетами</button>
             <button class="dashboard-nav__btn" data-target="transfer-other">Перевод другому</button>
         </nav>
 
-        <!-- Сообщения -->
-        <div th:if="${error}" class="error" th:text="${error}"></div>
-        <div th:if="${success}" class="success" th:text="${success}"></div>
+        <!-- Общий блок для отображения успешных операций -->
+        <div th:if="${success != null}" class="alert alert-success" role="alert">
+            <div class="alert__icon">✓</div>
+            <div class="alert__content" th:text="${success}"></div>
+            <button class="alert__close" onclick="this.parentElement.remove()">×</button>
+        </div>
+
+        <!-- Общий блок для отображения ошибок -->
+        <div th:if="${error != null}" class="alert alert-danger" role="alert">
+            <div class="alert__icon">⚠</div>
+            <div class="alert__content" th:text="${error}"></div>
+            <button class="alert__close" onclick="this.parentElement.remove()">×</button>
+        </div>
 
         <!-- Секции -->
         <div id="account" class="dashboard-section active">
@@ -91,7 +101,7 @@
                     <label class="label">Добавить счёт</label>
                     <select class="select" name="currencyCode">
                         <option value="" disabled selected>Выберите валюту</option>
-                        <option th:each="rate : ${rates}" th:value="${rate.currencyCode}" th:text="${rate.currencyCode}"></option>
+                        <option th:each="rate : ${rates}" th:value="${rate.code}" th:text="${rate.code}"></option>
                     </select>
                 </div>
                 <div class="row between center">
@@ -125,7 +135,7 @@
                         <label class="label">Валюта</label>
                         <select class="select" name="currencyCode">
                             <option value="" disabled selected>Выберите валюту</option>
-                            <option th:each="rate : ${rates}" th:value="${rate.currencyCode}" th:text="${rate.currencyCode}"></option>
+                            <option th:each="rate : ${rates}" th:value="${rate.code}" th:text="${rate.code}"></option>
                             <option th:if="${rates} == null or ${rates.size() == 0}" value="" disabled>Валюты недоступны</option>
                         </select>
                     </div>
@@ -185,7 +195,7 @@
                     </div>
                     <div class="form__row">
                         <label class="label">Валюта получателя</label>
-                        <select class="select" th:field="*{toCurrencyCode}" required>
+                        <select class="select" th:field="*{toCurrency}" required>
                             <option value="">Выберите валюту</option>
                             <option value="RUB">RUB - Российский рубль</option>
                             <option value="USD">USD - Доллар США</option>
@@ -195,12 +205,8 @@
                     </div>
                     <div class="form__row">
                         <label class="label">Получатель</label>
-                        <input class="input" type="text" th:field="*{toUsername}" placeholder="Введите логин получателя" required/>
-                        <div th:if="${#fields.hasErrors('toUsername')}" th:errors="*{toUsername}" class="error"></div>
-                    </div>
-                    <div class="form__row">
-                        <label class="label">На счёт</label>
-                        <input class="input" type="text" th:field="*{toAccountId}" required/>
+                        <input class="input" type="text" th:field="*{recipientEmail}" placeholder="Введите email получателя" required/>
+                        <div th:if="${#fields.hasErrors('recipientEmail')}" th:errors="*{recipientEmail}" class="error"></div>
                     </div>
                     <div class="form__row">
                         <label class="label">Сумма</label>

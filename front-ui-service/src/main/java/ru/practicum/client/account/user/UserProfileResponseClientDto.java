@@ -4,11 +4,23 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 public class UserProfileResponseClientDto {
-    private Long id;
+    /**
+     * Идентификатор пользователя
+     */
+    private UUID id;
+
+    /**
+     * Имя пользователя
+     */
     private String username;
+
+    /**
+     * Email пользователя
+     */
     private String email;
     private String firstName;
     private String lastName;

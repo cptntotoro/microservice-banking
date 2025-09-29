@@ -44,6 +44,22 @@ public class ControllerExceptionHandler {
         return Mono.just("page/dashboard"); // Возвращаем на dashboard с ошибкой
     }
 
+    @ExceptionHandler(ValidationException.class)
+    public Mono<String> handleValidationException(ValidationException e, Model model) {
+        log.warn("ValidationException occurred: {}", e.getMessage(), e);
+
+        ApiError error = new ApiError(
+                e.getStatus().toString(),
+                e.getReason(),
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+
+        model.addAttribute("error", error);
+        model.addAttribute("validationError", true); // Опциональный флаг для фронтенда
+        return Mono.just("page/dashboard"); // Возвращаем на dashboard для отображения ошибки в разметке
+    }
+
     @ExceptionHandler(ServiceUnavailableException.class)
     public Mono<String> handleServiceUnavailable(ServiceUnavailableException e, Model model) {
         log.error("ServiceUnavailableException occurred: {} (service: {})",

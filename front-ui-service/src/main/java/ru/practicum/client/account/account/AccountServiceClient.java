@@ -15,7 +15,6 @@ import reactor.core.publisher.Mono;
 import ru.practicum.client.account.user.LoginResponseClientDto;
 import ru.practicum.dto.auth.LoginRequestDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
-import ru.practicum.dto.auth.SignUpResponseDto;
 import ru.practicum.exception.ServiceUnavailableException;
 
 import java.time.Duration;
@@ -130,8 +129,8 @@ public class AccountServiceClient {
     /**
      * Создание нового пользователя
      */
-    public Mono<SignUpResponseDto> createAccount(SignUpRequestDto signUpRequestDto) {
-        return executePost("/api/users/signup", signUpRequestDto, SignUpResponseDto.class,
+    public Mono<SignUpResponseClientDto> createAccount(SignUpRequestDto signUpRequestDto) {
+        return executePost("/api/users/signup", signUpRequestDto, SignUpResponseClientDto.class,
                 "создания пользователя", signUpRequestDto.getUsername());
     }
 

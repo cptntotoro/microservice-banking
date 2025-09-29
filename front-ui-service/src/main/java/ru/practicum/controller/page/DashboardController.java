@@ -7,7 +7,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.account.user.LoginResponseClientDto;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.exchange.ExchangeRateDto;
 import ru.practicum.dto.transfer.OtherTransferRequestDto;
@@ -19,6 +18,7 @@ import ru.practicum.service.exchange.ExchangeRateService;
 import ru.practicum.service.user.UserService;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
@@ -47,13 +47,13 @@ public class DashboardController extends BaseController {
     @GetMapping("/dashboard")
     public Mono<String> showDashboard(ServerWebExchange exchange, Model model) {
         return exchange.getSession().flatMap(session -> {
-            LoginResponseClientDto userData = (LoginResponseClientDto) session.getAttributes().get("userData");
+            UUID userId = (UUID) session.getAttributes().get("userId");
 
-            if (userData == null) {
+            if (userId == null) {
                 return Mono.just("redirect:/login");
             }
 
-            return userService.getUserWithAccounts(userData.getUserId())
+            return userService.getUserWithAccounts(userId)
                     .map(userMapper::toUserDashboardDto)
                     .flatMap(userDashboardDto -> {
                         model.addAttribute("user", userDashboardDto);

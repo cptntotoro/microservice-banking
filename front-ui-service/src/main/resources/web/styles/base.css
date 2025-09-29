@@ -398,6 +398,119 @@ body.page {
     margin-top: 20px;
 }
 
+/* Стили для уведомлений (Alerts) */
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid;
+    margin: 1rem 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.alert__content {
+    flex: 1;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.alert__close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.alert__close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Успешные уведомления */
+.alert-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #86efac;
+}
+
+.alert-success .alert__icon {
+    color: #22c55e;
+}
+
+/* Ошибки */
+.alert-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+.alert-danger .alert__icon {
+    color: #ef4444;
+}
+
+/* Предупреждения */
+.alert-warning {
+    background: linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(250, 204, 21, 0.08));
+    border-color: rgba(250, 204, 21, 0.3);
+    color: #fde047;
+}
+
+.alert-warning .alert__icon {
+    color: #facc15;
+}
+
+/* Информационные сообщения */
+.alert-info {
+    background: linear-gradient(135deg, rgba(58, 180, 200, 0.15), rgba(58, 180, 200, 0.08));
+    border-color: rgba(58, 180, 200, 0.3);
+    color: #7dd3fc;
+}
+
+.alert-info .alert__icon {
+    color: #3ab4c8;
+}
+
+/* Анимация появления */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Автоматическое скрытие через 5 секунд */
+.alert.auto-hide {
+    animation: slideIn 0.3s ease-out, slideOut 0.3s ease-in 4.7s forwards;
+}
+
+@keyframes slideOut {
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        overflow: hidden;
+    }
+}
+
 /* Адаптивность для мобильных устройств */
 @media (max-width: 600px) {
     .error-container__header {

@@ -13,4 +13,11 @@ public interface ExchangeRateService {
      * @return Курсы обмена валют
      */
     Flux<ExchangeRate> getCurrentRates();
+
+    /**
+     * Получить доступные валюты
+     *
+     * @return Список доступных валют
+     */
+    Flux<String> getAvailableCurrencies();
 }

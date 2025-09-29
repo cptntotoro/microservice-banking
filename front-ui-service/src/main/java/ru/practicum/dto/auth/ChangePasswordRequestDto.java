@@ -12,9 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangePasswordRequestDto {
-    @NotBlank(message = "Текущий пароль не может быть пустым")
-    private String currentPassword;
-
     @NotBlank(message = "Новый пароль не может быть пустым")
     @Size(min = 6, message = "Новый пароль должен содержать минимум 6 символов")
     private String newPassword;

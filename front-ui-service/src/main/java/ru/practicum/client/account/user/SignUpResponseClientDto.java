@@ -2,14 +2,29 @@ package ru.practicum.client.account.user;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 public class SignUpResponseClientDto {
-    private Long userId;
+    /**
+     * Идентификатор пользователя
+     */
+    private UUID userId;
+
+    /**
+     * Логин пользователя
+     */
     private String username;
+
+    /**
+     * Email пользователя
+     */
     private String email;
+
+    /**
+     * Сообщение
+     */
     private String message;
-    private LocalDateTime registeredAt;
+
     private LoginResponseClientDto loginResponse; // Для автоматического логина после регистрации
 }

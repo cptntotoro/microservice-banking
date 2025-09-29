@@ -10,6 +10,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class NotificationRequestDto {
+    /**
+     * Идентификатор пользователя
+     */
     private UUID userId;
+
+    /**
+     * Сообщение
+     */
     private String message;
 }
