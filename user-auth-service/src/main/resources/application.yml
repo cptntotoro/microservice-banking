@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: user-auth-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        register: true
+        instance-id: ${spring.application.name}:${random.uuid}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+  main:
+    web-application-type: reactive
+  webflux:
+    static-path-pattern: /**
+
+#      config:
+#        enabled: true
+#        format: yaml
+#        prefix: config
+#        default-context: application
+#        profile-separator: ','
+#        data-key: data
+
+  # ================ OAuth2 Client Configuration ================
+  # OAuth2 Resource Server Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+      client:
+        registration:
+          account-service:
+            provider: account-service
+            client-id: user-auth-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: account-service.read,account-service.write
+        provider:
+          account-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+
+server:
+  port: 8083
+
+jwt:
+  secret: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
+  expiration: 360000
+  issuer: user-auth-service
+
+#user-service:
+#  url: http://account-service:8082/api/users
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+
+
+logging:
+  level:
+    org.springframework: ERROR
+    ru.practicum: WARN
+    org.springframework.web: WARN
+    org.springframework.cloud: WARN
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: ERROR
+    org.springframework.security: DEBUG
+    org.springframework.cloud.consul: DEBUG
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

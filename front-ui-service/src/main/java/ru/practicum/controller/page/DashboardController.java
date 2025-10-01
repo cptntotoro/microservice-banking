@@ -47,6 +47,9 @@ public class DashboardController extends BaseController {
     @GetMapping("/dashboard")
     public Mono<String> showDashboard(ServerWebExchange exchange, Model model) {
         return exchange.getSession().flatMap(session -> {
+            log.error("111111111111111111");
+            log.error((String) session.getAttributes().get("access_token"));
+            log.error(session.getAttributes().values().toString());
             UUID userId = (UUID) session.getAttributes().get("userId");
 
             if (userId == null) {

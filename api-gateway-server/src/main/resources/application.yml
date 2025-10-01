@@ -1,10 +1,20 @@
-server:
-  port: 8080
-
 spring:
   application:
-    name: api-gateway
+    name: api-gateway-server
   cloud:
+    consul:
+      host: consul-server
+      port: 8500
+      #      config:
+      #        enabled: false
+      discovery:
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        register: true
+        enabled: true
     gateway:
       discovery:
         locator:
@@ -14,7 +24,7 @@ spring:
         - id: account-service
           uri: lb://account-service
           predicates:
-            - Path=/api/accounts/**
+            - Path=/account-service/**
           filters:
             - StripPrefix=1
 
@@ -45,31 +55,33 @@ spring:
           predicates:
             - Path=/actuator/health
 
-        - id: front-ui-service
-          uri: lb://front-ui-service
+#        - id: front-ui-service
+#          uri: lb://front-ui-service
+#          predicates:
+#            - Path=/front/**
+#          filters:
+#            - StripPrefix=1
+
+        - id: user-auth-service
+          uri: lb://user-auth-service
           predicates:
-            - Path=/**
+            - Path=/user-auth-service/**
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
+
+        - id: serv-auth-service
+          uri: lb://serv-auth-service
+          predicates:
+            - Path=/serv-auth-service/**
+          filters:
+            - StripPrefix=1
 
       # Глобальная конфигурация для всех маршрутов
       httpclient:
-        connect-timeout: 1000
-        response-timeout: 5s
+        connect-timeout: 5000
+        response-timeout: 10s
 
-    consul:
-      host: localhost
-      port: 8500
-      config:
-        enabled: false
-      discovery:
-        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
-        register: true
-        enabled: true
+
 
 management:
   endpoints:

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.account.user.AuthServiceClient;
+import ru.practicum.client.auth.AuthServiceClient;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.auth.ChangePasswordRequestDto;
 import ru.practicum.dto.user.EditUserProfileDto;

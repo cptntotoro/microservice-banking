@@ -11,6 +11,12 @@ app:
 spring:
   application:
     name: front-ui-service
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+##          jwk-set-uri: http://user-auth-service
+#          issuer-uri:  http://user-auth-service
 
   cloud:
     consul:
@@ -51,6 +57,31 @@ spring:
   main:
     web-application-type: reactive
 
+    # ================ OAuth2 Client Configuration ================
+  security:
+    oauth2:
+      client:
+        registration:
+          account-service:
+            provider: account-service
+            client-id: front-ui-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: account-service.read,account-service.write
+          user-auth-service:
+            provider: user-auth-service
+            client-id: front-ui-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: user-auth-service.read,user-auth-service.write
+        provider:
+          account-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+          user-auth-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+
 server:
   port: 8081
 
@@ -59,16 +90,26 @@ management:
     web:
       exposure:
         include: health, info, metrics
-    endpoint:
-      health:
-        show-details: always
+  endpoint:
+    health:
+      show-details: always
+
 
 logging:
   level:
-    org.springframework: DEBUG
-    ru.practicum: DEBUG
-    org.springframework.web: DEBUG
+    org.springframework: ERROR
+    ru.practicum: WARN
+    org.springframework.web: WARN
+    org.springframework.cloud: WARN
     org.springframework.cloud.gateway: DEBUG
-    reactor.netty: DEBUG
+    reactor.netty: ERROR
+    org.springframework.security: DEBUG
+    org.springframework.cloud.consul: DEBUG
   pattern:
     console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+jwt:
+  secret: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
+
+
+

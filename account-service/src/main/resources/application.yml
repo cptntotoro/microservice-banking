@@ -13,6 +13,9 @@ spring:
     name: account-service
   profiles:
     active: prod
+#  mvc:
+#    favicon:
+#      enabled: false  # Отключает авто-запрос favicon (WebFlux-аналог)
   cloud:
     consul:
       host: localhost
@@ -43,6 +46,16 @@ spring:
   main:
     web-application-type: reactive
 
+
+      # ================ OAuth2 Client Configuration ================
+      # OAuth2 Resource Server Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+
 server:
   port: 8082
 
@@ -55,10 +68,18 @@ management:
     health:
       show-details: always
 
+
 logging:
   level:
-    org.springframework: INFO
-    ru.practicum: DEBUG
-    org.springframework.cloud.consul: INFO
+    org.springframework: ERROR
+    ru.practicum: WARN
+    org.springframework.web: WARN
+    org.springframework.cloud: WARN
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: ERROR
+    org.springframework.security: DEBUG
+    org.springframework.cloud.consul: DEBUG
   pattern:
     console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+

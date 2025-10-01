@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+import ru.practicum.dto.user.AuthRequest;
 import ru.practicum.dto.user.PasswordChangeDto;
 import ru.practicum.dto.user.SignUpRequestDto;
 import ru.practicum.dto.user.UserResponseDto;
@@ -107,5 +108,13 @@ public class UserController {
     public Mono<Boolean> checkEmailExists(@RequestParam String email) {
         log.info("Проверка существования email: {}", email);
         return userService.existsByEmail(email);
+    }
+
+    @PostMapping("/validate")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<UserResponseDto> validate(@Valid @RequestBody AuthRequest request) {
+        log.info("Валидация кредов: {}", request.getUsername());
+        return userService.validateCredentials(request.getUsername(), request.getPassword())
+                .map(userMapper::userToResponseDto);
     }
 }

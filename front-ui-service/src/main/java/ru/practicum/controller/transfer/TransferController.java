@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.account.user.LoginResponseClientDto;
+import ru.practicum.client.auth.LoginResponseClientDto;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.transfer.OtherTransferRequestDto;
 import ru.practicum.dto.transfer.OwnTransferRequestDto;

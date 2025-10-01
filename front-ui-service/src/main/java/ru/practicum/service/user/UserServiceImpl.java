@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.account.account.AccountServiceClient;
+import ru.practicum.client.account.AccountServiceClient;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.UserWithAccounts;
 

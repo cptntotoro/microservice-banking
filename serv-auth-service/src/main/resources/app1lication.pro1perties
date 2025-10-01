@@ -1,0 +1,46 @@
+# ================ Application Configuration ================
+spring.application.name=serv-auth-service
+server.port=9000
+
+spring.main.allow-bean-definition-overriding=true
+
+# ================  R2DBC Configuration ================
+spring.r2dbc.url=r2dbc:postgresql://localhost:5432/auth
+spring.r2dbc.username=postgres
+spring.r2dbc.password=postgres
+spring.r2dbc.pool.enabled=true
+spring.r2dbc.pool.initial-size=10
+spring.r2dbc.pool.max-size=50
+spring.r2dbc.pool.max-idle-time=30m
+spring.r2dbc.pool.max-life-time=60m
+spring.r2dbc.pool.validation-query=SELECT 1
+
+# ================ OAuth2 Client Configuration ================
+# front-ui-service client
+spring.security.oauth2.authorizationserver.client.front-ui-service.registration.client-id=front-ui-service
+spring.security.oauth2.authorizationserver.client.front-ui-service.registration.client-secret=$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
+spring.security.oauth2.authorizationserver.client.front-ui-service.registration.client-authentication-methods=client_secret_basic
+spring.security.oauth2.authorizationserver.client.front-ui-service.registration.authorization-grant-types=client_credentials
+spring.security.oauth2.authorizationserver.client.front-ui-service.registration.scopes=account-service.read,account-service.write,user-auth-service.read,user-auth-service.write
+
+# account-service resource server
+spring.security.oauth2.authorizationserver.client.account-service.registration.client-id=account-service
+spring.security.oauth2.authorizationserver.client.account-service.registration.client-secret=$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
+spring.security.oauth2.authorizationserver.client.account-service.registration.client-authentication-methods=client_secret_basic
+spring.security.oauth2.authorizationserver.client.account-service.registration.authorization-grant-types=client_credentials
+spring.security.oauth2.authorizationserver.client.account-service.registration.scopes=account-service.read,account-service.write
+# user-auth-service resource server
+spring.security.oauth2.authorizationserver.client.user-auth-service.registration.client-id=user-auth-service
+spring.security.oauth2.authorizationserver.client.user-auth-service.registration.client-secret=$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
+spring.security.oauth2.authorizationserver.client.user-auth-service.registration.client-authentication-methods=client_secret_basic
+spring.security.oauth2.authorizationserver.client.user-auth-service.registration.authorization-grant-types=client_credentials
+spring.security.oauth2.authorizationserver.client.user-auth-service.registration.scopes=account-service.read,account-service.write,user-auth-service.read,user-auth-service.write
+
+# JWT Configuration
+spring.security.oauth2.resourceserver.jwt.issuer-uri=${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+
+# ================ Logging ================
+logging.level.org.springframework=INFO
+logging.level.ru.practicum=INFO
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n

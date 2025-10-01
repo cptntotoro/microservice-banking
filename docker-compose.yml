@@ -18,8 +18,8 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - # TODO
-#      - AUTH_SERVICE_JWT_ISSUER_URI=http://auth-service:9000
-#      - AUTH_SERVICE_JWT_JWK_SET_URI=http://auth-service:9000/oauth2/jwks
+#      - AUTH_SERVICE_JWT_ISSUER_URI=http://user-auth-service:9000
+#      - AUTH_SERVICE_JWT_JWK_SET_URI=http://user-auth-service:9000/oauth2/jwks
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,12 +29,12 @@ services:
       timeout: 10s
       retries: 3
 
-#  showcase-service:
+#  front-ui-service:
 #    profiles: ["prod"]
 #    restart: on-failure
 #    build:
 #      context: .
-#      dockerfile: showcase-service/Dockerfile
+#      dockerfile: front-ui-service/Dockerfile
 #    container_name: "yp-online-showcase"
 #    ports:
 #      - "8080:8080"
@@ -43,15 +43,15 @@ services:
 #        condition: service_healthy
 #      redis:
 #        condition: service_healthy
-#      auth-service:
+#      user-auth-service:
 #        condition: service_healthy
 #    environment:
 #      - SPRING_PROFILES_ACTIVE=prod
 #      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/showcase_db
 #      - SPRING_R2DBC_USERNAME=postgres
 #      - SPRING_R2DBC_PASSWORD=postgres
-#      - PAYMENT_SERVICE_URL=http://payment-service:8081
-#      - AUTH_SERVICE_TOKEN_URL=http://auth-service:9000/oauth2/token
+#      - PAYMENT_SERVICE_URL=http://account-service:8081
+#      - AUTH_SERVICE_TOKEN_URL=http://user-auth-service:9000/oauth2/token
 #      - DB_NAME=showcase_db
 #      - DB_HOST=postgres
 #      - DB_PORT=5432
@@ -64,12 +64,12 @@ services:
 #      timeout: 10s
 #      retries: 3
 #
-#  payment-service:
+#  account-service:
 #    profiles: ["prod"]
 #    build:
 #      context: .
-#      dockerfile: payment-service/Dockerfile
-#    container_name: "yp-payment-service"
+#      dockerfile: account-service/Dockerfile
+#    container_name: "yp-account-service"
 #    ports:
 #      - "8081:8081"
 #    environment:
@@ -80,14 +80,14 @@ services:
 #      - SPRING_R2DBC_USERNAME=postgres
 #      - SPRING_R2DBC_PASSWORD=postgres
 #      - PAYMENT_DEFAULT_BALANCE=15000.00
-#      - AUTH_SERVICE_JWK_URL=http://auth-service:9000/oauth2/jwks
-#      - AUTH_SERVICE_JWT_ISSUER_URI=http://auth-service:9000
+#      - AUTH_SERVICE_JWK_URL=http://user-auth-service:9000/oauth2/jwks
+#      - AUTH_SERVICE_JWT_ISSUER_URI=http://user-auth-service:9000
 #    depends_on:
 #      postgres:
 #        condition: service_healthy
-#      auth-service:
+#      user-auth-service:
 #        condition: service_healthy
-#      showcase-service:
+#      front-ui-service:
 #        condition: service_healthy
 #    healthcheck:
 #      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
@@ -129,13 +129,13 @@ services:
 #      timeout: 5s
 #      retries: 5
 #
-#  showcase-service-test:
+#  front-ui-service-test:
 #    profiles: ["test"]
 #    build:
 #      context: .
-#      dockerfile: showcase-service/Dockerfile-test
-#    image: showcase-service-test
-#    container_name: "showcase-service-test"
+#      dockerfile: front-ui-service/Dockerfile-test
+#    image: front-ui-service-test
+#    container_name: "front-ui-service-test"
 #    privileged: true
 #    ports:
 #      - "9090:9090"
@@ -160,7 +160,7 @@ services:
 #    volumes:
 #      - /var/run/docker.sock:/var/run/docker.sock
 #    command: >
-#      sh -c "mvn -f showcase-service/pom.xml test;
+#      sh -c "mvn -f front-ui-service/pom.xml test;
 #      docker stop test-redis test-db || true"
 #    extra_hosts:
 #      - "host.docker.internal:host-gateway"
@@ -170,13 +170,13 @@ services:
 #      test-redis:
 #          condition: service_healthy
 #
-#  payment-service-test:
+#  account-service-test:
 #    profiles: [ "test" ]
 #    build:
 #      context: .
-#      dockerfile: payment-service/Dockerfile-test
-#    image: payment-service-test
-#    container_name: "payment-service-test"
+#      dockerfile: account-service/Dockerfile-test
+#    image: account-service-test
+#    container_name: "account-service-test"
 #    environment:
 #      SPRING_PROFILES_ACTIVE: test
 #      SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db

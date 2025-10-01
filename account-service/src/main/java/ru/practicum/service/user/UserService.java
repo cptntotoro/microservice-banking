@@ -161,4 +161,6 @@ public interface UserService {
      * @return Пользователь с его счетами
      */
     Mono<UserWithAccounts> getUserWithAccountsByUuid(UUID userId);
+
+    Mono<User> validateCredentials(String username, String password);
 }

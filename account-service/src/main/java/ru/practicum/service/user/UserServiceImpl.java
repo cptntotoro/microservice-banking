@@ -328,6 +328,13 @@ public class UserServiceImpl implements UserService {
                                 .build()));
     }
 
+    public Mono<User> validateCredentials(String username, String password) {
+        return userRepository.findByUsername(username)
+                .filter(user -> passwordEncoder.matches(password, user.getPasswordHash()))
+                .map(userMapper::userDaoToUser)
+                .switchIfEmpty(Mono.empty());
+    }
+
     private Mono<Void> validateUniqueUsername(String username) {
         return userRepository.existsByUsername(username)
                 .flatMap(exists -> {

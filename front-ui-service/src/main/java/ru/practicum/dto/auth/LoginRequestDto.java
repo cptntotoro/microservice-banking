@@ -18,7 +18,7 @@ import lombok.Setter;
 public class LoginRequestDto {
 
     @NotBlank(message = "Логин не может быть пустым")
-    private String login;
+    private String username;
 
     @NotBlank(message = "Пароль не может быть пустым")
     private String password;
