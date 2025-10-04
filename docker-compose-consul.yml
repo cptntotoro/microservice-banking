@@ -204,6 +204,58 @@ services:
     networks:
       - bank-network
 
+  exchange-service:
+    build:
+      context: ./exchange-service
+      dockerfile: Dockerfile
+    container_name: exchange-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
+    depends_on:
+      - consul-server
+      - api-gateway-server
+      - serv-auth-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - bank-network
+
+  cash-service:
+    build:
+      context: ./cash-service
+      dockerfile: Dockerfile
+    container_name: cash-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
+    depends_on:
+      - consul-server
+      - api-gateway-server
+      - serv-auth-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - bank-network
+
 #  blocker-service:
 #    build:
 #      context: ./blocker-service

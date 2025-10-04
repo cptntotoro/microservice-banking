@@ -11,6 +11,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
+import ru.practicum.client.account.dto.AccountResponseDto;
+import ru.practicum.client.account.dto.SignUpResponseClientDto;
+import ru.practicum.client.account.dto.UserFullResponseClientDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
 
 import java.util.UUID;
@@ -50,22 +53,22 @@ public class AccountServiceClient extends BaseServiceClient {
     /**
      * Получение счета по идентификатору
      */
-    public Mono<AccountResponseClientDto> getAccount(UUID accountId) {
+    public Mono<AccountResponseDto> getAccount(UUID accountId) {
         String path = "/api/accounts/" + accountId;
         String operation = "Getting account by ID: " + accountId;
         String errorPrefix = "Ошибка получения счета: ";
-        return performMono(HttpMethod.GET, path, null, AccountResponseClientDto.class, operation, errorPrefix, true)
+        return performMono(HttpMethod.GET, path, null, AccountResponseDto.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Account retrieved: {}", accountId));
     }
 
     /**
      * Получение счетов пользователя
      */
-    public Flux<AccountResponseClientDto> getUserAccounts(UUID userId) {
+    public Flux<AccountResponseDto> getUserAccounts(UUID userId) {
         String path = "/api/accounts/user/" + userId;
         String operation = "Getting accounts for user: " + userId;
         String errorPrefix = "Ошибка получения счетов пользователя: ";
-        return performFlux(HttpMethod.GET, path, null, AccountResponseClientDto.class, operation, errorPrefix, true)
+        return performFlux(HttpMethod.GET, path, null, AccountResponseDto.class, operation, errorPrefix, true)
                 .doOnNext(account -> log.debug("Retrieved account {} for user {}", account.getId(), userId));
     }
 

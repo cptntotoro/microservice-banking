@@ -5,12 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.account.AccountResponseDto;
+import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.client.account.AccountServiceClient;
+import ru.practicum.client.account.dto.TransferDto;
 import ru.practicum.client.blocker.BlockerServiceClient;
-import ru.practicum.client.blocker.OperationCheckRequestDto;
+import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
 import ru.practicum.client.exchange.ExchangeServiceClient;
+import ru.practicum.client.exchange.dto.ExchangeRequestDto;
 import ru.practicum.client.notification.NotificationsServiceClient;
+import ru.practicum.client.notification.dto.NotificationRequestDto;
 import ru.practicum.dao.TransferDao;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ServiceUnavailableException;
@@ -125,8 +128,11 @@ public class TransferServiceImpl implements TransferService {
                                     return saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, null, timestamp, type, "Операция заблокирована как подозрительная: " + checkResponse.getDescription())
                                             .then(Mono.error(new ValidationException("Операция заблокирована как подозрительная: " + checkResponse.getDescription())));
                                 }
-
-                                return exchangeServiceClient.convertCurrency(fromCode, toCode, amount)
+                                return exchangeServiceClient.convertCurrency(ExchangeRequestDto.builder()
+                                                .fromCurrency(fromCode)
+                                                .toCurrency(toCode)
+                                                .amount(amount)
+                                                .build())
                                         .onErrorResume(ValidationException.class, e ->
                                                 saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, null, timestamp, type, "Ошибка конвертации: " + e.getMessage())
                                                         .then(Mono.error(new ValidationException("Ошибка конвертации: " + e.getMessage()))))
@@ -134,18 +140,26 @@ public class TransferServiceImpl implements TransferService {
                                                 saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, null, timestamp, type, "Не удалось выполнить конвертацию")
                                                         .then(Mono.error(new ServiceUnavailableException("exchange-service", "Не удалось выполнить конвертацию"))))
                                         .flatMap(convertResponse -> {
-                                            BigDecimal converted = convertResponse.getConvertedAmount();
-                                            return accountServiceClient.transferBetweenOwnAccounts(fromAccountId, toAccountId, amount, converted)
+                                            BigDecimal convertedAmount = convertResponse.getConvertedAmount();
+                                            TransferDto transferDto = TransferDto.builder()
+                                                    .fromAccountId(fromAccountId)
+                                                    .toAccountId(toAccountId)
+                                                    .amount(amount)
+                                                    .amount(convertedAmount)
+                                                    .build();
+                                            return accountServiceClient.transferBetweenOwnAccounts(transferDto)
                                                     .onErrorResume(e ->
-                                                            saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, converted, timestamp, type, "Ошибка при переводе: " + e.getMessage())
+                                                            saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, convertedAmount, timestamp, type, "Ошибка при переводе: " + e.getMessage())
                                                                     .then(Mono.error(e)))
-                                                    .thenReturn(converted);
+                                                    .thenReturn(convertedAmount);
                                         })
                                         .flatMap(converted ->
                                                 notificationsServiceClient.sendNotification(
-                                                        fromAccountId,
-                                                        String.format("Перевод между своими счетами на сумму %s %s выполнен. Конвертировано в %s %s",
-                                                                amount, fromCode, converted, toCode)
+                                                        NotificationRequestDto.builder()
+                                                                .userId(fromAccountId)
+                                                                .message(String.format("Перевод между своими счетами на сумму %s %s выполнен. Конвертировано в %s %s",
+                                                                        amount, fromCode, converted, toCode))
+                                                                .build()
                                                 ).onErrorResume(e -> {
                                                     log.warn("Не удалось отправить уведомление: {}", e.getMessage());
                                                     return Mono.empty();
@@ -238,7 +252,11 @@ public class TransferServiceImpl implements TransferService {
                                             .then(Mono.error(new ValidationException("Операция заблокирована как подозрительная: " + checkResponse.getDescription())));
                                 }
 
-                                return exchangeServiceClient.convertCurrency(fromCode, toCode, amount)
+                                return exchangeServiceClient.convertCurrency(ExchangeRequestDto.builder()
+                                                .fromCurrency(fromCode)
+                                                .toCurrency(toCode)
+                                                .amount(amount)
+                                                .build())
                                         .onErrorResume(ValidationException.class, e ->
                                                 saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, null, timestamp, type, "Ошибка конвертации: " + e.getMessage())
                                                         .then(Mono.error(new ValidationException("Ошибка конвертации: " + e.getMessage()))))
@@ -246,18 +264,25 @@ public class TransferServiceImpl implements TransferService {
                                                 saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, null, timestamp, type, "Не удалось выполнить конвертацию")
                                                         .then(Mono.error(new ServiceUnavailableException("exchange-service", "Не удалось выполнить конвертацию"))))
                                         .flatMap(convertResponse -> {
-                                            BigDecimal converted = convertResponse.getConvertedAmount();
-                                            return accountServiceClient.transferToOtherAccount(fromAccountId, toAccountId, amount, converted)
+                                            BigDecimal convertedAmount = convertResponse.getConvertedAmount();
+                                            return accountServiceClient.transferToOtherAccount(TransferDto.builder()
+                                                            .fromAccountId(fromAccountId)
+                                                            .toAccountId(toAccountId)
+                                                            .amount(amount)
+                                                            .amount(convertedAmount)
+                                                            .build())
                                                     .onErrorResume(e ->
-                                                            saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, converted, timestamp, type, "Ошибка при переводе: " + e.getMessage())
+                                                            saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, convertedAmount, timestamp, type, "Ошибка при переводе: " + e.getMessage())
                                                                     .then(Mono.error(e)))
-                                                    .thenReturn(converted);
+                                                    .thenReturn(convertedAmount);
                                         })
                                         .flatMap(converted ->
                                                 notificationsServiceClient.sendNotification(
-                                                        fromAccountId,
-                                                        String.format("Перевод на другой счет на сумму %s %s выполнен. Конвертировано в %s %s",
-                                                                amount, fromCode, converted, toCode)
+                                                        NotificationRequestDto.builder()
+                                                                .userId(fromAccountId)
+                                                                .message(String.format("Перевод на другой счет на сумму %s %s выполнен. Конвертировано в %s %s",
+                                                                        amount, fromCode, converted, toCode))
+                                                                .build()
                                                 ).onErrorResume(e -> {
                                                     log.warn("Не удалось отправить уведомление: {}", e.getMessage());
                                                     return Mono.empty();

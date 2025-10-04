@@ -9,8 +9,8 @@
 //import reactor.core.publisher.Flux;
 //import reactor.core.publisher.Mono;
 //import reactor.test.StepVerifier;
-//import ru.practicum.client.ExchangeRateDto;
-//import ru.practicum.client.ExchangeServiceClient;
+//import ru.practicum.client.exchange.dto.ExchangeRateDto;
+//import ru.practicum.client.exchange.ExchangeServiceClient;
 //import ru.practicum.mapper.exchange.ExchangeRateMapper;
 //import ru.practicum.model.exchange.ExchangeRate;
 //import ru.practicum.service.exchange.ExchangeRateGeneratorServiceImpl;

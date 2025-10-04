@@ -2,7 +2,7 @@ package ru.practicum.mapper.exchange;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import ru.practicum.client.ExchangeRateDto;
+import ru.practicum.client.exchange.dto.ExchangeRateDto;
 import ru.practicum.model.exchange.ExchangeRate;
 
 /**

@@ -28,44 +28,45 @@ spring:
           filters:
             - StripPrefix=1
 
-        - id: cash-service
-          uri: lb://cash-service
+        - id: blocker-service
+          uri: lb://blocker-service
           predicates:
-            - Path=/api/cash/**
+            - Path=/blocker-service/**
           filters:
             - StripPrefix=1
 
-        - id: transfer-service
-          uri: lb://transfer-service
+        - id: cash-service
+          uri: lb://cash-service
           predicates:
-            - Path=/api/transfer/**
+            - Path=/cash-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: exchange-generator-service
+          uri: lb://exchange-generator-service
+          predicates:
+            - Path=/exchange-generator-service/**
           filters:
             - StripPrefix=1
 
         - id: exchange-service
           uri: lb://exchange-service
           predicates:
-            - Path=/api/exchange/**
+            - Path=/exchange-service/**
           filters:
             - StripPrefix=1
-
-        # Health check endpoint для gateway
-        - id: gateway-health
-          uri: http://localhost:${server.port}
-          predicates:
-            - Path=/actuator/health
 
 #        - id: front-ui-service
 #          uri: lb://front-ui-service
 #          predicates:
-#            - Path=/front/**
+#            - Path=/front-ui-service/**
 #          filters:
 #            - StripPrefix=1
 
-        - id: user-auth-service
-          uri: lb://user-auth-service
+        - id: notification-service
+          uri: lb://notification-service
           predicates:
-            - Path=/user-auth-service/**
+            - Path=/notification-service/**
           filters:
             - StripPrefix=1
 
@@ -75,6 +76,26 @@ spring:
             - Path=/serv-auth-service/**
           filters:
             - StripPrefix=1
+
+        - id: transfer-service
+          uri: lb://transfer-service
+          predicates:
+            - Path=/transfer-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: user-auth-service
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/user-auth-service/**
+          filters:
+            - StripPrefix=1
+
+        # Health check endpoint для gateway
+        - id: gateway-health
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/actuator/health
 
       # Глобальная конфигурация для всех маршрутов
       httpclient:

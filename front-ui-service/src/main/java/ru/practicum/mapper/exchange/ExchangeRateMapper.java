@@ -2,8 +2,7 @@ package ru.practicum.mapper.exchange;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import ru.practicum.client.exchange.ExchangeRateClientDto;
-import ru.practicum.dto.exchange.ExchangeRateDto;
+import ru.practicum.client.exchange.dto.ExchangeRateDto;
 import ru.practicum.model.exchange.ExchangeRate;
 
 import java.math.BigDecimal;
@@ -22,7 +21,7 @@ public interface ExchangeRateMapper {
      * @param exchangeRateClientDto DTO ответа сервиса генерации курса обмена валют
      * @return Курс обмена валют
      */
-    ExchangeRate exchangeRateClientDtoToExchangeRate(ExchangeRateClientDto exchangeRateClientDto);
+    ExchangeRate exchangeRateClientDtoToExchangeRate(ExchangeRateDto exchangeRateClientDto);
 
     /**
      * Смаппить курс обмена валют в DTO для отображения
@@ -30,14 +29,14 @@ public interface ExchangeRateMapper {
      * @param exchangeRate Курс обмена валют
      * @return DTO курса обмена валют
      */
-    default ExchangeRateDto exchangeRateToExchangeRateDto(ExchangeRate exchangeRate) {
+    default ru.practicum.dto.exchange.ExchangeRateDto exchangeRateToExchangeRateDto(ExchangeRate exchangeRate) {
         if (exchangeRate == null) {
             return null;
         }
 
         String currencyPair = exchangeRate.getBaseCurrency() + "/" + exchangeRate.getTargetCurrency();
 
-        return ExchangeRateDto.builder()
+        return ru.practicum.dto.exchange.ExchangeRateDto.builder()
                 .code(currencyPair)
                 .buyValue(exchangeRate.getBuyRate() != null ? exchangeRate.getBuyRate() : BigDecimal.ZERO)
                 .sellValue(exchangeRate.getSellRate() != null ? exchangeRate.getSellRate() : BigDecimal.ZERO)
@@ -50,7 +49,7 @@ public interface ExchangeRateMapper {
      * @param exchangeRates Список курсов обмена валют
      * @return Список DTO курсов обмена валют
      */
-    default List<ExchangeRateDto> toExchangeRateDtoList(List<ExchangeRate> exchangeRates) {
+    default List<ru.practicum.dto.exchange.ExchangeRateDto> toExchangeRateDtoList(List<ExchangeRate> exchangeRates) {
         if (exchangeRates == null) {
             return List.of();
         }

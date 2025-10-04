@@ -1,68 +1,42 @@
 package ru.practicum.client.blocker;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.client.ServiceInstance;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import ru.practicum.exception.ServiceClientException;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
+import ru.practicum.client.BaseServiceClient;
+import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
+import ru.practicum.client.blocker.dto.OperationCheckResponseDto;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class BlockerServiceClient {
+public class BlockerServiceClient extends BaseServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
-    private final DiscoveryClient discoveryClient;
-
-    public Mono<OperationCheckResponseDto> checkOperation(OperationCheckRequestDto request) {
-        return getBlockerServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/api/blocker/check";
-            log.debug("Проверка на подозрительность: {}", url);
-
-            return webClientBuilder.build()
-                    .post()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(request)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, response ->
-                            response.bodyToMono(String.class)
-                                    .defaultIfEmpty("")
-                                    .flatMap(body -> Mono.error(ServiceClientException.internalError(
-                                            "blocker-service",
-                                            "checkOperation",
-                                            "Ошибка при проверке безопасности: " + response.statusCode() + " - " + body
-                                    )))
-                    )
-                    .bodyToMono(OperationCheckResponseDto.class)
-                    .timeout(Duration.ofSeconds(10))
-                    .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("blocker-service", "checkOperation", "Таймаут при проверке безопасности"))
-                    .doOnError(error -> log.error("Ошибка при проверке безопасности: {}", error.getMessage()));
-        });
+    @Autowired
+    public BlockerServiceClient(@Qualifier("blockerServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
+        super(webClient, discoveryClient);
     }
 
-    private Mono<String> getBlockerServiceUrl() {
-        return Mono.fromCallable(() -> {
-            List<ServiceInstance> instances = discoveryClient.getInstances("blocker-service");
-            if (instances == null || instances.isEmpty()) {
-                throw ServiceClientException.unavailable("blocker-service", "discovery", "Сервис безопасности недоступен");
-            }
-            ServiceInstance instance = instances.getFirst();
-            return "http://" + instance.getHost() + ":" + instance.getPort();
-        }).onErrorResume(e -> {
-            log.error("Не удалось подключиться к blocker-service: {}", e.getMessage());
-            return Mono.error(ServiceClientException.unavailable("blocker-service", "discovery", e.getMessage()));
-        });
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
+
+    @Override
+    protected String getServiceId() {
+        return "blocker-service";
+    }
+
+    public Mono<OperationCheckResponseDto> checkOperation(OperationCheckRequestDto requestDto) {
+        String path = "/api/blocker/check";
+        String operation = "Check operation: " + requestDto;
+        String errorPrefix = "Ошибка проверки операции: ";
+        return performMono(HttpMethod.POST, path, requestDto, OperationCheckResponseDto.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Operation checked"));
     }
 }

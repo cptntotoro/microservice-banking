@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.AccountServiceClient;
+import ru.practicum.client.account.AccountServiceClient;
 import ru.practicum.config.JwtConfig;
 import ru.practicum.config.JwtUtil;
 import ru.practicum.dto.AuthRequest;

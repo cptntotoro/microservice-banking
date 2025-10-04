@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.account.AccountServiceClient;
-import ru.practicum.client.account.SignUpResponseClientDto;
+import ru.practicum.client.account.dto.SignUpResponseClientDto;
 import ru.practicum.client.auth.AuthServiceClient;
-import ru.practicum.client.auth.TokenResponseDto;
+import ru.practicum.client.auth.dto.TokenResponseDto;
 import ru.practicum.dto.auth.LoginRequestDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
 
@@ -34,5 +34,10 @@ public class AuthServiceImpl implements AuthService {
     public void logout(WebSession session) {
         session.getAttributes().remove("access_token");
         session.getAttributes().remove("refresh_token");
+    }
+
+    @Override
+    public Mono<String> getUserId(String token) {
+        return authServiceClient.getUserId(token);
     }
 }

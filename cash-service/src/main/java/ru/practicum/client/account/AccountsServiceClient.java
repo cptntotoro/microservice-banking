@@ -2,13 +2,19 @@ package ru.practicum.client.account;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.practicum.client.BaseServiceClient;
+import ru.practicum.client.account.dto.BalanceUpdateRequestDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,85 +24,45 @@ import java.util.UUID;
  * Клиент для обращений к сервису аккаунтов
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class AccountsServiceClient {
+public class AccountsServiceClient extends BaseServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
-    private final DiscoveryClient discoveryClient;
+    @Autowired
+    public AccountsServiceClient(@Qualifier("accountServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
+        super(webClient, discoveryClient);
+    }
+
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
+
+    @Override
+    protected String getServiceId() {
+        return "accounts-service";
+    }
 
     public Mono<Boolean> verifyAccount(UUID accountId, UUID userId) {
-        log.info("Verifying account {} for user {}", accountId, userId);
-
-        return getAccountsServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/accounts/verify?accountId=" + accountId + "&userId=" + userId;
-            log.debug("Calling Accounts service at: {}", url);
-
-            return webClientBuilder.build()
-                    .get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(Boolean.class)
-                    .doOnSuccess(response -> log.info("Successfully verified account"))
-                    .doOnError(error -> log.error("Error verifying account: {}", error.getMessage()));
-        }).onErrorResume(e -> {
-            log.error("Failed to verify account", e);
-            return Mono.just(false);
-        });
+        String path = "/accounts/verify?accountId=" + accountId + "&userId=" + userId;
+        String operation = "Verify account: " + accountId;
+        String errorPrefix = "Ошибка верификации счета: ";
+        return performMono(HttpMethod.GET, path, null, Boolean.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account verified: {}", accountId));
     }
 
     public Mono<BigDecimal> getAccountBalance(UUID accountId) {
-        log.info("Fetching balance for account {}", accountId);
-
-        return getAccountsServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/accounts/balance?accountId=" + accountId;
-            log.debug("Calling Accounts service at: {}", url);
-
-            return webClientBuilder.build()
-                    .get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(BigDecimal.class)
-                    .doOnSuccess(response -> log.info("Successfully fetched balance"))
-                    .doOnError(error -> log.error("Error fetching balance: {}", error.getMessage()));
-        }).onErrorResume(e -> {
-            log.error("Failed to fetch balance", e);
-            return Mono.error(new RuntimeException("Accounts service unavailable: " + e.getMessage()));
-        });
+        String path = "/accounts/balance?accountId=" + accountId;
+        String operation = "Get account balance: " + accountId;
+        String errorPrefix = "Ошибка верификации счета: ";
+        return performMono(HttpMethod.GET, path, null, BigDecimal.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account balance got: {}", accountId));
     }
 
     public Mono<Void> updateAccountBalance(BalanceUpdateRequestDto request) {
-        log.info("Updating balance for account {}", request.getAccountId());
-
-        return getAccountsServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/accounts/update-balance";
-            log.debug("Calling Accounts service at: {}", url);
-
-            return webClientBuilder.build()
-                    .post()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(Void.class)
-                    .doOnSuccess(response -> log.info("Successfully updated balance"))
-                    .doOnError(error -> log.error("Error updating balance: {}", error.getMessage()));
-        }).onErrorResume(e -> {
-            log.error("Failed to update balance", e);
-            return Mono.error(new RuntimeException("Accounts service unavailable: " + e.getMessage()));
-        });
-    }
-
-    private Mono<String> getAccountsServiceUrl() {
-        return Mono.fromCallable(() -> {
-            List<ServiceInstance> instances = discoveryClient.getInstances("accounts-service");
-            if (instances == null || instances.isEmpty()) {
-                throw new RuntimeException("No instances of accounts-service found");
-            }
-            ServiceInstance instance = instances.getFirst();
-            String url = "http://" + instance.getHost() + ":" + instance.getPort();
-            log.debug("Discovered accounts-service at: {}", url);
-            return url;
-        });
+        String path = "/accounts/update-balance";
+        String operation = "Update account balance: " + request;
+        String errorPrefix = "Ошибка обновления баланса счета: ";
+        return performMono(HttpMethod.POST, path, request, Void.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account balance updated"));
     }
 }

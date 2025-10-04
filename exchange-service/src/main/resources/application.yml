@@ -3,7 +3,7 @@ exchange:
   scale: 4
 
 gateway:
-  url: http://localhost:8080
+  url: http://localhost:8084
 
 spring:
   application:

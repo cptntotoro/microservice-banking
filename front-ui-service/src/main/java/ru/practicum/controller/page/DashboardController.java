@@ -14,6 +14,7 @@ import ru.practicum.dto.transfer.OwnTransferRequestDto;
 import ru.practicum.dto.user.UserDashboardDto;
 import ru.practicum.mapper.exchange.ExchangeRateMapper;
 import ru.practicum.mapper.user.UserMapper;
+import ru.practicum.service.auth.AuthService;
 import ru.practicum.service.exchange.ExchangeRateService;
 import ru.practicum.service.user.UserService;
 
@@ -38,6 +39,7 @@ public class DashboardController extends BaseController {
      * Сервис пользователей
      */
     private final UserService userService;
+    private final AuthService authService;
 
     /**
      * Маппер пользователей
@@ -50,60 +52,65 @@ public class DashboardController extends BaseController {
             log.error("111111111111111111");
             log.error((String) session.getAttributes().get("access_token"));
             log.error(session.getAttributes().values().toString());
-            UUID userId = (UUID) session.getAttributes().get("userId");
-
-            if (userId == null) {
+            if(session.getAttributes().get("access_token") == null) {
                 return Mono.just("redirect:/login");
+//                return Mono.error(new IllegalStateException("access_token is null"));
             }
-
-            return userService.getUserWithAccounts(userId)
-                    .map(userMapper::toUserDashboardDto)
-                    .flatMap(userDashboardDto -> {
-                        model.addAttribute("user", userDashboardDto);
-                        model.addAttribute("userAccounts", userDashboardDto.getAccounts());
-
-                        // Инициализируем формы для переводов
-                        model.addAttribute("ownTransferRequest", new OwnTransferRequestDto());
-                        model.addAttribute("otherTransferRequest", new OtherTransferRequestDto());
-
-                        // Обработка сообщений
-                        String error = exchange.getRequest().getQueryParams().getFirst("error");
-                        String success = exchange.getRequest().getQueryParams().getFirst("success");
-
-                        if (error != null) {
-                            model.addAttribute("error", error);
-                        }
-                        if (success != null) {
-                            model.addAttribute("success", success);
+            return authService.getUserId((String) session.getAttributes().get("access_token"))
+                    .flatMap(userId -> {
+                        if (userId == null) {
+                            return Mono.just("redirect:/login");
                         }
 
-                        // Загружаем курсы валют
-                        return exchangeRateService.getCurrentRates()
-                                .collectList()
-                                .flatMap(rates -> {
-                                    List<ExchangeRateDto> ratesDto = exchangeRateMapper.toExchangeRateDtoList(rates);
-                                    model.addAttribute("rates", ratesDto);
-                                    log.info("Загружено {} курсов валют для отображения", ratesDto.size());
+                        return userService.getUserWithAccounts(UUID.fromString(userId))
+                                .map(userMapper::toUserDashboardDto)
+                                .flatMap(userDashboardDto -> {
+                                    model.addAttribute("user", userDashboardDto);
+                                    model.addAttribute("userAccounts", userDashboardDto.getAccounts());
 
-                                    return renderPage(model, "page/dashboard", "Главная страница",
-                                            "Главная страница приложения BankingApp", "page/dashboard", "dashboard");
+                                    // Инициализируем формы для переводов
+                                    model.addAttribute("ownTransferRequest", new OwnTransferRequestDto());
+                                    model.addAttribute("otherTransferRequest", new OtherTransferRequestDto());
+
+                                    // Обработка сообщений
+                                    String error = exchange.getRequest().getQueryParams().getFirst("error");
+                                    String success = exchange.getRequest().getQueryParams().getFirst("success");
+
+                                    if (error != null) {
+                                        model.addAttribute("error", error);
+                                    }
+                                    if (success != null) {
+                                        model.addAttribute("success", success);
+                                    }
+
+                                    // Загружаем курсы валют
+                                    return exchangeRateService.getCurrentRates()
+                                            .collectList()
+                                            .flatMap(rates -> {
+                                                List<ExchangeRateDto> ratesDto = exchangeRateMapper.toExchangeRateDtoList(rates);
+                                                model.addAttribute("rates", ratesDto);
+                                                log.info("Загружено {} курсов валют для отображения", ratesDto.size());
+
+                                                return renderPage(model, "page/dashboard", "Главная страница",
+                                                        "Главная страница приложения BankingApp", "page/dashboard", "dashboard");
+                                            })
+                                            .onErrorResume(e -> {
+                                                log.warn("Не удалось загрузить курсы валют: {}", e.getMessage());
+                                                model.addAttribute("rates", List.of());
+                                                return renderPage(model, "page/dashboard", "Главная страница",
+                                                        "Главная страница приложения BankingApp", "page/dashboard", "dashboard");
+                                            });
                                 })
                                 .onErrorResume(e -> {
-                                    log.warn("Не удалось загрузить курсы валют: {}", e.getMessage());
+                                    log.error("Ошибка загрузки данных пользователя: {}", e.getMessage());
+                                    model.addAttribute("error", "Ошибка загрузки данных: " + e.getMessage());
+                                    model.addAttribute("user", UserDashboardDto.builder().build());
+                                    model.addAttribute("userAccounts", List.of());
                                     model.addAttribute("rates", List.of());
+
                                     return renderPage(model, "page/dashboard", "Главная страница",
                                             "Главная страница приложения BankingApp", "page/dashboard", "dashboard");
                                 });
-                    })
-                    .onErrorResume(e -> {
-                        log.error("Ошибка загрузки данных пользователя: {}", e.getMessage());
-                        model.addAttribute("error", "Ошибка загрузки данных: " + e.getMessage());
-                        model.addAttribute("user", UserDashboardDto.builder().build());
-                        model.addAttribute("userAccounts", List.of());
-                        model.addAttribute("rates", List.of());
-
-                        return renderPage(model, "page/dashboard", "Главная страница",
-                                "Главная страница приложения BankingApp", "page/dashboard", "dashboard");
                     });
         });
     }

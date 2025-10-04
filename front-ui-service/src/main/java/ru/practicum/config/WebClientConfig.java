@@ -43,4 +43,52 @@ public class WebClientConfig {
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
+
+    @Bean("exchangeServiceWebClient")
+    public WebClient exchangeServiceWebClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
+                                             ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+        AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
+                new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
+                        clientRegistrationRepository, authorizedClientService);
+        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth2 =
+                new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oauth2.setDefaultClientRegistrationId("exchange-service");
+        return WebClient.builder()
+                .filter(oauth2)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
+
+    @Bean("cashServiceWebClient")
+    public WebClient cashServiceWebClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
+                                             ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+        AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
+                new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
+                        clientRegistrationRepository, authorizedClientService);
+        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth2 =
+                new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oauth2.setDefaultClientRegistrationId("cash-service");
+        return WebClient.builder()
+                .filter(oauth2)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
+
+    @Bean("transferServiceWebClient")
+    public WebClient transferServiceWebClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
+                                             ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+        AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
+                new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
+                        clientRegistrationRepository, authorizedClientService);
+        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth2 =
+                new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oauth2.setDefaultClientRegistrationId("transfer-service");
+        return WebClient.builder()
+                .filter(oauth2)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
 }

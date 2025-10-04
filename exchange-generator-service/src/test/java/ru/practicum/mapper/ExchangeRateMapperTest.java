@@ -2,7 +2,7 @@
 //
 //import org.junit.jupiter.api.Test;
 //import org.mapstruct.factory.Mappers;
-//import ru.practicum.client.ExchangeRateDto;
+//import ru.practicum.client.exchange.dto.ExchangeRateDto;
 //import ru.practicum.mapper.exchange.ExchangeRateMapper;
 //import ru.practicum.model.exchange.ExchangeRate;
 //

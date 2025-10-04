@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.client.UserResponseDto;
+import ru.practicum.client.account.dto.UserResponseDto;
 
 import javax.crypto.SecretKey;
 import java.util.Date;

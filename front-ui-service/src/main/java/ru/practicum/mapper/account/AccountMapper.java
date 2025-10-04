@@ -1,7 +1,7 @@
 package ru.practicum.mapper.account;
 
 import org.mapstruct.Mapper;
-import ru.practicum.client.account.AccountResponseClientDto;
+import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.dto.account.AccountDashboardDto;
 import ru.practicum.model.account.Account;
 
@@ -19,5 +19,5 @@ public interface AccountMapper {
     /**
      * Преобразование AccountResponseClientDto в Account
      */
-    Account toAccount(AccountResponseClientDto dto);
+    Account toAccount(AccountResponseDto dto);
 }
