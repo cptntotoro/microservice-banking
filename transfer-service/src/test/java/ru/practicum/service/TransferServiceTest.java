@@ -140,7 +140,7 @@ class TransferServiceTest {
                 .fromAccountId(fromAccountId)
                 .toAccountId(toAccountId)
                 .amount(amount)
-                .amount(convertedAmount)
+                .convertedAmount(convertedAmount)
                 .build();
         when(accountServiceClient.transferBetweenOwnAccounts(transferDto))
                 .thenReturn(Mono.empty());
@@ -320,7 +320,7 @@ class TransferServiceTest {
                 .fromAccountId(fromAccountId)
                 .toAccountId(toAccountId)
                 .amount(amount)
-                .amount(convertedAmount)
+                .convertedAmount(convertedAmount)
                 .build()))
                 .thenReturn(Mono.empty());
         when(notificationsServiceClient.sendNotification(any()))
@@ -377,7 +377,7 @@ class TransferServiceTest {
                 .fromAccountId(fromAccountId)
                 .toAccountId(toAccountId)
                 .amount(amount)
-                .amount(convertedAmount)
+                .convertedAmount(convertedAmount)
                 .build();
         when(accountServiceClient.transferToOtherAccount(transferDto))
                 .thenReturn(Mono.empty());

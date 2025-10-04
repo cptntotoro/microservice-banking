@@ -95,10 +95,10 @@ public class TransferServiceImpl implements TransferService {
                     AccountResponseDto fromAccount = tuple.getT1();
                     AccountResponseDto toAccount = tuple.getT2();
 
-                    if (!fromAccount.getUserId().equals(toAccount.getUserId())) {
-                        return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Счета должны принадлежать одному пользователю")
-                                .then(Mono.error(new ValidationException("Счета должны принадлежать одному пользователю")));
-                    }
+//                    if (!fromAccount.getUserId().equals(toAccount.getUserId())) {
+//                        return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Счета должны принадлежать одному пользователю")
+//                                .then(Mono.error(new ValidationException("Счета должны принадлежать одному пользователю")));
+//                    }
 
                     if (fromAccount.getBalance().compareTo(amount) < 0) {
                         return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Недостаточно средств на счете отправителя")
@@ -107,12 +107,12 @@ public class TransferServiceImpl implements TransferService {
 
                     String fromCode = fromAccount.getCurrencyCode();
                     String toCode = toAccount.getCurrencyCode();
-                    UUID userId = fromAccount.getUserId();
+//                    UUID userId = fromAccount.getUserId();
 
                     OperationCheckRequestDto checkRequest = OperationCheckRequestDto.builder()
                             .operationId(UUID.randomUUID())
                             .operationType("TRANSFER")
-                            .userId(userId)
+//                            .userId(userId)
                             .accountId(fromAccountId)
                             .amount(amount)
                             .currency(fromCode)
@@ -145,7 +145,7 @@ public class TransferServiceImpl implements TransferService {
                                                     .fromAccountId(fromAccountId)
                                                     .toAccountId(toAccountId)
                                                     .amount(amount)
-                                                    .amount(convertedAmount)
+                                                    .convertedAmount(convertedAmount)
                                                     .build();
                                             return accountServiceClient.transferBetweenOwnAccounts(transferDto)
                                                     .onErrorResume(e ->
@@ -217,11 +217,11 @@ public class TransferServiceImpl implements TransferService {
                     AccountResponseDto fromAccount = tuple.getT1();
                     AccountResponseDto toAccount = tuple.getT2();
 
-                    // Проверяем, что счет получателя принадлежит другому пользователю
-                    if (fromAccount.getUserId().equals(toAccount.getUserId())) {
-                        return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")
-                                .then(Mono.error(new ValidationException("Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")));
-                    }
+//                    // Проверяем, что счет получателя принадлежит другому пользователю
+//                    if (fromAccount.getUserId().equals(toAccount.getUserId())) {
+//                        return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")
+//                                .then(Mono.error(new ValidationException("Перевод на собственный счет должен выполняться через transferBetweenOwnAccounts")));
+//                    }
 
                     if (fromAccount.getBalance().compareTo(amount) < 0) {
                         return saveFailedTransfer(fromAccountId, toAccountId, amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null, timestamp, type, "Недостаточно средств на счете отправителя")
@@ -230,12 +230,12 @@ public class TransferServiceImpl implements TransferService {
 
                     String fromCode = fromAccount.getCurrencyCode();
                     String toCode = toAccount.getCurrencyCode();
-                    UUID userId = fromAccount.getUserId();
+//                    UUID userId = fromAccount.getUserId();
 
                     OperationCheckRequestDto checkRequest = OperationCheckRequestDto.builder()
                             .operationId(UUID.randomUUID())
                             .operationType("TRANSFER")
-                            .userId(userId)
+//                            .userId(userId)
                             .accountId(fromAccountId)
                             .amount(amount)
                             .currency(fromCode)
@@ -269,7 +269,7 @@ public class TransferServiceImpl implements TransferService {
                                                             .fromAccountId(fromAccountId)
                                                             .toAccountId(toAccountId)
                                                             .amount(amount)
-                                                            .amount(convertedAmount)
+                                                            .convertedAmount(convertedAmount)
                                                             .build())
                                                     .onErrorResume(e ->
                                                             saveFailedTransfer(fromAccountId, toAccountId, amount, fromCode, toCode, convertedAmount, timestamp, type, "Ошибка при переводе: " + e.getMessage())
