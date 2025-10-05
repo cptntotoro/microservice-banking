@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.account.AccountServiceClient;
-import ru.practicum.client.account.dto.SignUpResponseClientDto;
+import ru.practicum.client.account.dto.SignUpResponseDto;
 import ru.practicum.client.auth.AuthServiceClient;
 import ru.practicum.client.auth.dto.TokenResponseDto;
 import ru.practicum.dto.auth.LoginRequestDto;
@@ -21,8 +21,8 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public Mono<SignUpResponseClientDto> createAccount(SignUpRequestDto signUpRequestDto) {
-        return accountServiceClient.createAccount(signUpRequestDto);
+    public Mono<SignUpResponseDto> createUser(SignUpRequestDto signUpRequestDto) {
+        return accountServiceClient.createUser(signUpRequestDto);
     }
 
     @Override

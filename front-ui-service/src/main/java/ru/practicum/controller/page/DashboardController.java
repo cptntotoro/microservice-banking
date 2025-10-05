@@ -24,7 +24,7 @@ import java.util.UUID;
 @Controller
 @RequiredArgsConstructor
 @Slf4j
-public class DashboardController extends BaseController {
+public class  DashboardController extends BaseController {
     /**
      * Сервис курсов обмена валют
      */

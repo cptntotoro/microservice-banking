@@ -1,9 +1,9 @@
 server:
-  port: 8085
+  port: 8088
 
 spring:
   application:
-    name: cash-service
+    name: transfer-service
 
   cloud:
     consul:
@@ -19,7 +19,7 @@ spring:
         health-check-interval: 15s
 
   r2dbc:
-    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/cash_service}
+    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/transfer_service}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     pool:
@@ -41,26 +41,33 @@ spring:
         jwt:
           issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
           jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
-    # OAuth2 Client Configuration
+      # OAuth2 Client Configuration
       client:
         registration:
           account-service:
             provider: account-service
-            client-id: cash-service
+            client-id: transfer-service
             client-secret: showcase-secret
             client-authentication-method: client_secret_basic
             authorization-grant-type: client_credentials
             scope: account-service.read,account-service.write
           blocker-service:
             provider: blocker-service
-            client-id: cash-service
+            client-id: transfer-service
             client-secret: showcase-secret
             client-authentication-method: client_secret_basic
             authorization-grant-type: client_credentials
             scope: blocker-service.read,blocker-service.write
+          exchange-service:
+            provider: exchange-service
+            client-id: transfer-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: exchange-service.read,exchange-service.write
           notification-service:
             provider: notification-service
-            client-id: cash-service
+            client-id: transfer-service
             client-secret: showcase-secret
             client-authentication-method: client_secret_basic
             authorization-grant-type: client_credentials
@@ -69,6 +76,8 @@ spring:
           account-service:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
           blocker-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+          exchange-service:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
           notification-service:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}

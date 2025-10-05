@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 app:
   currencies:
     supported:
@@ -11,12 +14,6 @@ app:
 spring:
   application:
     name: front-ui-service
-#  security:
-#    oauth2:
-#      resourceserver:
-#        jwt:
-##          jwk-set-uri: http://user-auth-service
-#          issuer-uri:  http://user-auth-service
 
   cloud:
     consul:
@@ -76,14 +73,38 @@ spring:
             client-authentication-method: client_secret_basic
             authorization-grant-type: client_credentials
             scope: user-auth-service.read,user-auth-service.write
+          cash-service:
+            provider: cash-service
+            client-id: front-ui-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: cash-service.read,cash-service.write
+          exchange-service:
+            provider: exchange-service
+            client-id: front-ui-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: exchange-service.read,exchange-service.write
+          transfer-service:
+            provider: transfer-service
+            client-id: front-ui-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: transfer-service.read,transfer-service.write
         provider:
           account-service:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
           user-auth-service:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
-
-server:
-  port: 8081
+          cash-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+          exchange-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+          transfer-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
 
 management:
   endpoints:

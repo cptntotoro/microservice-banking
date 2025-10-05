@@ -16,10 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import ru.practicum.dto.user.AuthRequest;
-import ru.practicum.dto.user.PasswordChangeDto;
-import ru.practicum.dto.user.SignUpRequestDto;
-import ru.practicum.dto.user.UserResponseDto;
+import ru.practicum.dto.user.*;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
 import ru.practicum.service.user.UserService;
@@ -116,5 +113,12 @@ public class UserController {
         log.info("Валидация кредов: {}", request.getUsername());
         return userService.validateCredentials(request.getUsername(), request.getPassword())
                 .map(userMapper::userToResponseDto);
+    }
+
+    @GetMapping("/full/{userId}")
+    public Mono<UserFullResponseDto> getFullUser(@PathVariable UUID userId) {
+        log.info("Получение полной информации о пользователе по ID: {}", userId);
+        return userService.getUserWithAccountsByUuid(userId)
+                .map(userMapper::userWithAccountsToFullResponseDto);
     }
 }

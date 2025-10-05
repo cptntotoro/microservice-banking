@@ -3,23 +3,20 @@ package ru.practicum.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtGrantedAuthoritiesConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.repository.ReactiveRegisteredClientRepository;
-import ru.practicum.repository.ReactiveToBlockingClientRepositoryAdapter;
 
 @Configuration
 @EnableWebFluxSecurity
-@RestController
 public class SecurityConfig {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
@@ -28,11 +25,10 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/oauth2/**").permitAll()
-                        .pathMatchers("/oauth2/jwks").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/cash/**").hasAuthority("SCOPE_cash-service.read")
+                        .pathMatchers(HttpMethod.POST, "/api/cash/**").hasAuthority("SCOPE_cash-service.write")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -41,27 +37,12 @@ public class SecurityConfig {
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
                 );
-
         return http.build();
     }
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
-        return NimbusReactiveJwtDecoder
-                .withJwkSetUri(jwkSetUri)
-                .build();
-    }
-
-    @Bean
-    @Primary
-    public RegisteredClientRepository registeredClientRepository(ReactiveToBlockingClientRepositoryAdapter adapter) {
-        return adapter;
-    }
-
-    @Bean
-    public ReactiveToBlockingClientRepositoryAdapter reactiveToBlockingClientRepositoryAdapter(
-            ReactiveRegisteredClientRepository reactiveRepository) {
-        return new ReactiveToBlockingClientRepositoryAdapter(reactiveRepository);
+        return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }
 
     @Bean
@@ -75,5 +56,10 @@ public class SecurityConfig {
                 new ReactiveJwtGrantedAuthoritiesConverterAdapter(authoritiesConverter)
         );
         return converter;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

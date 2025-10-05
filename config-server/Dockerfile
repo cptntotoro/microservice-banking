@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre-alpine
-VOLUME /tmp
+FROM openjdk:21-jdk-slim
+#VOLUME /tmp
 COPY target/config-server-*.jar app.jar
 ENTRYPOINT ["java", "-jar", "/app.jar"]

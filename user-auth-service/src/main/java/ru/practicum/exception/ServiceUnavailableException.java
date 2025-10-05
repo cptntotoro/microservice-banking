@@ -1,4 +1,4 @@
-package ru.practicum;
+package ru.practicum.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

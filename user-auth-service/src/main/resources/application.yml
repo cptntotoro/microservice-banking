@@ -1,6 +1,10 @@
+server:
+  port: 8083
+
 spring:
   application:
     name: user-auth-service
+
   cloud:
     consul:
       host: localhost
@@ -47,16 +51,10 @@ spring:
           account-service:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
 
-server:
-  port: 8083
-
 jwt:
   secret: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
   expiration: 360000
   issuer: user-auth-service
-
-#user-service:
-#  url: http://account-service:8082/api/users
 
 management:
   endpoints:
@@ -66,7 +64,6 @@ management:
   endpoint:
     health:
       show-details: always
-
 
 logging:
   level:

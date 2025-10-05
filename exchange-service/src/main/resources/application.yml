@@ -1,9 +1,9 @@
+server:
+  port: 8086
+
 exchange:
   spread: 0.005
   scale: 4
-
-gateway:
-  url: http://localhost:8084
 
 spring:
   application:
@@ -44,8 +44,14 @@ spring:
   main:
     web-application-type: reactive
 
-server:
-  port: 8085
+  # ================ OAuth2 Client Configuration ================
+  # OAuth2 Resource Server Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
 
 management:
   endpoints:

@@ -422,6 +422,14 @@ body.page {
     line-height: 1.5;
 }
 
+.alert__content.error {
+    color: #ef4444;
+}
+
+.alert__content.success {
+    color: #22c55e;
+}
+
 .alert__close {
     background: none;
     border: none;

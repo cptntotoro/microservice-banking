@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.account.dto.AccountResponseDto;
-import ru.practicum.client.account.dto.SignUpResponseClientDto;
+import ru.practicum.client.account.dto.SignUpResponseDto;
 import ru.practicum.client.account.dto.UserFullResponseClientDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
 
@@ -42,11 +42,11 @@ public class AccountServiceClient extends BaseServiceClient {
     /**
      * Создание нового пользователя
      */
-    public Mono<SignUpResponseClientDto> createAccount(SignUpRequestDto signUpRequestDto) {
+    public Mono<SignUpResponseDto> createUser(SignUpRequestDto signUpRequestDto) {
         String path = "/api/users/signup";
         String operation = "Creating account: " + signUpRequestDto;
         String errorPrefix = "Ошибка регистрации аккаунта: ";
-        return performMono(HttpMethod.POST, path, signUpRequestDto, SignUpResponseClientDto.class, operation, errorPrefix, true)
+        return performMono(HttpMethod.POST, path, signUpRequestDto, SignUpResponseDto.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Account created: {}", response));
     }
 

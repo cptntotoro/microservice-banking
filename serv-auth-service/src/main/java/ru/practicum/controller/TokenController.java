@@ -3,10 +3,9 @@ package ru.practicum.controller;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSelector;
-import com.nimbusds.jose.jwk.JWKMatcher;
-import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.jwk.*;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,6 +41,9 @@ public class TokenController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JWKSource<SecurityContext> jwkSource;
 
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
@@ -104,6 +107,12 @@ public class TokenController {
                         });
                     });
         });
+    }
+
+    @GetMapping("/oauth2/jwks")
+    public Mono<Map<String, Object>> jwks() {
+        return Mono.fromCallable(() -> jwkSource.get(new JWKSelector(new JWKMatcher.Builder().build()), null))
+                .map(jwks -> new JWKSet(jwks).toJSONObject());
     }
 
     private Mono<String> generateJwt(RegisteredClient client, String scope) {

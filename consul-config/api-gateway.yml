@@ -12,13 +12,13 @@ spring:
         - id: account-service
           uri: lb://account-service
           predicates:
-            - Path=/api/accounts/**
+            - Path=/account-service/**
           filters:
             - StripPrefix=1
         - id: cash-service
           uri: lb://cash-service
           predicates:
-            - Path=/api/cash/**
+            - Path=/cash-service/**
           filters:
             - StripPrefix=1
 

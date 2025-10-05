@@ -71,6 +71,42 @@ public class OAuth2ClientInitializer {
                         return clientRepository.save(userAuthService).thenReturn(userAuthService);
                     }))
                     .subscribe();
+
+            clientRepository.findByClientId("blocker-service")
+                    .switchIfEmpty(Mono.defer(() -> {
+                        RegisteredClient blockerService = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("blocker-service")
+                                .clientSecret("$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a")
+                                .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder().build())
+                                .build();
+                        return clientRepository.save(blockerService).thenReturn(blockerService);
+                    }))
+                    .subscribe();
+
+            clientRepository.findByClientId("cash-service")
+                    .switchIfEmpty(Mono.defer(() -> {
+                        RegisteredClient cashService = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("cash-service")
+                                .clientSecret("$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a")
+                                .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .scope("account-service.read")
+                                .scope("account-service.write")
+                                .scope("blocker-service.read")
+                                .scope("blocker-service.write")
+                                .scope("notification-service.read")
+                                .scope("notification-service.write")
+                                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder().build())
+                                .build();
+                        return clientRepository.save(cashService).thenReturn(cashService);
+                    }))
+                    .subscribe();
         };
     }
 }

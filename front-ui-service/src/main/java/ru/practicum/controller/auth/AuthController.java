@@ -85,7 +85,7 @@ public class AuthController extends BaseController {
                     "auth/signup", "auth/signup");
         }
 
-        return authService.createAccount(signupRequest)
+        return authService.createUser(signupRequest)
                 .flatMap(signupResponse -> {
                     // После успешной регистрации перенаправляем на страницу логина
                     model.addAttribute("success", "Регистрация успешна! Теперь вы можете войти в систему.");

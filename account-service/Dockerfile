@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre-alpine
+FROM openjdk:21-jdk-slim
 
 #WORKDIR /app
 #COPY account-service/src ./account-service/src/

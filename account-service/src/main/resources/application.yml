@@ -1,3 +1,6 @@
+server:
+  port: 8082
+
 app:
   currencies:
     supported:
@@ -46,9 +49,8 @@ spring:
   main:
     web-application-type: reactive
 
-
-      # ================ OAuth2 Client Configuration ================
-      # OAuth2 Resource Server Configuration
+  # ================ OAuth2 Client Configuration ================
+  # OAuth2 Resource Server Configuration
   security:
     oauth2:
       resourceserver:
@@ -56,8 +58,6 @@ spring:
           issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
           jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
 
-server:
-  port: 8082
 
 management:
   endpoints:
