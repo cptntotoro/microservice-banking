@@ -101,7 +101,7 @@
                     <label class="label">Добавить счёт</label>
                     <select class="select" name="currencyCode">
                         <option value="" disabled selected>Выберите валюту</option>
-                        <option th:each="rate : ${rates}" th:value="${rate.code}" th:text="${rate.code}"></option>
+                        <option th:each="currency : ${userNotHaveCurrencies}" th:value="${currency}" th:text="${currency}"></option>
                     </select>
                 </div>
                 <div class="row between center">
@@ -135,8 +135,8 @@
                         <label class="label">Валюта</label>
                         <select class="select" name="currencyCode">
                             <option value="" disabled selected>Выберите валюту</option>
-                            <option th:each="rate : ${rates}" th:value="${rate.code}" th:text="${rate.code}"></option>
-                            <option th:if="${rates} == null or ${rates.size() == 0}" value="" disabled>Валюты недоступны</option>
+                            <option th:each="currency : ${userCurrencies}" th:value="${currency}" th:text="${currency}"></option>
+                            <option th:if="${userCurrencies} == null or ${userCurrencies.size() == 0}" value="" disabled>Валюты недоступны</option>
                         </select>
                     </div>
                     <div class="form__row">
@@ -196,11 +196,8 @@
                     <div class="form__row">
                         <label class="label">Валюта получателя</label>
                         <select class="select" th:field="*{toCurrency}" required>
-                            <option value="">Выберите валюту</option>
-                            <option value="RUB">RUB - Российский рубль</option>
-                            <option value="USD">USD - Доллар США</option>
-                            <option value="CNY">CNY - Китайский юань</option>
-                            <option value="EUR">EUR - Евро</option>
+                            <option value="" disabled selected>Выберите валюту</option>
+                            <option th:each="currency : ${currencies}" th:value="${currency}" th:text="${currency}"></option>
                         </select>
                     </div>
                     <div class="form__row">

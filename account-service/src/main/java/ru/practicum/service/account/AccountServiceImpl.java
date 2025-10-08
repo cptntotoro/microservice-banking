@@ -79,7 +79,14 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Flux<Account> getUserAccounts(UUID userId) {
         return accountRepository.findByUserId(userId)
-                .map(accountMapper::accountDaoToAccount);
+                .flatMap(accountDao ->
+                        currencyService.getCurrencyById(accountDao.getCurrencyId())
+                                .map(currency -> {
+                                    Account account = accountMapper.accountDaoToAccount(accountDao);
+                                    account.setCurrencyCode(currency.getCode());
+                                    return account;
+                                })
+                );
     }
 
     @Override

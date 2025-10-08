@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.account.dto.AccountResponseDto;
+import ru.practicum.client.account.dto.AddAccountRequestDto;
 import ru.practicum.client.account.dto.SignUpResponseDto;
 import ru.practicum.client.account.dto.UserFullResponseClientDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
@@ -59,6 +60,17 @@ public class AccountServiceClient extends BaseServiceClient {
         String errorPrefix = "Ошибка получения счета: ";
         return performMono(HttpMethod.GET, path, null, AccountResponseDto.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Account retrieved: {}", accountId));
+    }
+
+    /**
+     * Получение счета по идентификатору
+     */
+    public Mono<AccountResponseDto> createAccount(AddAccountRequestDto addAccountRequestDto) {
+        String path = "/api/accounts/create";
+        String operation = "Create account: " + addAccountRequestDto;
+        String errorPrefix = "Ошибка создания счета: ";
+        return performMono(HttpMethod.POST, path, addAccountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account created: {}", response.getId()));
     }
 
     /**

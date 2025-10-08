@@ -28,6 +28,7 @@ public class AccountDao {
      * Идентификатор счета
      */
     @Id
+    @Column("account_uuid")
     private UUID id;
 
     /**

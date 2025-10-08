@@ -118,14 +118,14 @@ management:
 
 logging:
   level:
-    org.springframework: ERROR
-    ru.practicum: WARN
-    org.springframework.web: WARN
-    org.springframework.cloud: WARN
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty: ERROR
-    org.springframework.security: DEBUG
-    org.springframework.cloud.consul: DEBUG
+#    org.springframework: ERROR
+    ru.practicum: info
+#    org.springframework.web: WARN
+#    org.springframework.cloud: WARN
+#    org.springframework.cloud.gateway: DEBUG
+#    reactor.netty: ERROR
+#    org.springframework.security: DEBUG
+#    org.springframework.cloud.consul: DEBUG
   pattern:
     console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

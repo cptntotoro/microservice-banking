@@ -33,6 +33,12 @@ public class OAuth2ClientInitializer {
                                 .scope("account-service.write")
                                 .scope("user-auth-service.read")
                                 .scope("user-auth-service.write")
+                                .scope("cash-service.read")
+                                .scope("cash-service.write")
+                                .scope("exchange-service.read")
+                                .scope("exchange-service.write")
+                                .scope("transfer-service.read")
+                                .scope("transfer-service.write")
                                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
                                 .tokenSettings(TokenSettings.builder().build())
                                 .build();
@@ -105,6 +111,76 @@ public class OAuth2ClientInitializer {
                                 .tokenSettings(TokenSettings.builder().build())
                                 .build();
                         return clientRepository.save(cashService).thenReturn(cashService);
+                    }))
+                    .subscribe();
+
+            clientRepository.findByClientId("exchange-generator-service")
+                    .switchIfEmpty(Mono.defer(() -> {
+                        RegisteredClient exchangeGeneratorService = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("exchange-generator-service")
+                                .clientSecret("$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a")
+                                .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .scope("exchange-service.read")
+                                .scope("exchange-service.write")
+                                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder().build())
+                                .build();
+                        return clientRepository.save(exchangeGeneratorService).thenReturn(exchangeGeneratorService);
+                    }))
+                    .subscribe();
+
+            clientRepository.findByClientId("exchange-service")
+                    .switchIfEmpty(Mono.defer(() -> {
+                        RegisteredClient exchangeService = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("exchange-service")
+                                .clientSecret("$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a")
+                                .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder().build())
+                                .build();
+                        return clientRepository.save(exchangeService).thenReturn(exchangeService);
+                    }))
+                    .subscribe();
+
+            clientRepository.findByClientId("notification-service")
+                    .switchIfEmpty(Mono.defer(() -> {
+                        RegisteredClient notificationService = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("notification-service")
+                                .clientSecret("$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a")
+                                .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder().build())
+                                .build();
+                        return clientRepository.save(notificationService).thenReturn(notificationService);
+                    }))
+                    .subscribe();
+
+            clientRepository.findByClientId("transfer-service")
+                    .switchIfEmpty(Mono.defer(() -> {
+                        RegisteredClient transferService = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("transfer-service")
+                                .clientSecret("$2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a")
+                                .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .scope("account-service.read")
+                                .scope("account-service.write")
+                                .scope("blocker-service.read")
+                                .scope("blocker-service.write")
+                                .scope("exchange-service.read")
+                                .scope("exchange-service.write")
+                                .scope("notification-service.read")
+                                .scope("notification-service.write")
+                                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder().build())
+                                .build();
+                        return clientRepository.save(transferService).thenReturn(transferService);
                     }))
                     .subscribe();
         };

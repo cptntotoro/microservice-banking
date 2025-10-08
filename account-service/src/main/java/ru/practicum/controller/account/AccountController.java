@@ -44,7 +44,7 @@ public class AccountController {
      */
     private final AccountMapper accountMapper;
 
-    @PostMapping
+    @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<AccountResponseDto> createAccount(@Valid @RequestBody AccountCreateDto accountDto) {
         log.info("Создание счета для пользователя: {}", accountDto.getUserId());

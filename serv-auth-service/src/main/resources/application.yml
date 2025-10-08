@@ -44,21 +44,21 @@ spring:
               client-secret: $2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
               client-authentication-methods: client_secret_basic
               authorization-grant-types: client_credentials
-              scopes: account-service.read,account-service.write,user-auth-service.read,user-auth-service.write
+              scopes: front-ui-service.read,front-ui-service.write
           account-service:
             registration:
               client-id: account-service
               client-secret: $2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
               client-authentication-methods: client_secret_basic
               authorization-grant-types: client_credentials
-              scopes: account-service.read,account-service.write,user-auth-service.read,user-auth-service.write
+              scopes: account-service.read,account-service.write
           user-auth-service:
             registration:
               client-id: user-auth-service
               client-secret: $2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
               client-authentication-methods: client_secret_basic
               authorization-grant-types: client_credentials
-              scopes: account-service.read,account-service.write,user-auth-service.read,user-auth-service.write
+              scopes: user-auth-service.read,user-auth-service.write
           blocker-service:
             registration:
               client-id: blocker-service

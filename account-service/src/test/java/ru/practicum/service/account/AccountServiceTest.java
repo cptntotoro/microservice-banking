@@ -147,13 +147,19 @@ class AccountServiceTest {
 
     @Test
     void getUserAccounts_shouldReturnFluxOfAccounts() {
-        AccountDao dao1 = AccountDao.builder().id(UUID.randomUUID()).build();
-        AccountDao dao2 = AccountDao.builder().id(UUID.randomUUID()).build();
-        Account account1 = Account.builder().id(dao1.getId()).build();
-        Account account2 = Account.builder().id(dao2.getId()).build();
+        AccountDao dao1 = AccountDao.builder().id(UUID.randomUUID()).currencyId(currencyId).build();
+        AccountDao dao2 = AccountDao.builder().id(UUID.randomUUID()).currencyId(currencyId).build();
+
+        Account account1 = Account.builder().id(dao1.getId()).currencyCode(currencyCode).build();
+        Account account2 = Account.builder().id(dao2.getId()).currencyCode(currencyCode).build();
 
         when(accountRepository.findByUserId(userId)).thenReturn(Flux.just(dao1, dao2));
-        when(accountMapper.accountDaoToAccount(dao1)).thenReturn(account1);
+
+        Currency currency = Currency.builder()
+                .id(currencyId)
+                .code(currencyCode)
+                .build();
+        when(currencyService.getCurrencyById(currencyId)).thenReturn(Mono.just(currency));        when(accountMapper.accountDaoToAccount(dao1)).thenReturn(account1);
         when(accountMapper.accountDaoToAccount(dao2)).thenReturn(account2);
 
         StepVerifier.create(accountService.getUserAccounts(userId))
