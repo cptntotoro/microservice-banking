@@ -3,8 +3,21 @@ server:
 
 spring:
   application:
-    name: api-gateway
+    name: api-gateway-server
   cloud:
+    consul:
+      host: consul-server
+      port: 8500
+      #      config:
+      #        enabled: false
+      discovery:
+        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        register: true
+        enabled: true
     gateway:
       discovery:
         locator:
@@ -14,28 +27,70 @@ spring:
         - id: account-service
           uri: lb://account-service
           predicates:
-            - Path=/api/accounts/**
+            - Path=/account-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: blocker-service
+          uri: lb://blocker-service
+          predicates:
+            - Path=/blocker-service/**
           filters:
             - StripPrefix=1
 
         - id: cash-service
           uri: lb://cash-service
           predicates:
-            - Path=/api/cash/**
+            - Path=/cash-service/**
           filters:
             - StripPrefix=1
 
-        - id: transfer-service
-          uri: lb://transfer-service
+        - id: exchange-generator-service
+          uri: lb://exchange-generator-service
           predicates:
-            - Path=/api/transfer/**
+            - Path=/exchange-generator-service/**
           filters:
             - StripPrefix=1
 
         - id: exchange-service
           uri: lb://exchange-service
           predicates:
-            - Path=/api/exchange/**
+            - Path=/exchange-service/**
+          filters:
+            - StripPrefix=1
+
+#        - id: front-ui-service
+#          uri: lb://front-ui-service
+#          predicates:
+#            - Path=/front-ui-service/**
+#          filters:
+#            - StripPrefix=1
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/notification-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: serv-auth-service
+          uri: lb://serv-auth-service
+          predicates:
+            - Path=/serv-auth-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: transfer-service
+          uri: lb://transfer-service
+          predicates:
+            - Path=/transfer-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: user-auth-service
+          uri: lb://user-auth-service
+          predicates:
+            - Path=/user-auth-service/**
           filters:
             - StripPrefix=1
 
@@ -45,31 +100,12 @@ spring:
           predicates:
             - Path=/actuator/health
 
-        - id: front-ui-service
-          uri: lb://front-ui-service
-          predicates:
-            - Path=/**
-          filters:
-            - StripPrefix=0
-
       # Глобальная конфигурация для всех маршрутов
       httpclient:
-        connect-timeout: 1000
-        response-timeout: 5s
+        connect-timeout: 5000
+        response-timeout: 10s
 
-    consul:
-      host: localhost
-      port: 8500
-      config:
-        enabled: false
-      discovery:
-        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
-        register: true
-        enabled: true
+
 
 management:
   endpoints:

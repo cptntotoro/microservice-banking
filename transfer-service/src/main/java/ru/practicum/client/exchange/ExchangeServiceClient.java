@@ -1,135 +1,67 @@
 package ru.practicum.client.exchange;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.client.ServiceInstance;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.practicum.client.BaseServiceClient;
+import ru.practicum.client.exchange.dto.ExchangeRequestDto;
+import ru.practicum.client.exchange.dto.ExchangeRateDto;
+import ru.practicum.client.exchange.dto.ExchangeResponseDto;
 import ru.practicum.exception.ServiceClientException;
 
-import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class ExchangeServiceClient {
+public class ExchangeServiceClient extends BaseServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
-    private final DiscoveryClient discoveryClient;
-
-    public Mono<ExchangeRateDto> getRate(String fromCurrency, String toCurrency) {
-        return getExchangeServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/api/exchange/rate?from=" + fromCurrency + "&to=" + toCurrency;
-            log.debug("Запрос на получение курса валют: {} -> {}", fromCurrency, toCurrency);
-
-            return webClientBuilder.build()
-                    .get()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, response ->
-                            response.bodyToMono(String.class)
-                                    .defaultIfEmpty("")
-                                    .flatMap(body -> Mono.error(ServiceClientException.internalError(
-                                            "exchange-service",
-                                            "getRate",
-                                            "Ошибка при получении курса: " + response.statusCode() + " - " + body
-                                    )))
-                    )
-                    .bodyToMono(ExchangeRateDto.class)
-                    .timeout(Duration.ofSeconds(10))
-                    .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("exchange-service", "getRate", "Таймаут при получении курса"))
-                    .doOnSuccess(rate -> log.info("Курс валют {} -> {} успешно получен: {}", fromCurrency, toCurrency, rate.getBuyRate()))
-                    .doOnError(error -> log.error("Ошибка при получении курса валют {} -> {}: {}", fromCurrency, toCurrency, error.getMessage()));
-        });
+    @Autowired
+    public ExchangeServiceClient(@Qualifier("exchangeServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
+        super(webClient, discoveryClient);
     }
 
-    public Mono<ConvertResponseDto> convertCurrency(String fromCurrency, String toCurrency, BigDecimal amount) {
-        ConvertRequestDto requestDto = ConvertRequestDto.builder()
-                .fromCurrency(fromCurrency)
-                .toCurrency(toCurrency)
-                .amount(amount)
-                .build();
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 
-        return getExchangeServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/api/exchange/convert";
-            log.debug("Запрос на конвертацию валют: {} {} -> {}", amount, fromCurrency, toCurrency);
+    @Override
+    protected String getServiceId() {
+        return "exchange-service";
+    }
 
-            return webClientBuilder.build()
-                    .post()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(requestDto)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, response ->
-                            response.bodyToMono(String.class)
-                                    .defaultIfEmpty("")
-                                    .flatMap(body -> Mono.error(ServiceClientException.internalError(
-                                            "exchange-service",
-                                            "convertCurrency",
-                                            "Ошибка при конвертации: " + response.statusCode() + " - " + body
-                                    )))
-                    )
-                    .bodyToMono(ConvertResponseDto.class)
-                    .timeout(Duration.ofSeconds(10))
-                    .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("exchange-service", "convertCurrency", "Таймаут при конвертации"))
-                    .doOnSuccess(response -> log.info("Конвертация {} {} -> {} выполнена: {}", amount, fromCurrency, toCurrency, response.getConvertedAmount()))
-                    .doOnError(error -> log.error("Ошибка при конвертации валют: {}", error.getMessage()));
-        });
+    public Mono<ExchangeRateDto> getRate(String fromCurrency, String toCurrency) {
+        String path = "/api/exchange/rate?from=" + fromCurrency + "&to=" + toCurrency;
+        String operation = "getRate: from=" + fromCurrency + " to=" + toCurrency;
+        String errorPrefix = "Ошибка получения курса валют: ";
+        return performMono(HttpMethod.GET, path, null, ExchangeRateDto.class, operation, errorPrefix, true)
+                .doOnNext(account -> log.debug("Rate got"));
+    }
+
+    public Mono<ExchangeResponseDto> convertCurrency(ExchangeRequestDto requestDto) {
+        String path = "/api/exchange/convert";
+        String operation = "convertCurrency: " + requestDto;
+        String errorPrefix = "Ошибка конвертации валют: ";
+        return performMono(HttpMethod.POST, path, requestDto, ExchangeResponseDto.class, operation, errorPrefix, true)
+                .doOnNext(account -> log.debug("Сonvert Currency"));
     }
 
     public Flux<ExchangeRateDto> getCurrentRates() {
-        return getExchangeServiceUrl().flatMapMany(baseUrl -> {
-            String url = baseUrl + "/api/exchange/rates";
-            log.debug("Запрос на получение текущих курсов валют");
-
-            return webClientBuilder.build()
-                    .get()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, response ->
-                            response.bodyToMono(String.class)
-                                    .defaultIfEmpty("")
-                                    .flatMap(body -> Mono.error(ServiceClientException.internalError(
-                                            "exchange-service",
-                                            "getCurrentRates",
-                                            "Ошибка при получении курсов: " + response.statusCode() + " - " + body
-                                    )))
-                    )
-                    .bodyToFlux(ExchangeRateDto.class)
-                    .timeout(Duration.ofSeconds(10))
-                    .onErrorMap(TimeoutException.class, ex ->
-                            ServiceClientException.timeout("exchange-service", "getCurrentRates", "Таймаут при получении курсов"))
-                    .doOnComplete(() -> log.info("Текущие курсы валют успешно получены"))
-                    .doOnError(error -> log.error("Ошибка при получении курсов валют: {}", error.getMessage()));
-        });
-    }
-
-    private Mono<String> getExchangeServiceUrl() {
-        return Mono.fromCallable(() -> {
-            List<ServiceInstance> instances = discoveryClient.getInstances("exchange-service");
-            if (instances == null || instances.isEmpty()) {
-                throw ServiceClientException.unavailable("exchange-service", "discovery", "Сервис конвертации недоступен");
-            }
-            ServiceInstance instance = instances.getFirst();
-            String url = "http://" + instance.getHost() + ":" + instance.getPort();
-            log.debug("Обнаружен exchange-service по адресу: {}", url);
-            return url;
-        }).onErrorResume(e -> {
-            log.error("Не удалось подключиться к exchange-service: {}", e.getMessage());
-            return Mono.error(ServiceClientException.unavailable("exchange-service", "discovery", e.getMessage()));
-        });
+        String path = "/api/exchange/rates";
+        String operation = "Getting CurrentRates";
+        String errorPrefix = "Ошибка текущих курсов валют: ";
+        return performFlux(HttpMethod.GET, path, null, ExchangeRateDto.class, operation, errorPrefix, true)
+                .doOnNext(account -> log.debug("Retrieved CurrentRates"));
     }
 }

@@ -1,0 +1,10 @@
+spring:
+  jackson:
+    date-format: com.fasterxml.jackson.databind.util.StdDateFormat
+    default-property-inclusion: non_null
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    ru.practicum: DEBUG

@@ -1,3 +1,6 @@
+server:
+  port: 8084
+
 spring:
   application:
     name: blocker-service
@@ -20,7 +23,7 @@ spring:
         enabled: true
 
   r2dbc:
-    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/blocker_service}
+    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/blocker_service}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     pool:
@@ -34,8 +37,15 @@ spring:
   main:
     web-application-type: reactive
 
-server:
-  port: 8086
+  # ================ OAuth2 Client Configuration ================
+  # OAuth2 Resource Server Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+
 
 management:
   endpoints:

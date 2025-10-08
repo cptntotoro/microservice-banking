@@ -6,9 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.account.AccountsServiceClient;
-import ru.practicum.client.account.BalanceUpdateRequestDto;
+import ru.practicum.client.account.dto.BalanceUpdateRequestDto;
 import ru.practicum.client.blocker.BlockerServiceClient;
-import ru.practicum.client.notification.NotificationRequestDto;
+import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
+import ru.practicum.client.notification.dto.NotificationRequestDto;
 import ru.practicum.client.notification.NotificationsServiceClient;
 import ru.practicum.dao.CashOperationDao;
 import ru.practicum.model.CashRequest;
@@ -101,13 +102,18 @@ public class CashServiceImpl implements CashService {
     }
 
     private Mono<Boolean> checkOperationBlocking(CashRequest request, String operationType) {
-        return blockerServiceClient.checkOperation(
-                request.getAccountId(),
-                request.getUserId(),
-                request.getAmount(),
-                request.getCurrency(),
-                operationType
-        ).doOnNext(blocked -> {
+
+        OperationCheckRequestDto dto = OperationCheckRequestDto.builder()
+                .operationId(UUID.randomUUID())
+                .accountId(request.getAccountId())
+                .userId(request.getUserId())
+                .amount(request.getAmount())
+                .currency(request.getCurrency())
+                .operationType(operationType)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return blockerServiceClient.checkOperation(dto).doOnNext(blocked -> {
             if (Boolean.TRUE.equals(blocked)) {
                 log.warn("Операция {} заблокирована службой безопасности", operationType);
             }

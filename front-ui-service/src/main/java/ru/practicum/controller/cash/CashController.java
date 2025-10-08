@@ -1,63 +1,90 @@
-//package ru.practicum.controller.cash;
-//
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.stereotype.Controller;
-//import org.springframework.ui.Model;
-//import org.springframework.web.bind.annotation.*;
-//import org.springframework.web.server.ServerWebExchange;
-//import reactor.core.publisher.Mono;
-//import ru.practicum.client.CashServiceClient;
-//import ru.practicum.client.ExchangeServiceClient;
-//import ru.practicum.controller.BaseController;
-//import ru.practicum.dto.cash.CashOperationRequestDto;
-//
-//@Controller
-//@RequiredArgsConstructor
-//@RequestMapping("/cash")
-//public class CashController extends BaseController {
-//
-//    private final CashServiceClient cashServiceClient;
-//    private final ExchangeServiceClient exchangeServiceClient;
-//
-//    @PostMapping("/deposit")
-//    public Mono<String> deposit(@ModelAttribute CashOperationRequestDto request,
-//                                ServerWebExchange exchange,
-//                                Model model) {
-//        return getAuthToken(exchange).flatMap(token -> {
-//            if (token.isEmpty()) {
-//                return Mono.just("redirect:/login");
-//            }
-//
-//            return cashServiceClient.deposit(request, "Bearer " + token)
-//                    .then(Mono.just("redirect:/"))
-//                    .onErrorResume(e -> {
-//                        model.addAttribute("error", "Ошибка при пополнении: " + e.getMessage());
-//                        return home(exchange, model);
-//                    });
-//        });
-//    }
-//
-//    @PostMapping("/withdraw")
-//    public Mono<String> withdraw(@ModelAttribute CashOperationRequestDto request,
-//                                 ServerWebExchange exchange,
-//                                 Model model) {
-//        return getAuthToken(exchange).flatMap(token -> {
-//            if (token.isEmpty()) {
-//                return Mono.just("redirect:/login");
-//            }
-//
-//            return cashServiceClient.withdraw(request, "Bearer " + token)
-//                    .then(Mono.just("redirect:/"))
-//                    .onErrorResume(e -> {
-//                        model.addAttribute("error", "Ошибка при снятии: " + e.getMessage());
-//                        return home(exchange, model);
-//                    });
-//        });
-//    }
-//
-//    private Mono<String> getAuthToken(ServerWebExchange exchange) {
-//        return exchange.getSession()
-//                .map(session -> (String) session.getAttributes().get("access_token"))
-//                .defaultIfEmpty("");
-//    }
-//}
+package ru.practicum.controller.cash;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import reactor.core.publisher.Mono;
+import ru.practicum.dto.cash.CashRequestDto;
+import ru.practicum.mapper.cash.CashMapper;
+import ru.practicum.service.cash.CashService;
+
+import java.util.Collections;
+
+@Controller
+@RequestMapping("/cash")
+@RequiredArgsConstructor
+@Slf4j
+public class CashController {
+    /**
+     * Сервис обналичивания денег
+     */
+    private final CashService cashService;
+
+    /**
+     * Маппер операций с наличными
+     */
+    private final CashMapper cashMapper;
+
+    @PostMapping("/deposit")
+    public Mono<String> deposit(@Valid @RequestBody CashRequestDto requestDto, Model model) {
+        log.info("Обработка запроса на пополнение счета: accountId={}, сумма={}",
+                requestDto.getAccountId(), requestDto.getAmount());
+
+        return cashService.deposit(cashMapper.cashRequestDtoToCash(requestDto))
+                .map(cashMapper::cashToCashResponseDto)
+                .map(response -> {
+                    if ("ERROR".equals(response.getStatus())) {
+                        log.warn("Ошибка пополнения счета: {}", response.getMessage());
+                        model.addAttribute("cashErrors", Collections.singletonList(response.getMessage()));
+                        return "page/dashboard";
+                    }
+                    log.info("Пополнение счета успешно выполнено: {}", response.getMessage());
+                    model.addAttribute("cashSuccess", response.getMessage());
+                    return "redirect:/dashboard?success=" + response.getMessage();
+                })
+                .onErrorResume(IllegalArgumentException.class, e -> {
+                    log.warn("Неверный запрос на пополнение счета: {}", e.getMessage());
+                    model.addAttribute("cashErrors", Collections.singletonList(e.getMessage()));
+                    return Mono.just("page/dashboard");
+                })
+                .onErrorResume(Exception.class, e -> {
+                    log.error("Непредвиденная ошибка при пополнении счета: {}", e.getMessage(), e);
+                    model.addAttribute("cashErrors", Collections.singletonList("Внутренняя ошибка сервера"));
+                    return Mono.just("page/dashboard");
+                });
+    }
+
+    @PostMapping("/withdraw")
+    public Mono<String> withdraw(@Valid @RequestBody CashRequestDto requestDto, Model model) {
+        log.info("Обработка запроса на снятие средств: accountId={}, сумма={}",
+                requestDto.getAccountId(), requestDto.getAmount());
+
+        return cashService.withdraw(cashMapper.cashRequestDtoToCash(requestDto))
+                .map(cashMapper::cashToCashResponseDto)
+                .map(response -> {
+                    if ("ERROR".equals(response.getStatus())) {
+                        log.warn("Ошибка снятия средств: {}", response.getMessage());
+                        model.addAttribute("cashErrors", Collections.singletonList(response.getMessage()));
+                        return "page/dashboard";
+                    }
+                    log.info("Снятие средств успешно выполнено: {}", response.getMessage());
+                    model.addAttribute("cashSuccess", response.getMessage());
+                    return "redirect:/dashboard?success=" + response.getMessage();
+                })
+                .onErrorResume(IllegalArgumentException.class, e -> {
+                    log.warn("Неверный запрос на снятие средств: {}", e.getMessage());
+                    model.addAttribute("cashErrors", Collections.singletonList(e.getMessage()));
+                    return Mono.just("page/dashboard");
+                })
+                .onErrorResume(Exception.class, e -> {
+                    log.error("Непредвиденная ошибка при снятии средств: {}", e.getMessage(), e);
+                    model.addAttribute("cashErrors", Collections.singletonList("Внутренняя ошибка сервера"));
+                    return Mono.just("page/dashboard");
+                });
+    }
+}

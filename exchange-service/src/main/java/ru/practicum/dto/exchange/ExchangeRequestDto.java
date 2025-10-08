@@ -20,19 +20,19 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ExchangeRequestDto {
     /**
-     * Исходная валюта
+     * Код исходной валюты
      */
     @NotNull
     private String fromCurrency;
 
     /**
-     * Целевая валюта
+     * Код целевой валюты
      */
     @NotNull
     private String toCurrency;
 
     /**
-     * Сумма для конвертации
+     * Сумма операции
      */
     @NotNull
     @Positive

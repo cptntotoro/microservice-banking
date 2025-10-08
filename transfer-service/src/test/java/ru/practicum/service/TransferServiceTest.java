@@ -5,25 +5,38 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import ru.practicum.client.account.AccountResponseDto;
+import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.client.account.AccountServiceClient;
+import ru.practicum.client.account.dto.TransferDto;
 import ru.practicum.client.blocker.BlockerServiceClient;
-import ru.practicum.client.exchange.ConvertResponseDto;
+import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
+import ru.practicum.client.blocker.dto.OperationCheckResponseDto;
 import ru.practicum.client.exchange.ExchangeServiceClient;
+import ru.practicum.client.exchange.dto.ExchangeRequestDto;
+import ru.practicum.client.exchange.dto.ExchangeResponseDto;
 import ru.practicum.client.notification.NotificationsServiceClient;
+import ru.practicum.client.notification.dto.NotificationRequestDto;
+import ru.practicum.dao.TransferDao;
 import ru.practicum.exception.ServiceUnavailableException;
 import ru.practicum.exception.ValidationException;
+import ru.practicum.mapper.TransferMapper;
+import ru.practicum.model.OperationStatus;
 import ru.practicum.model.TransferRequest;
 import ru.practicum.model.TransferResponse;
+import ru.practicum.model.TransferType;
+import ru.practicum.repository.TransferRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -44,11 +57,18 @@ class TransferServiceTest {
     @Mock
     private ExchangeServiceClient exchangeServiceClient;
 
+    @Mock
+    private TransferRepository transferRepository;
+
+    @Mock
+    private TransferMapper transferMapper;
+
     @InjectMocks
     private TransferServiceImpl transferService;
 
     private UUID fromAccountId;
     private UUID toAccountId;
+    private UUID userId;
     private String fromCurrency;
     private String toCurrency;
     private BigDecimal amount;
@@ -58,10 +78,13 @@ class TransferServiceTest {
     void setUp() {
         fromAccountId = UUID.randomUUID();
         toAccountId = UUID.randomUUID();
+        userId = UUID.randomUUID();
         fromCurrency = "USD";
         toCurrency = "EUR";
         amount = new BigDecimal("100.00");
         convertedAmount = new BigDecimal("85.00");
+        // Сбрасываем моки перед каждым тестом
+        Mockito.reset(accountServiceClient, blockerServiceClient, notificationsServiceClient, exchangeServiceClient, transferRepository, transferMapper);
     }
 
     private AccountResponseDto createAccountResponse(UUID id, String currencyCode, BigDecimal balance) {
@@ -69,19 +92,24 @@ class TransferServiceTest {
                 .id(id)
                 .currencyCode(currencyCode)
                 .balance(balance)
-                .accountNumber("ACC" + id.toString().substring(0, 8))
                 .createdAt(LocalDateTime.now())
                 .build();
     }
 
-    private ConvertResponseDto createConvertResponse() {
-        return ConvertResponseDto.builder()
+    private ExchangeResponseDto createConvertResponse() {
+        return ExchangeResponseDto.builder()
                 .originalAmount(amount)
                 .fromCurrency(fromCurrency)
                 .convertedAmount(convertedAmount)
                 .toCurrency(toCurrency)
                 .exchangeRate(new BigDecimal("0.85"))
-                .convertedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private OperationCheckResponseDto createOperationCheckResponse(boolean blocked) {
+        return OperationCheckResponseDto.builder()
+                .blocked(blocked)
+                .description(blocked ? "Подозрительная операция" : "Операция разрешена")
                 .build();
     }
 
@@ -95,23 +123,37 @@ class TransferServiceTest {
 
         AccountResponseDto fromAccount = createAccountResponse(fromAccountId, fromCurrency, new BigDecimal("200.00"));
         AccountResponseDto toAccount = createAccountResponse(toAccountId, toCurrency, new BigDecimal("50.00"));
-        ConvertResponseDto convertResponse = createConvertResponse();
+        ExchangeResponseDto convertResponse = createConvertResponse();
+        OperationCheckResponseDto checkResponse = createOperationCheckResponse(false);
 
         when(accountServiceClient.getAccountById(fromAccountId)).thenReturn(Mono.just(fromAccount));
         when(accountServiceClient.getAccountById(toAccountId)).thenReturn(Mono.just(toAccount));
-        when(exchangeServiceClient.convertCurrency(fromCurrency, toCurrency, amount))
+        when(blockerServiceClient.checkOperation(any(OperationCheckRequestDto.class))).thenReturn(Mono.just(checkResponse));
+        ExchangeRequestDto exchangeRequestDto = ExchangeRequestDto.builder()
+                .fromCurrency(fromCurrency)
+                .toCurrency(toCurrency)
+                .amount(amount)
+                .build();
+        when(exchangeServiceClient.convertCurrency(exchangeRequestDto))
                 .thenReturn(Mono.just(convertResponse));
-        when(blockerServiceClient.checkSuspicious(fromAccountId, toAccountId, amount, true))
-                .thenReturn(Mono.just(false));
-        when(accountServiceClient.transferBetweenOwnAccounts(fromAccountId, toAccountId, amount))
+        TransferDto transferDto = TransferDto.builder()
+                .fromAccountId(fromAccountId)
+                .toAccountId(toAccountId)
+                .amount(amount)
+                .convertedAmount(convertedAmount)
+                .build();
+        when(accountServiceClient.transferBetweenOwnAccounts(transferDto))
                 .thenReturn(Mono.empty());
-        when(notificationsServiceClient.sendNotification(any(), any())).thenReturn(Mono.empty());
+        when(notificationsServiceClient.sendNotification(any())).thenReturn(Mono.empty());
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
         StepVerifier.create(result)
                 .expectNextMatches(response ->
-                        response.getStatus().equals("SUCCESS") &&
+                        response.getStatus().equals(OperationStatus.SUCCESS) &&
                                 response.getFromAccountId().equals(fromAccountId) &&
                                 response.getToAccountId().equals(toAccountId) &&
                                 response.getAmount().equals(amount) &&
@@ -121,10 +163,10 @@ class TransferServiceTest {
 
         verify(accountServiceClient).getAccountById(fromAccountId);
         verify(accountServiceClient).getAccountById(toAccountId);
-        verify(exchangeServiceClient).convertCurrency(fromCurrency, toCurrency, amount);
-        verify(blockerServiceClient).checkSuspicious(fromAccountId, toAccountId, amount, true);
-        verify(accountServiceClient).transferBetweenOwnAccounts(fromAccountId, toAccountId, amount);
-        verify(notificationsServiceClient).sendNotification(any(), any());
+        verify(blockerServiceClient).checkOperation(any(OperationCheckRequestDto.class));
+        verify(exchangeServiceClient).convertCurrency(exchangeRequestDto);
+        verify(accountServiceClient).transferBetweenOwnAccounts(transferDto);
+        verify(notificationsServiceClient).sendNotification(any());
     }
 
     @Test
@@ -134,6 +176,10 @@ class TransferServiceTest {
                 .toAccountId(toAccountId)
                 .amount(BigDecimal.ZERO)
                 .build();
+
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
@@ -149,6 +195,10 @@ class TransferServiceTest {
                 .toAccountId(fromAccountId)
                 .amount(amount)
                 .build();
+
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
@@ -170,6 +220,9 @@ class TransferServiceTest {
 
         when(accountServiceClient.getAccountById(fromAccountId)).thenReturn(Mono.just(fromAccount));
         when(accountServiceClient.getAccountById(toAccountId)).thenReturn(Mono.just(toAccount));
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
@@ -188,14 +241,14 @@ class TransferServiceTest {
 
         AccountResponseDto fromAccount = createAccountResponse(fromAccountId, fromCurrency, new BigDecimal("200.00"));
         AccountResponseDto toAccount = createAccountResponse(toAccountId, toCurrency, new BigDecimal("50.00"));
-        ConvertResponseDto convertResponse = createConvertResponse();
+        OperationCheckResponseDto checkResponse = createOperationCheckResponse(true);
 
         when(accountServiceClient.getAccountById(fromAccountId)).thenReturn(Mono.just(fromAccount));
         when(accountServiceClient.getAccountById(toAccountId)).thenReturn(Mono.just(toAccount));
-        when(exchangeServiceClient.convertCurrency(fromCurrency, toCurrency, amount))
-                .thenReturn(Mono.just(convertResponse));
-        when(blockerServiceClient.checkSuspicious(fromAccountId, toAccountId, amount, true))
-                .thenReturn(Mono.just(true));
+        when(blockerServiceClient.checkOperation(any(OperationCheckRequestDto.class))).thenReturn(Mono.just(checkResponse));
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
@@ -214,10 +267,14 @@ class TransferServiceTest {
 
         ServiceUnavailableException exception = new ServiceUnavailableException("account-service", "Сервис недоступен");
 
+        // Мок для fromAccountId - возвращаем ошибку
         when(accountServiceClient.getAccountById(fromAccountId))
                 .thenReturn(Mono.error(exception));
+
+        // Мок для toAccountId - возвращаем фиктивный аккаунт, чтобы избежать NPE (Mono.zip подписывается на оба источника)
+        AccountResponseDto dummyToAccount = createAccountResponse(toAccountId, toCurrency, new BigDecimal("50.00"));
         when(accountServiceClient.getAccountById(toAccountId))
-                .thenReturn(Mono.just(createAccountResponse(toAccountId, toCurrency, new BigDecimal("50.00"))));
+                .thenReturn(Mono.just(dummyToAccount));
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
@@ -225,12 +282,14 @@ class TransferServiceTest {
                 .expectErrorMatches(error ->
                         error instanceof ServiceUnavailableException &&
                                 error.getMessage().contains("account-service") &&
-                                error.getMessage().contains("Не удалось получить счет отправителя")
-                )
+                                error.getMessage().contains("Не удалось получить счет отправителя"))
                 .verify();
 
+        // Проверяем, что getAccountById вызван для обоих (из-за параллельной подписки Mono.zip)
         verify(accountServiceClient).getAccountById(fromAccountId);
-        verifyNoInteractions(exchangeServiceClient, blockerServiceClient, notificationsServiceClient);
+        verify(accountServiceClient).getAccountById(toAccountId);
+        // Проверяем, что другие сервисы и репозитории не вызывались
+        verifyNoInteractions(exchangeServiceClient, blockerServiceClient, notificationsServiceClient, transferRepository, transferMapper);
     }
 
     @Test
@@ -243,56 +302,105 @@ class TransferServiceTest {
 
         AccountResponseDto fromAccount = createAccountResponse(fromAccountId, fromCurrency, new BigDecimal("200.00"));
         AccountResponseDto toAccount = createAccountResponse(toAccountId, toCurrency, new BigDecimal("50.00"));
-        ConvertResponseDto convertResponse = createConvertResponse();
+        ExchangeResponseDto convertResponse = createConvertResponse();
+        OperationCheckResponseDto checkResponse = createOperationCheckResponse(false);
 
         when(accountServiceClient.getAccountById(fromAccountId)).thenReturn(Mono.just(fromAccount));
         when(accountServiceClient.getAccountById(toAccountId)).thenReturn(Mono.just(toAccount));
-        when(exchangeServiceClient.convertCurrency(fromCurrency, toCurrency, amount))
+        when(blockerServiceClient.checkOperation(any(OperationCheckRequestDto.class))).thenReturn(Mono.just(checkResponse));
+        ExchangeRequestDto exchangeRequestDto = ExchangeRequestDto.builder()
+                .fromCurrency(fromCurrency)
+                .toCurrency(toCurrency)
+                .amount(amount)
+                .build();
+        when(exchangeServiceClient.convertCurrency(exchangeRequestDto))
                 .thenReturn(Mono.just(convertResponse));
-        when(blockerServiceClient.checkSuspicious(fromAccountId, toAccountId, amount, true))
-                .thenReturn(Mono.just(false));
-        when(accountServiceClient.transferBetweenOwnAccounts(fromAccountId, toAccountId, amount))
+
+        when(accountServiceClient.transferBetweenOwnAccounts(TransferDto.builder()
+                .fromAccountId(fromAccountId)
+                .toAccountId(toAccountId)
+                .amount(amount)
+                .convertedAmount(convertedAmount)
+                .build()))
                 .thenReturn(Mono.empty());
-        when(notificationsServiceClient.sendNotification(any(), any()))
+        when(notificationsServiceClient.sendNotification(any()))
                 .thenReturn(Mono.error(new RuntimeException("Notification failed")));
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferBetweenOwnAccounts(request);
 
         StepVerifier.create(result)
-                .expectNextMatches(response -> response.getStatus().equals("SUCCESS"))
+                .expectNextMatches(response -> response.getStatus().equals(OperationStatus.SUCCESS))
                 .verifyComplete();
 
-        verify(notificationsServiceClient).sendNotification(any(), any());
+        verify(notificationsServiceClient).sendNotification(any());
     }
 
     @Test
     void transferToOtherAccount_shouldSuccess() {
-        String toAccountNumber = "40702810500000012345";
         TransferRequest request = TransferRequest.builder()
                 .fromAccountId(fromAccountId)
-                .toAccountNumber(toAccountNumber)
+                .toAccountId(toAccountId)
                 .amount(amount)
                 .build();
 
-        AccountResponseDto fromAccount = createAccountResponse(fromAccountId, fromCurrency, new BigDecimal("200.00"));
-        AccountResponseDto toAccount = createAccountResponse(toAccountId, toCurrency, new BigDecimal("50.00"));
-        ConvertResponseDto convertResponse = createConvertResponse();
+        UUID differentUserId = UUID.randomUUID();
+        AccountResponseDto fromAccount = AccountResponseDto.builder()
+                .id(fromAccountId)
+                .currencyCode(fromCurrency)
+                .balance(new BigDecimal("200.00"))
+                .createdAt(LocalDateTime.now())
+                .build();
+        AccountResponseDto toAccount = AccountResponseDto.builder()
+                .id(toAccountId)
+                .currencyCode(toCurrency)
+                .balance(new BigDecimal("50.00"))
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ExchangeResponseDto convertResponse = createConvertResponse();
+        OperationCheckResponseDto checkResponse = createOperationCheckResponse(false);
 
         when(accountServiceClient.getAccountById(fromAccountId)).thenReturn(Mono.just(fromAccount));
-        when(accountServiceClient.getAccountByNumber(toAccountNumber)).thenReturn(Mono.just(toAccount));
-        when(exchangeServiceClient.convertCurrency(fromCurrency, toCurrency, amount))
+        when(accountServiceClient.getAccountById(toAccountId)).thenReturn(Mono.just(toAccount));
+        when(blockerServiceClient.checkOperation(any(OperationCheckRequestDto.class))).thenReturn(Mono.just(checkResponse));
+        ExchangeRequestDto exchangeRequestDto = ExchangeRequestDto.builder()
+                .fromCurrency(fromCurrency)
+                .toCurrency(toCurrency)
+                .amount(amount)
+                .build();
+        when(exchangeServiceClient.convertCurrency(exchangeRequestDto))
                 .thenReturn(Mono.just(convertResponse));
-        when(blockerServiceClient.checkSuspicious(fromAccountId, toAccountId, amount, false))
-                .thenReturn(Mono.just(false));
-        when(accountServiceClient.transferToOtherAccount(fromAccountId, toAccountNumber, amount))
+        TransferDto transferDto = TransferDto.builder()
+                .fromAccountId(fromAccountId)
+                .toAccountId(toAccountId)
+                .amount(amount)
+                .convertedAmount(convertedAmount)
+                .build();
+        when(accountServiceClient.transferToOtherAccount(transferDto))
                 .thenReturn(Mono.empty());
-        when(notificationsServiceClient.sendNotification(any(), any())).thenReturn(Mono.empty());
+        String expectedNotification = String.format("Перевод на другой счет на сумму %s %s выполнен. Конвертировано в %s %s",
+                amount, fromCurrency, convertedAmount, toCurrency);
+        NotificationRequestDto notificationRequestDto = NotificationRequestDto.builder().userId(fromAccountId).message(expectedNotification).build();
+        when(notificationsServiceClient.sendNotification(eq(notificationRequestDto)))
+                .thenReturn(Mono.empty());
+        when(transferRepository.save(any(TransferDao.class))).thenReturn(Mono.just(new TransferDao()));
+        when(transferMapper.transferResponseToTransferDao(
+                any(TransferResponse.class),
+                eq(fromCurrency),
+                eq(toCurrency),
+                any(LocalDateTime.class),
+                eq(TransferType.EXTERNAL_TRANSFER),
+                isNull()
+        )).thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferToOtherAccount(request);
 
         StepVerifier.create(result)
                 .expectNextMatches(response ->
-                        response.getStatus().equals("SUCCESS") &&
+                        response.getStatus().equals(OperationStatus.SUCCESS) &&
                                 response.getFromAccountId().equals(fromAccountId) &&
                                 response.getToAccountId().equals(toAccountId) &&
                                 response.getAmount().equals(amount) &&
@@ -301,27 +409,33 @@ class TransferServiceTest {
                 .verifyComplete();
 
         verify(accountServiceClient).getAccountById(fromAccountId);
-        verify(accountServiceClient).getAccountByNumber(toAccountNumber);
-        verify(exchangeServiceClient).convertCurrency(fromCurrency, toCurrency, amount);
-        verify(blockerServiceClient).checkSuspicious(fromAccountId, toAccountId, amount, false);
-        verify(accountServiceClient).transferToOtherAccount(fromAccountId, toAccountNumber, amount);
-        verify(notificationsServiceClient, times(2)).sendNotification(any(), any());
+        verify(accountServiceClient).getAccountById(toAccountId);
+        verify(blockerServiceClient).checkOperation(any(OperationCheckRequestDto.class));
+        verify(exchangeServiceClient).convertCurrency(exchangeRequestDto);
+        verify(accountServiceClient).transferToOtherAccount(transferDto);
+        verify(notificationsServiceClient, times(1)).sendNotification(eq(notificationRequestDto));
+        verify(transferRepository).save(any(TransferDao.class));
+        verify(transferMapper).transferResponseToTransferDao(
+                any(TransferResponse.class),
+                eq(fromCurrency),
+                eq(toCurrency),
+                any(LocalDateTime.class),
+                eq(TransferType.EXTERNAL_TRANSFER),
+                isNull()
+        );
     }
 
     @Test
     void transferToOtherAccount_shouldFailWhenSameAccount() {
-        String toAccountNumber = "40702810500000012345";
         TransferRequest request = TransferRequest.builder()
                 .fromAccountId(fromAccountId)
-                .toAccountNumber(toAccountNumber)
+                .toAccountId(fromAccountId)
                 .amount(amount)
                 .build();
 
-        AccountResponseDto fromAccount = createAccountResponse(fromAccountId, fromCurrency, new BigDecimal("200.00"));
-        AccountResponseDto toAccount = createAccountResponse(fromAccountId, toCurrency, new BigDecimal("50.00"));
-
-        when(accountServiceClient.getAccountById(fromAccountId)).thenReturn(Mono.just(fromAccount));
-        when(accountServiceClient.getAccountByNumber(toAccountNumber)).thenReturn(Mono.just(toAccount));
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferToOtherAccount(request);
 
@@ -332,12 +446,15 @@ class TransferServiceTest {
 
     @Test
     void transferToOtherAccount_shouldFailWhenAmountZero() {
-        String toAccountNumber = "40702810500000012345";
         TransferRequest request = TransferRequest.builder()
                 .fromAccountId(fromAccountId)
-                .toAccountNumber(toAccountNumber)
+                .toAccountId(toAccountId)
                 .amount(BigDecimal.ZERO)
                 .build();
+
+        when(transferRepository.save(any())).thenReturn(Mono.empty());
+        when(transferMapper.transferResponseToTransferDao(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new TransferDao());
 
         Mono<TransferResponse> result = transferService.transferToOtherAccount(request);
 

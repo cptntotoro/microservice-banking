@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Глобальный обработчик исключений для REST API
@@ -33,7 +32,8 @@ public class ControllerExceptionHandler {
                 e.getStatus().toString(),
                 e.getReason(),
                 e.getMessage(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                e instanceof ValidationException ? ((ValidationException) e).getErrorCode() : null
         );
 
         return Mono.just(ResponseEntity.status(e.getStatus()).body(error));
@@ -44,13 +44,14 @@ public class ControllerExceptionHandler {
      */
     @ExceptionHandler(ValidationException.class)
     public Mono<ResponseEntity<ApiError>> handleValidationException(ValidationException e) {
-        log.warn("Validation exception: {} - {}", e.getStatus(), e.getMessage());
+        log.warn("Validation exception: {} - {} (code: {})", e.getStatus(), e.getMessage(), e.getErrorCode());
 
         ApiError error = new ApiError(
                 e.getStatus().toString(),
                 e.getReason(),
                 e.getMessage(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                e.getErrorCode()
         );
 
         return Mono.just(ResponseEntity.status(e.getStatus()).body(error));
@@ -70,10 +71,11 @@ public class ControllerExceptionHandler {
 
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.toString(),
-                "Ошибка валидации",
+                ErrorReasons.VALIDATION_ERROR,
                 "Неверные данные в запросе",
                 LocalDateTime.now(),
-                errors
+                errors,
+                ErrorReasons.VALIDATION_ERROR
         );
 
         return Mono.just(ResponseEntity.badRequest().body(error));
@@ -97,7 +99,8 @@ public class ControllerExceptionHandler {
                 "Ошибка ввода",
                 ex.getReason(),
                 LocalDateTime.now(),
-                fieldErrors
+                fieldErrors,
+                ErrorReasons.VALIDATION_ERROR
         );
 
         return Mono.just(ResponseEntity.badRequest().body(error));
@@ -112,9 +115,10 @@ public class ControllerExceptionHandler {
 
         ApiError error = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.toString(),
-                "Внутренняя ошибка сервера",
+                ErrorReasons.INTERNAL_ERROR,
                 "Произошла непредвиденная ошибка",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                ErrorReasons.INTERNAL_ERROR
         );
 
         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error));

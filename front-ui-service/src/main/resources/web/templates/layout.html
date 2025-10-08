@@ -5,6 +5,9 @@
 <body class="page">
     <div th:replace="~{../fragments/layout/header :: header}"></div>
 
+    <div class="alert__content error" th:text="${error}"></div>
+    <div class="alert__content success" th:text="${success}"></div>
+
     <main class="container">
         <!-- Динамическое содержимое страницы -->
         <div th:replace="~{${page} :: content}"></div>

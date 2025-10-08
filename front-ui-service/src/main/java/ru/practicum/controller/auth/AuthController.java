@@ -10,35 +10,31 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.user.account.AccountServiceClient;
-import ru.practicum.client.user.auth.AuthServiceClient;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.auth.LoginRequestDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
+import ru.practicum.service.auth.AuthService;
 
 @Controller
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
-    /**
-     * Клиент обращения к сервису аутентификации
-     */
-    private final AuthServiceClient authServiceClient;
-
-    /**
-     * Клиент обращения к сервису аккаунтов
-     */
-    private final AccountServiceClient accountServiceClient;
+    private final AuthService authService;
 
     @GetMapping("/login")
     public Mono<String> login(ServerWebExchange exchange, Model model,
                               @RequestParam(value = "error", required = false) String error,
-                              @RequestParam(value = "success", required = false) String success) {
+                              @RequestParam(value = "success", required = false) String success,
+                              @RequestParam(value = "logout", required = false) String logout) {
         if (error != null) {
             model.addAttribute("error", "Неверные учетные данные");
         }
         if (success != null) {
             model.addAttribute("success", "Регистрация прошла успешно! Теперь вы можете войти.");
         }
+        if (logout != null) {
+            model.addAttribute("success", "Вы успешно вышли из системы.");
+        }
+
 
         model.addAttribute("loginRequest", new LoginRequestDto());
         return renderPage(model, "auth/login",
@@ -46,20 +42,22 @@ public class AuthController extends BaseController {
                 "auth/login", null);
     }
 
+    /**
+     * Обработка логина и сохранение токена в сессии
+     */
     @PostMapping("/login")
     public Mono<String> performLogin(@ModelAttribute @Valid LoginRequestDto loginRequest,
                                      ServerWebExchange exchange,
                                      Model model) {
-        return accountServiceClient.login(loginRequest)
-                .flatMap(loginResponse -> {
-                    // Сохраняем userData в сессии
-                    return exchange.getSession().flatMap(session -> {
-                        session.getAttributes().put("userData", loginResponse);
-                        return Mono.just("redirect:/dashboard");
-                    });
-                })
+        return authService.login(loginRequest)
+                .flatMap(tokenResponse -> exchange.getSession().flatMap(session -> {
+                    session.getAttributes().put("access_token", tokenResponse.getAccessToken());
+                    session.getAttributes().put("refresh_token", tokenResponse.getRefreshToken());
+                    return Mono.just("redirect:/dashboard");
+                }))
                 .onErrorResume(e -> {
-                    model.addAttribute("error", "Неверные учетные данные");
+                    model.addAttribute("error", "Неверные учетные данные: " + e.getMessage());
+                    model.addAttribute("loginRequest", loginRequest);
                     return renderPage(model, "auth/login",
                             "Войти", "Залогиниться в приложение",
                             "auth/login", null);
@@ -87,7 +85,7 @@ public class AuthController extends BaseController {
                     "auth/signup", "auth/signup");
         }
 
-        return accountServiceClient.createAccount(signupRequest)
+        return authService.createUser(signupRequest)
                 .flatMap(signupResponse -> {
                     // После успешной регистрации перенаправляем на страницу логина
                     model.addAttribute("success", "Регистрация успешна! Теперь вы можете войти в систему.");
@@ -102,59 +100,20 @@ public class AuthController extends BaseController {
                 });
     }
 
+    /**
+     * Обработка выхода из системы
+     */
     @PostMapping("/logout")
-    public Mono<String> performLogout(ServerWebExchange exchange, Model model) {
-        return getAuthToken(exchange).flatMap(token -> {
-            if (!token.isEmpty()) {
-                // Вызываем logout на auth-service
-                authServiceClient.logout("Bearer " + token).subscribe();
-            }
-
-//            // Очищаем сессию и контекст безопасности
-//            exchange.getSession().subscribe(session -> {
-//                session.getAttributes().clear();
-//            });
-//
-//            return ReactiveSecurityContextHolder.clearContext()
-//                    .then(Mono.just("redirect:/login?logout"));
-//        });
-
-            // Очищаем сессию
-            exchange.getSession().subscribe(session -> {
-                session.getAttributes().remove("access_token");
-                session.getAttributes().remove("refresh_token");
-                session.getAttributes().remove("user_profile");
-            });
-
-            return Mono.just("redirect:/login?logout");
-        });
+    public Mono<String> performLogout(ServerWebExchange exchange) {
+        return exchange.getSession().doOnNext(authService::logout).then(Mono.just("redirect:/login?logout"));
     }
 
-    // Вспомогательный метод для получения токена из сессии
+    /**
+     * Вспомогательный метод для получения токена из сессии
+     */
     private Mono<String> getAuthToken(ServerWebExchange exchange) {
         return exchange.getSession()
                 .map(session -> (String) session.getAttributes().get("access_token"))
                 .defaultIfEmpty("");
     }
-
-//    @GetMapping("/profile")
-//    public Mono<String> profile(ServerWebExchange exchange, Model model) {
-//        return getAuthToken(exchange).flatMap(token -> {
-//            if (token.isEmpty()) {
-//                return Mono.just("redirect:/login");
-//            }
-//
-//            return authServiceClient.getProfile("Bearer " + token)
-//                    .flatMap(profile -> {
-//                        model.addAttribute("userProfile", profile);
-//                        return renderPage(model, "auth/profile",
-//                                "Профиль", "Управление профилем",
-//                                "auth/profile", null);
-//                    })
-//                    .onErrorResume(e -> {
-//                        model.addAttribute("error", "Ошибка при загрузке профиля");
-//                        return Mono.just("redirect:/");
-//                    });
-//        });
-//    }
 }

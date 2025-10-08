@@ -13,7 +13,7 @@ import ru.practicum.mapper.CashMapper;
 import ru.practicum.service.CashService;
 
 @RestController
-@RequestMapping("/cash")
+@RequestMapping("/api/cash")
 @RequiredArgsConstructor
 public class CashController {
     /**

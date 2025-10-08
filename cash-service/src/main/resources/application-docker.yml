@@ -15,9 +15,9 @@ spring:
         register: true
 
   r2dbc:
-    url: r2dbc:postgresql://cash-db:5432/cash_service
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/cash_service}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     pool:
       enabled: true
       initial-size: 5

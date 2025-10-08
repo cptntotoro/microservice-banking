@@ -2,13 +2,19 @@ package ru.practicum.client.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ru.practicum.client.BaseServiceClient;
+import ru.practicum.client.notification.dto.NotificationRequestDto;
 
 import java.util.List;
 
@@ -16,45 +22,29 @@ import java.util.List;
  * Клиент для обращений к сервису оповещений
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class NotificationsServiceClient {
+public class NotificationsServiceClient extends BaseServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
-    private final DiscoveryClient discoveryClient;
-
-    public Mono<Void> sendNotification(NotificationRequestDto request) {
-        log.info("Sending notification to user {}", request.getUserId());
-
-        return getNotificationsServiceUrl().flatMap(baseUrl -> {
-            String url = baseUrl + "/notifications/send";
-            log.debug("Calling Notifications service at: {}", url);
-
-            return webClientBuilder.build()
-                    .post()
-                    .uri(url)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(Void.class)
-                    .doOnSuccess(response -> log.info("Successfully sent notification"))
-                    .doOnError(error -> log.error("Error sending notification: {}", error.getMessage()));
-        }).onErrorResume(e -> {
-            log.error("Failed to send notification", e);
-            return Mono.empty();
-        });
+    @Autowired
+    public NotificationsServiceClient(@Qualifier("notificationServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
+        super(webClient, discoveryClient);
     }
 
-    private Mono<String> getNotificationsServiceUrl() {
-        return Mono.fromCallable(() -> {
-            List<ServiceInstance> instances = discoveryClient.getInstances("notifications-service");
-            if (instances == null || instances.isEmpty()) {
-                throw new RuntimeException("No instances of notifications-service found");
-            }
-            ServiceInstance instance = instances.getFirst();
-            String url = "http://" + instance.getHost() + ":" + instance.getPort();
-            log.debug("Discovered notifications-service at: {}", url);
-            return url;
-        });
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
+
+    @Override
+    protected String getServiceId() {
+        return "notification-service";
+    }
+
+    public Mono<Void> sendNotification(NotificationRequestDto request) {
+        String path = "/notifications/send";
+        String operation = "Send notification: " + request;
+        String errorPrefix = "Ошибка отправки нотификации: ";
+        return performMono(HttpMethod.POST, path, request, Void.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Notification sent"));
     }
 }

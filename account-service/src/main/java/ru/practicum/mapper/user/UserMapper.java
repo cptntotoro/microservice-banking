@@ -2,14 +2,13 @@ package ru.practicum.mapper.user;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.dto.user.PasswordChangeDto;
-import ru.practicum.dto.user.UserSignUpDto;
+import ru.practicum.dto.user.SignUpRequestDto;
+import ru.practicum.dto.user.UserFullResponseDto;
 import ru.practicum.dto.user.UserResponseDto;
 import ru.practicum.model.user.User;
-
-import java.util.List;
+import ru.practicum.model.user.UserWithAccounts;
 
 /**
  * Маппер пользователей
@@ -27,7 +26,7 @@ public interface UserMapper {
     @Mapping(target = "accountNonLocked", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    User registrationDtoToUser(UserSignUpDto dto);
+    User registrationDtoToUser(SignUpRequestDto dto);
 
     /**
      * Смаппить модель пользователя в DTO ответа
@@ -40,6 +39,14 @@ public interface UserMapper {
     default String passwordChangeDtoToString(PasswordChangeDto dto) {
         return dto != null ? dto.getNewPassword() : null;
     }
+
+    /**
+     * Смаппить модель пользователя с его счетами в полное DTO ответа
+     *
+     * @param userWithAccounts Модель пользователя с его счетами
+     * @return Полное DTO ответа
+     */
+    UserFullResponseDto userWithAccountsToFullResponseDto(UserWithAccounts userWithAccounts);
 
     /**
      * Смаппить пользователя в DAO пользователя
@@ -57,12 +64,4 @@ public interface UserMapper {
      */
     @Mapping(target = "roles", ignore = true)
     User userDaoToUser(UserDao userDao);
-
-    /**
-     * Смаппить роли
-     */
-    @Named("mapRoles")
-    default List<String> mapRoles(List<String> roles) {
-        return roles != null ? roles : List.of("ROLE_USER");
-    }
 }

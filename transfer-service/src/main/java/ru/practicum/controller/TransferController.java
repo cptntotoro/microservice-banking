@@ -9,48 +9,40 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import ru.practicum.dto.TransferRequestDto;
+import ru.practicum.dto.OtherTransferRequestDto;
+import ru.practicum.dto.OwnTransferRequestDto;
 import ru.practicum.dto.TransferResponseDto;
 import ru.practicum.mapper.TransferMapper;
 import ru.practicum.model.TransferRequest;
 import ru.practicum.service.TransferService;
 
-/**
- * Контроллер для обработки переводов между счетами
- */
 @RestController
 @RequestMapping("/api/transfer")
 @RequiredArgsConstructor
 public class TransferController {
-
+    /**
+     * Сервис перевода средств между счетами
+     */
     private final TransferService transferService;
+
+    /**
+     * Маппер запросов на перевод
+     */
     private final TransferMapper transferMapper;
 
-    /**
-     * Перевод между собственными счетами пользователя
-     *
-     * @param requestDto DTO запроса на перевод
-     * @return DTO ответа с информацией о переводе
-     */
     @PostMapping("/own")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<TransferResponseDto> transferOwn(@Valid @RequestBody TransferRequestDto requestDto) {
-        TransferRequest request = transferMapper.toModel(requestDto);
+    public Mono<TransferResponseDto> transferOwn(@Valid @RequestBody OwnTransferRequestDto requestDto) {
+        TransferRequest request = transferMapper.transferRequestDtoToTransferRequest(requestDto);
         return transferService.transferBetweenOwnAccounts(request)
-                .map(transferMapper::toResponseDto);
+                .map(transferMapper::transferResponseToTransferResponseDto);
     }
 
-    /**
-     * Перевод на счет другого пользователя
-     *
-     * @param requestDto DTO запроса на перевод
-     * @return DTO ответа с информацией о переводе
-     */
     @PostMapping("/other")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<TransferResponseDto> transferOther(@Valid @RequestBody TransferRequestDto requestDto) {
-        TransferRequest request = transferMapper.toModel(requestDto);
+    public Mono<TransferResponseDto> transferOther(@Valid @RequestBody OtherTransferRequestDto requestDto) {
+        TransferRequest request = transferMapper.otherTransferRequestDtoToTransferRequest(requestDto);
         return transferService.transferToOtherAccount(request)
-                .map(transferMapper::toResponseDto);
+                .map(transferMapper::transferResponseToTransferResponseDto);
     }
 }

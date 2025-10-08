@@ -16,12 +16,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ExchangeResponseDto {
     /**
-     * Исходная валюта
+     * Код исходной валюты
      */
     private String fromCurrency;
 
     /**
-     * Целевая валюта
+     * Код целевой валюты
      */
     private String toCurrency;
 

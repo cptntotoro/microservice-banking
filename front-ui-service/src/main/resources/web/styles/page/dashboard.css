@@ -1,5 +1,6 @@
 .grid--3 > .card {
-    min-height: 240px;
+    min-height: 150px;
+    justify-content: space-between;
 }
 
 .dashboard-layout {

@@ -14,6 +14,7 @@ import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
+import ru.practicum.model.user.UserWithAccounts;
 import ru.practicum.repository.user.UserRepository;
 import ru.practicum.repository.user.UserRoleRepository;
 import ru.practicum.service.account.AccountService;
@@ -121,13 +122,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(uuid)
                 .flatMap(this::getUserWithRoles)
                 .switchIfEmpty(Mono.error(new NotFoundException("Пользователь", uuid.toString())));
-    }
-
-    @Override
-    public Mono<User> getUserWithRoles(String username) {
-        return userRepository.findByUsername(username)
-                .flatMap(this::getUserWithRoles)
-                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь с username", username)));
     }
 
     private Mono<User> getUserWithRoles(UserDao userDao) {
@@ -319,6 +313,26 @@ public class UserServiceImpl implements UserService {
         log.info("Получение пользователей по статусу блокировки: {}", locked);
         return userRepository.findByAccountNonLocked(locked)
                 .map(userMapper::userDaoToUser);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Mono<UserWithAccounts> getUserWithAccountsByUuid(UUID userId) {
+        log.info("Получение пользователя с его счетами по ID: {}", userId);
+        return getUserByUuid(userId)
+                .flatMap(user -> accountService.getUserAccounts(userId)
+                        .collectList()
+                        .map(accounts -> UserWithAccounts.builder()
+                                .user(user)
+                                .accounts(accounts)
+                                .build()));
+    }
+
+    public Mono<User> validateCredentials(String username, String password) {
+        return userRepository.findByUsername(username)
+                .filter(user -> passwordEncoder.matches(password, user.getPasswordHash()))
+                .map(userMapper::userDaoToUser)
+                .switchIfEmpty(Mono.empty());
     }
 
     private Mono<Void> validateUniqueUsername(String username) {

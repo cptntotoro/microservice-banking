@@ -4,11 +4,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import ru.practicum.dto.user.PasswordChangeDto;
-import ru.practicum.dto.user.UserSignUpDto;
-import ru.practicum.dto.user.UserResponseDto;
+import ru.practicum.dto.user.*;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
 import ru.practicum.service.user.UserService;
@@ -33,20 +41,14 @@ public class UserController {
      */
     private final UserMapper userMapper;
 
-    /**
-     * Регистрация нового пользователя
-     */
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<UserResponseDto> registerUser(@Valid @RequestBody UserSignUpDto userDto) {
+    public Mono<UserResponseDto> registerUser(@Valid @RequestBody SignUpRequestDto userDto) {
         User user = userMapper.registrationDtoToUser(userDto);
         return userService.registerUser(user, userDto.getPassword())
                 .map(userMapper::userToResponseDto);
     }
 
-    /**
-     * Получение пользователя по идентификатору
-     */
     @GetMapping("/{userId}")
     public Mono<UserResponseDto> getUserById(@PathVariable UUID userId) {
         log.info("Получение пользователя по ID: {}", userId);
@@ -54,9 +56,6 @@ public class UserController {
                 .map(userMapper::userToResponseDto);
     }
 
-    /**
-     * Получение пользователя по username
-     */
     @GetMapping("/by-username/{username}")
     public Mono<UserResponseDto> getUserByUsername(@PathVariable String username) {
         log.info("Получение пользователя по username: {}", username);
@@ -64,22 +63,16 @@ public class UserController {
                 .map(userMapper::userToResponseDto);
     }
 
-    /**
-     * Проверить, есть ли у пользователя роль
-     */
     @GetMapping("/{userId}/has-role/{roleName}")
     public Mono<Boolean> userHasRole(@PathVariable UUID userId, @PathVariable String roleName) {
         log.info("Проверка роли {} у пользователя: {}", roleName, userId);
         return userService.userHasRole(userId, roleName);
     }
 
-    /**
-     * Обновление данных пользователя
-     */
     @PutMapping("/{userId}")
     public Mono<UserResponseDto> updateUser(
             @PathVariable UUID userId,
-            @Valid @RequestBody UserSignUpDto userDto) {
+            @Valid @RequestBody SignUpRequestDto userDto) {
         log.info("Обновление данных пользователя: {}", userId);
 
         User user = userMapper.registrationDtoToUser(userDto);
@@ -87,9 +80,6 @@ public class UserController {
                 .map(userMapper::userToResponseDto);
     }
 
-    /**
-     * Изменение пароля пользователя
-     */
     @PatchMapping("/{userId}/password")
     public Mono<Void> changePassword(
             @PathVariable UUID userId,
@@ -98,9 +88,6 @@ public class UserController {
         return userService.changePassword(userId, passwordDto.getNewPassword());
     }
 
-    /**
-     * Удаление пользователя
-     */
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteUser(@PathVariable UUID userId) {
@@ -108,21 +95,30 @@ public class UserController {
         return userService.deleteUser(userId);
     }
 
-    /**
-     * Проверка существования логина
-     */
     @GetMapping("/check-login")
     public Mono<Boolean> checkLoginExists(@RequestParam String login) {
         log.info("Проверка существования логина: {}", login);
         return userService.existsByUsername(login);
     }
 
-    /**
-     * Проверка существования email
-     */
     @GetMapping("/check-email")
     public Mono<Boolean> checkEmailExists(@RequestParam String email) {
         log.info("Проверка существования email: {}", email);
         return userService.existsByEmail(email);
+    }
+
+    @PostMapping("/validate")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<UserResponseDto> validate(@Valid @RequestBody AuthRequest request) {
+        log.info("Валидация кредов: {}", request.getUsername());
+        return userService.validateCredentials(request.getUsername(), request.getPassword())
+                .map(userMapper::userToResponseDto);
+    }
+
+    @GetMapping("/full/{userId}")
+    public Mono<UserFullResponseDto> getFullUser(@PathVariable UUID userId) {
+        log.info("Получение полной информации о пользователе по ID: {}", userId);
+        return userService.getUserWithAccountsByUuid(userId)
+                .map(userMapper::userWithAccountsToFullResponseDto);
     }
 }

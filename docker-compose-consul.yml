@@ -34,11 +34,11 @@ services:
 #    networks:
 #      - bank-network
 
-  api-gateway:
+  api-gateway-server:
     build:
       context: ./api-gateway-server
       dockerfile: Dockerfile
-    container_name: api-gateway
+    container_name: api-gateway-server
     ports:
       - "8080:8080"
     environment:
@@ -46,6 +46,60 @@ services:
       SPRING_CLOUD_CONSUL_HOST: consul-server
     depends_on:
       - consul-server
+    networks:
+      - bank-network
+
+  postgres:
+    #    profiles: ["prod"]
+    image: "postgres:15"
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    depends_on:
+      - consul-server
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bank-network
+
+  serv-auth-service:
+    restart: on-failure
+    build:
+      context: ./serv-auth-service
+      dockerfile: Dockerfile
+    container_name: serv-auth-service
+    ports:
+      - "9000:9000"
+    environment:
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/serv_auth_service
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      DB_NAME: auth_db
+      DB_HOST: postgres
+      DB_PORT: 5432
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
+    #      SPRING_CLOUD_CONSUL_PORT: 8500
+    depends_on:
+      - consul-server
+      - api-gateway-server
+      - postgres
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bank-network
 
@@ -74,11 +128,21 @@ services:
     ports:
       - "8082:8082"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_CLOUD_CONSUL_HOST: consul-server
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/account_service
+      DB_NAME: account_service
+      DB_HOST: postgres
+      DB_PORT: 5432
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
     depends_on:
       - consul-server
-      - account-db
+      - api-gateway-server
+      - serv-auth-service
+      - postgres
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
       interval: 30s
@@ -88,37 +152,33 @@ services:
     networks:
       - bank-network
 
-  account-db:
-    image: "postgres:15"
-    container_name: postgres
-    environment:
-      POSTGRES_DB: account_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  user-auth-service:
+    build:
+      context: ./user-auth-service
+      dockerfile: Dockerfile
+    container_name: user-auth-service
     ports:
-      - "5432:5432"
-    volumes:
-      - account_data:/var/lib/postgresql/data
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
+#      - JWT_SECRET=your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
+    depends_on:
+      - consul-server
+      - api-gateway-server
+      - serv-auth-service
+      - account-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
       - bank-network
-
-
-  #  auth-service:
-#    build:
-#      context: ./auth-service
-#      dockerfile: Dockerfile
-#    container_name: auth-service
-#    ports:
-#      - "8083:8083"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_CLOUD_CONSUL_HOST=consul-server
-#      - JWT_SECRET=super-secret-jwt-key
-#    depends_on:
-#      - consul-server
-#      - account-service
-#    networks:
-#      - bank-network
 
   front-ui-service:
     build:
@@ -128,11 +188,15 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_PROFILES_ACTIVE: "docker"
-      SPRING_CLOUD_CONSUL_HOST: "consul-server"
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
     depends_on:
       - consul-server
-      - api-gateway
+      - api-gateway-server
+      - serv-auth-service
+      - account-service
+      - user-auth-service
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
       interval: 30s
@@ -148,34 +212,28 @@ services:
       dockerfile: Dockerfile
     container_name: blocker-service
     ports:
-      - "8086:8086"
+      - "8084:8084"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
       SPRING_CLOUD_CONSUL_HOST: consul-server
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/blocker_service
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      DB_NAME: blocker_service
+      DB_HOST: postgres
+      DB_PORT: 5432
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
     depends_on:
       - consul-server
-      - blocker-db
+      - api-gateway-server
+      - serv-auth-service
+      - postgres
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8086/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 40s
-    networks:
-      - bank-network
-
-  blocker-db:
-    image: "postgres:15"
-    container_name: blocker-db
-    environment:
-      POSTGRES_DB: blocker_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - blocker_data:/var/lib/postgresql/data
-      - ./blocker-service/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - bank-network
 
@@ -185,15 +243,26 @@ services:
       dockerfile: Dockerfile
     container_name: cash-service
     ports:
-      - "8084:8084"
+      - "8085:8085"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_CLOUD_CONSUL_HOST: consul-server
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/cash_service
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      DB_NAME: cash_service
+      DB_HOST: postgres
+      DB_PORT: 5432
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
     depends_on:
       - consul-server
-      - cash-db
+      - api-gateway-server
+      - serv-auth-service
+      - postgres
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8085/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -201,17 +270,62 @@ services:
     networks:
       - bank-network
 
-  cash-db:
-    image: "postgres:15"
-    container_name: cash-db
-    environment:
-      POSTGRES_DB: cash_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  exchange-service:
+    build:
+      context: ./exchange-service
+      dockerfile: Dockerfile
+    container_name: exchange-service
     ports:
-      - "5434:5432"
-    volumes:
-      - cash_data:/var/lib/postgresql/data
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/exchange_service
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      DB_NAME: exchange_service
+      DB_HOST: postgres
+      DB_PORT: 5432
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
+    depends_on:
+      - consul-server
+      - api-gateway-server
+      - serv-auth-service
+      - postgres
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8086/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - bank-network
+
+  exchange-generator-service:
+    build:
+      context: ./exchange-generator-service
+      dockerfile: Dockerfile
+    container_name: exchange-generator-service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CLOUD_CONSUL_HOST: consul-server
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
+    depends_on:
+      - consul-server
+      - api-gateway-server
+      - serv-auth-service
+      - exchange-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8087/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
       - bank-network
 
@@ -221,14 +335,26 @@ services:
       dockerfile: Dockerfile
     container_name: transfer-service
     ports:
-      - "8084:8084"
+      - "8088:8088"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_CLOUD_CONSUL_HOST: consul-server
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/transfer_service
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      DB_NAME: transfer_service
+      DB_HOST: postgres
+      DB_PORT: 5432
+      AUTH_SERVICE_TOKEN_URL: http://api-gateway-server:8080/serv-auth-service/oauth2/token
+      AUTH_SERVICE_JWT_ISSUER_URI: http://api-gateway-server:8080/serv-auth-service
+      AUTH_SERVICE_JWT_JWK_SET_URI: http://api-gateway-server:8080/serv-auth-service/oauth2/jwks
     depends_on:
       - consul-server
+      - api-gateway-server
+      - serv-auth-service
+      - postgres
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8088/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -242,6 +368,6 @@ networks:
 
 volumes:
   consul_data:
-  account_data:
+  postgres_data:
   blocker_data:
   cash_data:

@@ -3,20 +3,22 @@ package ru.practicum.dto.auth;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * DTO формы логина
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class LoginRequestDto {
 
     @NotBlank(message = "Логин не может быть пустым")
-    private String login;
+    private String username;
 
     @NotBlank(message = "Пароль не может быть пустым")
     private String password;

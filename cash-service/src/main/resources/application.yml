@@ -1,3 +1,6 @@
+server:
+  port: 8085
+
 spring:
   application:
     name: cash-service
@@ -16,19 +19,59 @@ spring:
         health-check-interval: 15s
 
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/cash_service
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/cash_service}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     pool:
       enabled: true
-      initial-size: 5
-      max-size: 10
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 30m
+      max-life-time: 60m
+      validation-query: SELECT 1
 
   main:
     web-application-type: reactive
 
-server:
-  port: 8084
+  # ================ OAuth2 Client Configuration ================
+  security:
+    oauth2:
+      # OAuth2 Resource Server Configuration
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+    # OAuth2 Client Configuration
+      client:
+        registration:
+          account-service:
+            provider: account-service
+            client-id: cash-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: account-service.read,account-service.write
+          blocker-service:
+            provider: blocker-service
+            client-id: cash-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: blocker-service.read,blocker-service.write
+          notification-service:
+            provider: notification-service
+            client-id: cash-service
+            client-secret: showcase-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope: notification-service.read,notification-service.write
+        provider:
+          account-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+          blocker-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+          notification-service:
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
 
 management:
   endpoints:

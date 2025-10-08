@@ -9,9 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.practicum.client.account.AccountsServiceClient;
-import ru.practicum.client.account.BalanceUpdateRequestDto;
+import ru.practicum.client.account.dto.BalanceUpdateRequestDto;
 import ru.practicum.client.blocker.BlockerServiceClient;
-import ru.practicum.client.notification.NotificationRequestDto;
+import ru.practicum.client.notification.dto.NotificationRequestDto;
 import ru.practicum.client.notification.NotificationsServiceClient;
 import ru.practicum.dao.CashOperationDao;
 import ru.practicum.model.CashRequest;
@@ -68,7 +68,7 @@ class CashServiceTest {
 
         when(cashOperationRepository.save(any(CashOperationDao.class)))
                 .thenReturn(Mono.just(operation));
-        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+        when(blockerServiceClient.checkOperation(any()))
                 .thenReturn(Mono.just(false));
         when(accountsServiceClient.verifyAccount(any(), any()))
                 .thenReturn(Mono.just(true));
@@ -87,7 +87,7 @@ class CashServiceTest {
                 .verifyComplete();
 
         verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
-        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(blockerServiceClient).checkOperation(any());
         verify(accountsServiceClient).verifyAccount(any(), any());
         verify(accountsServiceClient).updateAccountBalance(any(BalanceUpdateRequestDto.class));
         verify(notificationsServiceClient).sendNotification(any(NotificationRequestDto.class));
@@ -121,7 +121,7 @@ class CashServiceTest {
 
         when(cashOperationRepository.save(any(CashOperationDao.class)))
                 .thenReturn(Mono.just(operation));
-        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+        when(blockerServiceClient.checkOperation(any()))
                 .thenReturn(Mono.just(true));
         when(cashOperationRepository.findById(any(UUID.class)))
                 .thenReturn(Mono.just(operation));
@@ -134,7 +134,7 @@ class CashServiceTest {
                 .verifyComplete();
 
         verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
-        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(blockerServiceClient).checkOperation(any());
         verifyNoInteractions(accountsServiceClient, notificationsServiceClient);
     }
 
@@ -147,7 +147,7 @@ class CashServiceTest {
 
         when(cashOperationRepository.save(any(CashOperationDao.class)))
                 .thenReturn(Mono.just(operation));
-        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+        when(blockerServiceClient.checkOperation(any()))
                 .thenReturn(Mono.just(false));
         when(accountsServiceClient.verifyAccount(any(), any()))
                 .thenReturn(Mono.just(false));
@@ -162,7 +162,7 @@ class CashServiceTest {
                 .verifyComplete();
 
         verify(cashOperationRepository, times(3)).save(any(CashOperationDao.class));
-        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(blockerServiceClient).checkOperation(any());
         verify(accountsServiceClient).verifyAccount(any(), any());
         verifyNoInteractions(notificationsServiceClient);
     }
@@ -176,7 +176,7 @@ class CashServiceTest {
 
         when(cashOperationRepository.save(any(CashOperationDao.class)))
                 .thenReturn(Mono.just(operation));
-        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+        when(blockerServiceClient.checkOperation(any()))
                 .thenReturn(Mono.just(false));
         when(accountsServiceClient.verifyAccount(any(), any()))
                 .thenReturn(Mono.just(true));
@@ -197,7 +197,7 @@ class CashServiceTest {
                 .verifyComplete();
 
         verify(cashOperationRepository, times(2)).save(any(CashOperationDao.class));
-        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(blockerServiceClient).checkOperation(any());
         verify(accountsServiceClient).verifyAccount(any(), any());
         verify(accountsServiceClient).getAccountBalance(any());
         verify(accountsServiceClient).updateAccountBalance(any(BalanceUpdateRequestDto.class));
@@ -213,7 +213,7 @@ class CashServiceTest {
 
         when(cashOperationRepository.save(any(CashOperationDao.class)))
                 .thenReturn(Mono.just(operation));
-        when(blockerServiceClient.checkOperation(any(), any(), any(), any(), any()))
+        when(blockerServiceClient.checkOperation(any()))
                 .thenReturn(Mono.just(false));
         when(accountsServiceClient.verifyAccount(any(), any()))
                 .thenReturn(Mono.just(true));
@@ -230,7 +230,7 @@ class CashServiceTest {
                 .verifyComplete();
 
         verify(cashOperationRepository, times(3)).save(any(CashOperationDao.class));
-        verify(blockerServiceClient).checkOperation(any(), any(), any(), any(), any());
+        verify(blockerServiceClient).checkOperation(any());
         verify(accountsServiceClient).verifyAccount(any(), any());
         verify(accountsServiceClient).getAccountBalance(any());
         verifyNoInteractions(notificationsServiceClient);
