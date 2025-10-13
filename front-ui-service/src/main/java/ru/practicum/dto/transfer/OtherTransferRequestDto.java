@@ -22,10 +22,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class OtherTransferRequestDto {
-    /**
-     * Идентификатор пользователя
-     */
-    private UUID fromUserId;
 
     /**
      * Идентификатор счета отправителя

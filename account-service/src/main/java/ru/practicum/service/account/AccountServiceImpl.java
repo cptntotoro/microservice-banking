@@ -8,6 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dao.account.AccountDao;
+import ru.practicum.dto.account.AccountRequestDto;
+import ru.practicum.dto.account.AccountWithUserResponseDto;
+import ru.practicum.dto.account.BalanceUpdateRequestDto;
 import ru.practicum.exception.ErrorReasons;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
@@ -113,10 +116,47 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public Mono<Account> findAccountByUserAndCurrency(AccountRequestDto accountDto) {
+        return currencyService.getCurrencyByCode(accountDto.getCurrencyCode())
+                .flatMap(currency -> accountRepository.findByUserIdAndCurrencyId(accountDto.getUserId(), currency.getId())
+                        .map(accountMapper::accountDaoToAccount)
+                        .switchIfEmpty(Mono.error(new NotFoundException("Счет", accountDto.toString()))));
+
+    }
+
+    @Override
     public Mono<Boolean> hasBalance(UUID accountId) {
         return accountRepository.findById(accountId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Счет", accountId.toString())))
                 .map(account -> account.getBalance().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @Override
+    @Transactional
+    public Mono<Boolean> checkAndUpdateBalance(BalanceUpdateRequestDto balanceUpdateRequestDto) {
+        if (balanceUpdateRequestDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            return Mono.error(new ValidationException(
+                    "Сумма пополнения или снятия должна быть больше нуля",
+                    HttpStatus.BAD_REQUEST,
+                    ErrorReasons.INVALID_AMOUNT
+            ));
+        }
+        return accountRepository.findById(balanceUpdateRequestDto.getAccountId())
+                .switchIfEmpty(Mono.error(new NotFoundException("Счет", balanceUpdateRequestDto.getAccountId().toString())))
+                .flatMap(accountDao -> {
+                    if (!balanceUpdateRequestDto.isDeposit() && accountDao.getBalance().compareTo(balanceUpdateRequestDto.getAmount()) < 0) {
+                        return Mono.error(new ValidationException(
+                                "Сумма снятия должна быть больше суммы счета",
+                                HttpStatus.BAD_REQUEST,
+                                ErrorReasons.INVALID_AMOUNT
+                        ));
+                    }
+                    accountDao.setBalance(accountDao.getBalance().add(balanceUpdateRequestDto.getAmount().multiply(BigDecimal.valueOf(balanceUpdateRequestDto.isDeposit() ? 1 : -1))));
+                    accountDao.setUpdatedAt(LocalDateTime.now());
+                    return accountRepository.save(accountDao);
+                })
+                .doOnSuccess(account -> log.info("Счет {} изменен на сумму {}", account.getId(), balanceUpdateRequestDto.getAmount()))
+                .thenReturn(true);
     }
 
     @Override
@@ -310,6 +350,11 @@ public class AccountServiceImpl implements AccountService {
                     accountRepository.save(toAccount)
             );
         }).doOnSuccess(v -> log.info("Перевод {} со счета {} на счет {} выполнен", amount, fromAccountId, toAccountId));
+    }
+
+    @Override
+    public Mono<Boolean> existsAccount(UUID userId, UUID accountId) {
+        return accountRepository.existsByUserIdAndId(userId, accountId);
     }
 
     private Mono<Void> validateUniqueAccountForCurrency(UUID userId, String currencyCode) {

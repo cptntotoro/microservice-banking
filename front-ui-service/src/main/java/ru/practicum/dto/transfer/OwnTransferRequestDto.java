@@ -20,10 +20,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class OwnTransferRequestDto {
-    /**
-     * Идентификатор пользователя
-     */
-    private UUID userId;
 
     /**
      * Идентификатор счета снятия

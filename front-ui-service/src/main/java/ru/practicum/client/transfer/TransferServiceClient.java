@@ -46,11 +46,10 @@ public class TransferServiceClient extends BaseServiceClient {
         return "transfer-service";
     }
 
-    public Mono<Void> performOwnTransfer(OwnTransferRequestClientDto requestDto, UUID userId) {
+    public Mono<Void> performOwnTransfer(OwnTransferRequestClientDto requestDto) {
         String path = "/api/transfer/own";
         String operation = "Own Transfer: " + requestDto;
         String errorPrefix = "Ошибка перевода: ";
-        //TODO .header("X-User-Id", userId.toString())
         return performMono(HttpMethod.POST, path, requestDto, Void.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Deposit success: {}", response));
     }

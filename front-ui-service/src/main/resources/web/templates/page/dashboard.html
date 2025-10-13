@@ -88,8 +88,8 @@
                                 <span class="muted" th:text="${account.balance}"></span>
                             </div>
                             <div class="row" style="gap:8px">
-                                <button class="btn btn--ghost" name="action" value="edit" th:formaction="@{/edit-account(id=${account.id})}">Редактировать</button>
-                                <button class="btn btn--ghost" name="action" value="delete" th:formaction="@{/delete-account(id=${account.id})}">Удалить</button>
+                                <button class="btn btn--ghost" name="action" value="edit" th:formaction="@{/edit-account(accountId=${account.id})}">Редактировать</button>
+                                <button class="btn btn--ghost" name="action" value="delete" th:formaction="@{/delete-account(accountId=${account.id})}">Удалить</button>
                             </div>
                         </div>
                         <div class="card" th:if="${userAccounts} == null or ${userAccounts.size() == 0}">
@@ -129,11 +129,11 @@
         <!-- Секция Наличные -->
         <div id="cash" class="dashboard-section">
             <h2 class="card__title">Наличные</h2>
-            <form class="form" th:action="@{/cash-operation}" method="post">
+            <form class="form" th:action="@{/cash}" method="post">
                 <div class="grid grid--2">
                     <div class="form__row">
                         <label class="label">Валюта</label>
-                        <select class="select" name="currencyCode">
+                        <select class="select" name="currency">
                             <option value="" disabled selected>Выберите валюту</option>
                             <option th:each="currency : ${userCurrencies}" th:value="${currency}" th:text="${currency}"></option>
                             <option th:if="${userCurrencies} == null or ${userCurrencies.size() == 0}" value="" disabled>Валюты недоступны</option>
@@ -154,25 +154,25 @@
         <!-- Блок перевода между своими счетами -->
         <div id="transfer-self" class="dashboard-section">
             <h2 class="card__title">Перевод между своими счетами</h2>
-            <form class="form" th:action="@{/own-transfer}" method="post" th:object="${ownTransferRequest}">
+            <form class="form" th:action="@{/transfer/own}" method="post">
                 <div class="grid grid--3">
                     <div class="form__row">
                         <label class="label">Со счёта</label>
-                        <select class="select" th:field="*{fromAccountId}" required>
+                        <select class="select" name="fromAccountId" required>
                             <option value="">Выберите счет</option>
                             <option th:each="account : ${userAccounts}" th:value="${account.id}" th:text="${account.currencyCode + ' (' + account.balance + ')'}"></option>
                         </select>
                     </div>
                     <div class="form__row">
                         <label class="label">На счёт</label>
-                        <select class="select" th:field="*{toAccountId}" required>
+                        <select class="select" name="toAccountId" required>
                             <option value="">Выберите счет</option>
                             <option th:each="account : ${userAccounts}" th:value="${account.id}" th:text="${account.currencyCode + ' (' + account.balance + ')'}"></option>
                         </select>
                     </div>
                     <div class="form__row">
                         <label class="label">Сумма</label>
-                        <input class="input" type="number" th:field="*{amount}" min="0.01" step="0.01" required/>
+                        <input class="input" type="number" name="amount" min="0.01" step="0.01" required/>
                     </div>
                 </div>
                 <div class="row between center">
@@ -184,30 +184,30 @@
         <!-- Блок перевода другому пользователю -->
         <div id="transfer-other" class="dashboard-section">
             <h2 class="card__title">Перевод другому пользователю</h2>
-            <form class="form" th:action="@{/other-transfer}" method="post" th:object="${otherTransferRequest}">
+            <form class="form" th:action="@{/transfer/other}" method="post">
                 <div class="grid grid--3">
                     <div class="form__row">
                         <label class="label">Со счёта</label>
-                        <select class="select" th:field="*{fromAccountId}" required>
+                        <select class="select" name="fromAccountId" required>
                             <option value="">Выберите счет</option>
                             <option th:each="account : ${userAccounts}" th:value="${account.id}" th:text="${account.currencyCode + ' (' + account.balance + ')'}"></option>
                         </select>
                     </div>
                     <div class="form__row">
                         <label class="label">Валюта получателя</label>
-                        <select class="select" th:field="*{toCurrency}" required>
+                        <select class="select" name="toCurrency" required>
                             <option value="" disabled selected>Выберите валюту</option>
                             <option th:each="currency : ${currencies}" th:value="${currency}" th:text="${currency}"></option>
                         </select>
                     </div>
                     <div class="form__row">
                         <label class="label">Получатель</label>
-                        <input class="input" type="text" th:field="*{recipientEmail}" placeholder="Введите email получателя" required/>
+                        <input class="input" type="text" name="recipientEmail" placeholder="Введите email получателя" required/>
                         <div th:if="${#fields.hasErrors('recipientEmail')}" th:errors="*{recipientEmail}" class="error"></div>
                     </div>
                     <div class="form__row">
                         <label class="label">Сумма</label>
-                        <input class="input" type="number" th:field="*{amount}" step="0.01" min="0" required/>
+                        <input class="input" type="number" name="amount" step="0.01" min="0" required/>
                     </div>
                 </div>
                 <div class="row between center">

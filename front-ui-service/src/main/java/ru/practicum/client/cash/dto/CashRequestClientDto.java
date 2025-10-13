@@ -35,4 +35,6 @@ public class CashRequestClientDto {
      * Валюта
      */
     private String currency;
+
+    private Boolean isDeposit;
 }

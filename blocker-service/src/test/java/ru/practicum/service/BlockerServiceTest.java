@@ -267,7 +267,7 @@ class BlockerServiceTest {
 
         OperationRecordDao operation2 = OperationRecordDao.builder()
                 .operationId(UUID.randomUUID())
-                .operationType(OperationType.WITHDRAWAL)
+                .operationType(OperationType.WITHDRAW)
                 .userId(userId)
                 .accountId(accountId)
                 .amount(new BigDecimal("500.00"))
@@ -292,7 +292,7 @@ class BlockerServiceTest {
                 )
                 .expectNextMatches(history ->
                         history.getOperationId().equals(operation2.getOperationId()) &&
-                                history.getOperationType() == OperationType.WITHDRAWAL &&
+                                history.getOperationType() == OperationType.WITHDRAW &&
                                 history.getAmount().equals(new BigDecimal("500.00")) &&
                                 history.getBlocked() &&
                                 history.getBlockReasonCode().equals("HIGH_FREQUENCY") &&

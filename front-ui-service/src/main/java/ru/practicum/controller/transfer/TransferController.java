@@ -2,11 +2,13 @@ package ru.practicum.controller.transfer;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.auth.dto.LoginResponseClientDto;
@@ -22,6 +24,8 @@ import ru.practicum.service.transfer.TransferService;
 import java.util.UUID;
 
 @Controller
+@RequestMapping("/transfer")
+@Slf4j
 @RequiredArgsConstructor
 public class TransferController extends BaseController {
     /**
@@ -29,64 +33,24 @@ public class TransferController extends BaseController {
      */
     private final TransferService transferService;
 
-    @PostMapping("/transfer/own")
-    public Mono<String> handleOwnTransfer(ServerWebExchange exchange,
-                                          @Valid @ModelAttribute("ownTransferRequest") OwnTransferRequestDto request,
-                                          BindingResult bindingResult,
-                                          Model model) {
+    @PostMapping("/own")
+    public Mono<String> handleOwnTransfer(@ModelAttribute @Valid OwnTransferRequestDto requestDto, ServerWebExchange exchange, Model model) {
+        log.info("Обработка запроса перевода между своими счетами: getFromAccountId={}, ToAccountId={}, getAmount={}",
+                requestDto.getFromAccountId(), requestDto.getToAccountId(), requestDto.getAmount());
 
-        return exchange.getSession().flatMap(session -> {
-            LoginResponseClientDto userData = (LoginResponseClientDto) session.getAttributes().get("userData");
-
-            if (userData == null) {
-                return Mono.just("redirect:/login");
-            }
-
-            if (bindingResult.hasErrors()) {
-                model.addAttribute("error", "Проверьте правильность введенных данных");
-                return loadDashboardData(userData, model, exchange);
-            }
-
-            // Маппинг DTO в модель для сервиса
-            OwnTransfer transferModel = mapToOwnTransferModel(userData.getUserId(), request);
-
-            return transferService.performOwnTransfer(transferModel)
-                    .flatMap(result -> handleTransferResult(result, userData, model))
-                    .onErrorResume(e -> {
-                        model.addAttribute("error", "Произошла непредвиденная ошибка: " + e.getMessage());
-                        return loadDashboardData(userData, model, exchange);
-                    });
-        });
+        return withAuthenticatedUser(exchange, userId -> transferService.performOwnTransfer(requestDto, userId)
+                .flatMap(result -> encodeSuccessRedirect("dashboard", "Перевод успешно выполнен"))
+                .onErrorResume(e -> encodeErrorRedirect("dashboard", "Произошла непредвиденная ошибка: " + e.getMessage())));
     }
 
-    @PostMapping("/transfer/other")
-    public Mono<String> handleOtherTransfer(ServerWebExchange exchange,
-                                            @Valid @ModelAttribute("otherTransferRequest") OtherTransferRequestDto request,
-                                            BindingResult bindingResult,
-                                            Model model) {
+    @PostMapping("/other")
+    public Mono<String> handleOtherTransfer(@ModelAttribute @Valid OtherTransferRequestDto requestDto, ServerWebExchange exchange, Model model) {
+        log.info("Обработка запроса перевода между счетами: getFromAccountId={}, getToCurrency={}, getRecipientEmail={}, getAmount={}",
+                requestDto.getFromAccountId(), requestDto.getToCurrency(), requestDto.getRecipientEmail(), requestDto.getAmount());
 
-        return exchange.getSession().flatMap(session -> {
-            LoginResponseClientDto userData = (LoginResponseClientDto) session.getAttributes().get("userData");
-
-            if (userData == null) {
-                return Mono.just("redirect:/login");
-            }
-
-            if (bindingResult.hasErrors()) {
-                model.addAttribute("error", "Проверьте правильность введенных данных");
-                return loadDashboardData(userData, model, exchange);
-            }
-
-            // Маппинг DTO в модель для сервиса
-            OtherTransfer transferModel = mapToOtherTransferModel(userData.getUserId(), request);
-
-            return transferService.performOtherTransfer(transferModel)
-                    .flatMap(result -> handleTransferResult(result, userData, model))
-                    .onErrorResume(e -> {
-                        model.addAttribute("error", "Произошла непредвиденная ошибка: " + e.getMessage());
-                        return loadDashboardData(userData, model, exchange);
-                    });
-        });
+        return withAuthenticatedUser(exchange, userId -> transferService.performOtherTransfer(mapToOtherTransferModel(userId, requestDto))
+                .flatMap(result -> encodeSuccessRedirect("dashboard", "Перевод успешно выполнен"))
+                .onErrorResume(e -> encodeErrorRedirect("dashboard", "Произошла непредвиденная ошибка: " + e.getMessage())));
     }
 
     /**

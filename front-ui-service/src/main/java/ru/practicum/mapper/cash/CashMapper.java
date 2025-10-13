@@ -7,6 +7,7 @@ import ru.practicum.client.cash.dto.CashRequestClientDto;
 import ru.practicum.client.cash.dto.CashResponseClientDto;
 import ru.practicum.dto.cash.CashRequestDto;
 import ru.practicum.dto.cash.CashResponseDto;
+import ru.practicum.dto.cash.DepositWithdrawCashRequestDto;
 import ru.practicum.model.cash.Cash;
 
 /**
@@ -26,6 +27,12 @@ public interface CashMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "message", ignore = true)
     Cash cashRequestDtoToCash(CashRequestDto cashRequestDto);
+
+    @Mapping(target = "operationId", ignore = true)
+    @Mapping(target = "operationType", source = "operation")
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "message", ignore = true)
+    Cash cashRequestDtoToCash(DepositWithdrawCashRequestDto cashRequestDto);
 
     /**
      * Смаппить операцию с наличными в DTO ответа

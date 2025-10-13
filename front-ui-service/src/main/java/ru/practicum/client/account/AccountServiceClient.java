@@ -11,10 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
-import ru.practicum.client.account.dto.AccountResponseDto;
-import ru.practicum.client.account.dto.AddAccountRequestDto;
-import ru.practicum.client.account.dto.SignUpResponseDto;
-import ru.practicum.client.account.dto.UserFullResponseClientDto;
+import ru.practicum.client.account.dto.*;
 import ru.practicum.dto.auth.SignUpRequestDto;
 
 import java.util.UUID;
@@ -65,12 +62,45 @@ public class AccountServiceClient extends BaseServiceClient {
     /**
      * Получение счета по идентификатору
      */
-    public Mono<AccountResponseDto> createAccount(AddAccountRequestDto addAccountRequestDto) {
+    public Mono<AccountResponseDto> getAccount(AccountRequestDto accountRequestDto) {
+        String path = "/api/accounts/get";
+        String operation = "Getting account by [userID, currencyCode]: {" + accountRequestDto.getUserId() + ", " + accountRequestDto.getCurrencyCode() + "}";
+        String errorPrefix = "Ошибка получения счета: ";
+        return performMono(HttpMethod.POST, path, accountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
+    }
+
+    /**
+     * Получение счета по идентификатору
+     */
+    public Mono<AccountResponseDto> getAccount(AccountByEmailRequestDto accountRequestDto) {
+        String path = "/api/accounts/get";
+        String operation = "Getting account by [userID, currencyCode]: {" + accountRequestDto.getUserId() + ", " + accountRequestDto.getCurrencyCode() + "}";
+        String errorPrefix = "Ошибка получения счета: ";
+        return performMono(HttpMethod.POST, path, accountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
+    }
+
+    /**
+     * Получение счета по идентификатору
+     */
+    public Mono<AccountResponseDto> createAccount(AccountRequestDto accountRequestDto) {
         String path = "/api/accounts/create";
-        String operation = "Create account: " + addAccountRequestDto;
+        String operation = "Create account: " + accountRequestDto;
         String errorPrefix = "Ошибка создания счета: ";
-        return performMono(HttpMethod.POST, path, addAccountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
+        return performMono(HttpMethod.POST, path, accountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Account created: {}", response.getId()));
+    }
+
+    /**
+     * Получение счета по идентификатору
+     */
+    public Mono<Void> deleteAccount(UUID accountId) {
+        String path = "/api/accounts/" + accountId;
+        String operation = "Delete account: " + accountId;
+        String errorPrefix = "Ошибка удаления счета: ";
+        return performMono(HttpMethod.DELETE, path, null, Void.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account deleted: {}", accountId));
     }
 
     /**

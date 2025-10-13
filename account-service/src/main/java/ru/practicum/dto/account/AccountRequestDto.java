@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountCreateDto {
+public class AccountRequestDto {
     /**
      * Идентификатор пользователя
      */

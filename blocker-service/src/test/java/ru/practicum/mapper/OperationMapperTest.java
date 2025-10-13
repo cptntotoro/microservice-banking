@@ -55,12 +55,12 @@ class OperationMapperTest {
     @Test
     void operationCheckRequestDtoToOperationCheckRequest_shouldHandleAllOperationTypes() {
         OperationCheckRequestDto depositDto = createRequestDto("DEPOSIT");
-        OperationCheckRequestDto withdrawalDto = createRequestDto("WITHDRAWAL");
+        OperationCheckRequestDto withdrawalDto = createRequestDto("WITHDRAW");
         OperationCheckRequestDto transferDto = createRequestDto("TRANSFER");
         OperationCheckRequestDto paymentDto = createRequestDto("PAYMENT");
 
         assertEquals(OperationType.DEPOSIT, mapper.operationCheckRequestDtoToOperationCheckRequest(depositDto).getOperationType());
-        assertEquals(OperationType.WITHDRAWAL, mapper.operationCheckRequestDtoToOperationCheckRequest(withdrawalDto).getOperationType());
+        assertEquals(OperationType.WITHDRAW, mapper.operationCheckRequestDtoToOperationCheckRequest(withdrawalDto).getOperationType());
         assertEquals(OperationType.TRANSFER, mapper.operationCheckRequestDtoToOperationCheckRequest(transferDto).getOperationType());
         assertEquals(OperationType.PAYMENT, mapper.operationCheckRequestDtoToOperationCheckRequest(paymentDto).getOperationType());
     }

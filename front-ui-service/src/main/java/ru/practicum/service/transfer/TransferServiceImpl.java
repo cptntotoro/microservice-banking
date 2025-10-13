@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.transfer.TransferServiceClient;
+import ru.practicum.client.transfer.dto.OwnTransferRequestClientDto;
 import ru.practicum.dto.transfer.OtherTransferRequestDto;
 import ru.practicum.dto.transfer.OwnTransferRequestDto;
 import ru.practicum.exception.ServiceUnavailableException;
@@ -15,6 +16,7 @@ import ru.practicum.model.transfer.OwnTransfer;
 import ru.practicum.model.transfer.TransferErrorCode;
 import ru.practicum.model.transfer.TransferResult;
 import ru.practicum.model.transfer.TransferStatus;
+import ru.practicum.service.account.AccountService;
 import ru.practicum.service.exchange.ExchangeRateService;
 
 import java.math.BigDecimal;
@@ -40,8 +42,15 @@ public class TransferServiceImpl implements TransferService {
      */
     private final ExchangeRateService exchangeRateService;
 
+    private final AccountService accountService;
+
     @Override
-    public Mono<TransferResult> performOwnTransfer(OwnTransfer model) {
+    public Mono<TransferResult> performOwnTransfer(OwnTransferRequestDto requestDto, UUID userId) {
+        OwnTransferRequestClientDto clientDto = transferMapper.ownTransferRequestDtoToOwnTransferRequestClientDto(requestDto);
+        clientDto.setUserId(userId);
+        transferServiceClient.performOwnTransfer(clientDto)
+                .flatMap()
+
         return validateCurrencies(model.getFromCurrency(), model.getToCurrency())
                 .flatMap(valid -> {
                     if (!valid) {
@@ -57,9 +66,11 @@ public class TransferServiceImpl implements TransferService {
                     log.info("Обработка перевода между своими счетами для пользователя {}: {} -> {}",
                             model.getUserId(), model.getFromAccountId(), model.getToAccountId());
 
+
+
                     OwnTransferRequestDto dto = transferMapper.ownTransferToOwnTransferRequestDto(model);
                     return transferServiceClient.performOwnTransfer(
-                                    transferMapper.ownTransferRequestDtoToOwnTransferRequestClientDto(dto), model.getUserId())
+                                    , model.getUserId())
                             .map(v -> createSuccessResult(
                                     model.getFromAccountId(),
                                     model.getToAccountId(),
@@ -91,6 +102,7 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     public Mono<TransferResult> performOtherTransfer(OtherTransfer model) {
+//        accountService.getAccountByEmail(model.get(), model.)
         return validateCurrencies(model.getFromCurrency(), model.getToCurrency())
                 .flatMap(valid -> {
                     if (!valid) {

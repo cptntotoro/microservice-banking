@@ -12,7 +12,7 @@ public enum OperationType {
     /**
      * Снятие со счета
      */
-    WITHDRAWAL,
+    WITHDRAW,
 
     /**
      * Перевод между счетами

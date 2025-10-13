@@ -12,11 +12,13 @@ import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
 import ru.practicum.client.notification.dto.NotificationRequestDto;
 import ru.practicum.client.notification.NotificationsServiceClient;
 import ru.practicum.dao.CashOperationDao;
+import ru.practicum.dto.CashRequestDto;
 import ru.practicum.model.CashRequest;
 import ru.practicum.model.CashResponse;
 import ru.practicum.repository.CashOperationRepository;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,6 +26,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class CashServiceImpl implements CashService {
+    private static final String DEPOSIT = "DEPOSIT";
+    private static final String WITHDRAW = "WITHDRAW";
+
     /**
      * Клиент для обращений к сервису аккаунтов
      */
@@ -44,30 +49,32 @@ public class CashServiceImpl implements CashService {
      */
     private final CashOperationRepository cashOperationRepository;
 
-    @Override
-    @Transactional
-    public Mono<CashResponse> deposit(CashRequest request) {
-        return processCashOperation(request, "DEPOSIT");
-    }
+//    @Override
+//    @Transactional
+//    public Mono<CashResponse> deposit(CashRequest request) {
+//        return processCashOperation(request, DEPOSIT);
+//    }
+//
+//    @Override
+//    @Transactional
+//    public Mono<CashResponse> withdraw(CashRequest request) {
+//        return processCashOperation(request, "WITHDRAW");
+//    }
 
     @Override
     @Transactional
-    public Mono<CashResponse> withdraw(CashRequest request) {
-        return processCashOperation(request, "WITHDRAWAL");
-    }
-
-    private Mono<CashResponse> processCashOperation(CashRequest request, String operationType) {
-        UUID operationId = UUID.randomUUID();
+    public Mono<CashResponse> cashOperation(CashRequestDto request) {
+        String operationType = request.getIsDeposit() ? DEPOSIT : WITHDRAW;
 
         return validateRequest(request)
-                .then(createOperationRecord(request, operationId, operationType))
-                .flatMap(operation -> checkOperationBlocking(request, operationType))
-                .flatMap(isBlocked -> handleBlockingResult(isBlocked, operationId))
-                .flatMap(notBlocked -> executeFinancialOperation(request, operationId, operationType))
+                .then(createOperationRecord(request, operationType))
+                .flatMap(operation -> checkOperationBlocking(request, operationType).zipWith(Mono.just(operation)))
+                .flatMap(tuple2 -> handleBlockingResult(tuple2.getT1(), tuple2.getT2().getOperationUuid()).zipWith(Mono.just(tuple2.getT2())))
+                .flatMap(tuple2 -> executeFinancialOperation(request, tuple2.getT2().getOperationUuid(), operationType))
                 .onErrorResume(this::handleOperationError);
     }
 
-    private Mono<Void> validateRequest(CashRequest request) {
+    private Mono<Void> validateRequest(CashRequestDto request) {
         if (request.getAccountId() == null) {
             return Mono.error(new IllegalArgumentException("Требуется идентификатор счета"));
         }
@@ -83,12 +90,13 @@ public class CashServiceImpl implements CashService {
         return Mono.empty();
     }
 
-    private Mono<CashOperationDao> createOperationRecord(CashRequest request, UUID operationId, String operationType) {
+    private Mono<CashOperationDao> createOperationRecord(CashRequestDto request, String operationType) {
+        log.error("1111111111111");
+
         CashOperationDao operation = CashOperationDao.builder()
-                .operationUuid(operationId)
                 .accountId(request.getAccountId())
-                .type(operationType)
-                .amount(request.getAmount())
+                .operationType(operationType)
+                .amount(request.getAmount().setScale(2, RoundingMode.HALF_DOWN))
                 .currencyCode(request.getCurrency())
                 .status("PENDING")
                 .description(String.format("%s %s %s",
@@ -96,12 +104,16 @@ public class CashServiceImpl implements CashService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        log.info("Начало операции {}: {}", operationType.toLowerCase(), operationId);
+        log.error(operation.toString());
 
-        return cashOperationRepository.save(operation);
+        log.info("Начало операции: {}", operation);
+
+        return cashOperationRepository.save(operation)
+                .doOnSuccess(saved -> log.info("Операция сохранена: {}", saved))
+                .doOnError(error -> log.error("Ошибка сохранения операции: {}", error.getMessage()));
     }
 
-    private Mono<Boolean> checkOperationBlocking(CashRequest request, String operationType) {
+    private Mono<Boolean> checkOperationBlocking(CashRequestDto request, String operationType) {
 
         OperationCheckRequestDto dto = OperationCheckRequestDto.builder()
                 .operationId(UUID.randomUUID())
@@ -128,16 +140,18 @@ public class CashServiceImpl implements CashService {
         return Mono.just(true);
     }
 
-    private Mono<CashResponse> executeFinancialOperation(CashRequest request, UUID operationId, String operationType) {
-        return verifyAccount(request.getAccountId(), request.getUserId())
-                .flatMap(isValid -> handleAccountVerification(isValid, operationId))
-                .flatMap(verified -> checkSufficientFunds(request, operationId, operationType))
-                .flatMap(sufficient -> updateAccountBalance(request, operationType))
-                .flatMap(updated -> sendNotification(request, operationType))
+    private Mono<CashResponse> executeFinancialOperation(CashRequestDto request, UUID operationId, String operationType) {
+//        return verifyAccount(request.getAccountId(), request.getUserId())
+//                .flatMap(isValid -> handleAccountVerification(isValid, operationId))
+//                .flatMap(verified -> checkSufficientFunds(request, operationId, operationType))
+//                .flatMap(sufficient -> updateAccountBalance(request, operationType))
+        return checkAndUpdateAccountBalance(request)
+                .flatMap(updated -> sendNotification(request))
                 .flatMap(notified -> completeOperation(operationId, operationType))
                 .onErrorResume(error -> handleExecutionError(error, operationId));
     }
 
+    //TODO delete
     private Mono<Boolean> verifyAccount(UUID accountId, UUID userId) {
         return accountsServiceClient.verifyAccount(accountId, userId)
                 .onErrorResume(e -> {
@@ -154,8 +168,9 @@ public class CashServiceImpl implements CashService {
         return Mono.just(true);
     }
 
+    //TODO delete
     private Mono<Boolean> checkSufficientFunds(CashRequest request, UUID operationId, String operationType) {
-        if ("WITHDRAWAL".equals(operationType)) {
+        if ("WITHDRAW".equals(operationType)) {
             return accountsServiceClient.getAccountBalance(request.getAccountId())
                     .flatMap(balance -> {
                         if (balance.compareTo(request.getAmount()) < 0) {
@@ -168,8 +183,9 @@ public class CashServiceImpl implements CashService {
         return Mono.just(true);
     }
 
+    //TODO delete
     private Mono<Boolean> updateAccountBalance(CashRequest request, String operationType) {
-        boolean isDeposit = "DEPOSIT".equals(operationType);
+        boolean isDeposit = DEPOSIT.equalsIgnoreCase(operationType);
 
         BalanceUpdateRequestDto updateRequest = BalanceUpdateRequestDto.builder()
                 .accountId(request.getAccountId())
@@ -181,20 +197,33 @@ public class CashServiceImpl implements CashService {
                 .thenReturn(true);
     }
 
-    private Mono<Boolean> sendNotification(CashRequest request, String operationType) {
-        String action = "DEPOSIT".equals(operationType) ? "Пополнено" : "Снято";
-        String message = String.format("%s %s %s со счета %s",
-                action, request.getAmount(), request.getCurrency(), request.getAccountId());
-
-        NotificationRequestDto notification = NotificationRequestDto.builder()
+    private Mono<Boolean> checkAndUpdateAccountBalance(CashRequestDto request) {
+        BalanceUpdateRequestDto updateRequest = BalanceUpdateRequestDto.builder()
                 .userId(request.getUserId())
-                .message(message)
+                .accountId(request.getAccountId())
+                .amount(request.getAmount())
+                .isDeposit(request.getIsDeposit())
                 .build();
 
-        return notificationsServiceClient.sendNotification(notification)
-                .thenReturn(true)
+        return accountsServiceClient.checkAndUpdateAccountBalance(updateRequest);
+    }
+
+    private Mono<Boolean> sendNotification(CashRequestDto request) {
+        String message = String.format("%s %s %s со счета %s",
+                request.getIsDeposit() ? "Пополнено" : "Снято", request.getAmount(), request.getCurrency(), request.getAccountId());
+
+        return accountsServiceClient.getUser(request.getUserId())
+                .map(userResponseDto -> NotificationRequestDto.builder()
+                        .email(userResponseDto.getEmail())
+                        .title("Message from cash-service")
+                        .description(message)
+                        .build()
+                )
+                .flatMap(notificationRequestDto -> notificationsServiceClient.sendNotification(notificationRequestDto)
+                        .thenReturn(true))
                 .onErrorResume(e -> {
                     log.warn("Ошибка отправки уведомления: {}", e.getMessage());
+//        // TODO
                     return Mono.just(true); // Продолжаем даже если уведомление не отправлено
                 });
     }

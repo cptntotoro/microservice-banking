@@ -2,6 +2,9 @@ package ru.practicum.service.account;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.practicum.dto.account.AccountRequestDto;
+import ru.practicum.dto.account.AccountWithUserResponseDto;
+import ru.practicum.dto.account.BalanceUpdateRequestDto;
 import ru.practicum.model.account.Account;
 
 import java.math.BigDecimal;
@@ -53,6 +56,8 @@ public interface AccountService {
      */
     Mono<Boolean> existsByUserAndCurrency(UUID userId, UUID currencyId);
 
+    Mono<Account> findAccountByUserAndCurrency(AccountRequestDto accountDto);
+
     /**
      * Проверить наличие ненулевого баланса на счете
      *
@@ -60,6 +65,8 @@ public interface AccountService {
      * @return Да / Нет
      */
     Mono<Boolean> hasBalance(UUID accountId);
+
+    Mono<Boolean> checkAndUpdateBalance(BalanceUpdateRequestDto balanceUpdateRequestDto);
 
     /**
      * Пополнить счет
@@ -98,4 +105,7 @@ public interface AccountService {
      * @return Пустой результат
      */
     Mono<Void> transferToOtherAccount(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
+
+    Mono<Boolean> existsAccount(UUID userId, UUID accountId);
+
 }

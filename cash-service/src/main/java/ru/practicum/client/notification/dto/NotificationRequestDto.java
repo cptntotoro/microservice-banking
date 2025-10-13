@@ -1,8 +1,6 @@
 package ru.practicum.client.notification.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -10,13 +8,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class NotificationRequestDto {
-    /**
-     * Идентификатор пользователя
-     */
-    private UUID userId;
-
-    /**
-     * Сообщение
-     */
-    private String message;
+    private String email;
+    private String title;
+    private String description;
 }

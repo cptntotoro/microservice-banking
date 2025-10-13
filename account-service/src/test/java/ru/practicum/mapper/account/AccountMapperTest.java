@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.dao.account.AccountDao;
-import ru.practicum.dto.account.AccountCreateDto;
+import ru.practicum.dto.account.AccountRequestDto;
 import ru.practicum.dto.account.AccountResponseDto;
 import ru.practicum.model.account.Account;
 
@@ -30,7 +30,7 @@ class AccountMapperTest {
         UUID userId = UUID.randomUUID();
         String currencyCode = "USD";
 
-        AccountCreateDto dto = AccountCreateDto.builder()
+        AccountRequestDto dto = AccountRequestDto.builder()
                 .userId(userId)
                 .currencyCode(currencyCode)
                 .build();
