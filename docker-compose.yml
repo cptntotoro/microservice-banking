@@ -9,15 +9,12 @@ services:
     ports:
       - "8081:8081"
     environment:
-      # TODO
       - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/auth_db
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=postgres
-      - # TODO
       - DB_NAME=auth_db
       - DB_HOST=postgres
       - DB_PORT=5432
-      - # TODO
 #      - AUTH_SERVICE_JWT_ISSUER_URI=http://user-auth-service:9000
 #      - AUTH_SERVICE_JWT_JWK_SET_URI=http://user-auth-service:9000/oauth2/jwks
     depends_on:

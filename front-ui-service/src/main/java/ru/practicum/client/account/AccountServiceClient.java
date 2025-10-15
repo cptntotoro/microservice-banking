@@ -73,17 +73,6 @@ public class AccountServiceClient extends BaseServiceClient {
                 .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
     }
 
-//    /**
-//     * Получение счета по идентификатору
-//     */
-//    public Mono<AccountResponseDto> getAccount(AccountByEmailRequestDto accountRequestDto) {
-//        String path = "/api/accounts/get";
-//        String operation = "Getting account by [userID, currencyCode]: {" + accountRequestDto.getUserId() + ", " + accountRequestDto.getCurrencyCode() + "}";
-//        String errorPrefix = "Ошибка получения счета: ";
-//        return performMono(HttpMethod.POST, path, accountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
-//                .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
-//    }
-
     /**
      * Получение счета по идентификатору
      */

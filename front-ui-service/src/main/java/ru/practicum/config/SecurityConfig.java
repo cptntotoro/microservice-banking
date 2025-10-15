@@ -48,19 +48,6 @@ public class SecurityConfig {
 
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
 
-//                .logout(logout -> logout
-//                        .logoutUrl("/logout")
-//                        .logoutSuccessHandler((exchange, authentication) -> {
-//                            // Очистка сессии
-//                            return exchange.getExchange().getSession()
-//                                    .flatMap(session -> {
-//                                        session.getAttributes().clear();
-//                                        return Mono.empty();
-//                                    })
-//                                    .then(Mono.just("redirect:/login?logout").then());
-//                        })
-//                )
-
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint((exchange, ex) -> {
                             return Mono.fromRunnable(() -> {

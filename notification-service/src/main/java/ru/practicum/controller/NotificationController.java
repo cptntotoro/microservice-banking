@@ -22,7 +22,5 @@ public class NotificationController {
         return notificationService.sendEmail(request.getEmail(), request.getTitle(), request.getDescription())
                 .then(Mono.fromCallable(() -> ResponseEntity.ok("Email sent successfully to " + request.getEmail())))
                 .onErrorReturn(ResponseEntity.ok("Email sent Failed to " + request.getEmail()));
-        //TODO
-//            return ResponseEntity.status(500).body("Failed to send email: " + e.getMessage());
     }
 }

@@ -66,19 +66,6 @@ public class CashServiceImpl implements CashService {
                 });
     }
 
-
-//    @Override
-//    public Mono<Cash> deposit(CashRequestClientDto cash) {
-//        return cashServiceClient.deposit(cash)
-//                .map(cashMapper::cashResponseClientDtoToCash);
-//    }
-//
-//    @Override
-//    public Mono<Cash> withdraw(CashRequestClientDto cash) {
-//        return cashServiceClient.withdraw(cash)
-//                .map(cashMapper::cashResponseClientDtoToCash);
-//    }
-
     // Вспомогательный метод для валидации валюты
     private Mono<Boolean> validateCurrency(String currency) {
         if (currency == null) {

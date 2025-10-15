@@ -35,23 +35,6 @@ public class CashServiceClient extends BaseServiceClient {
         return "cash-service";
     }
 
-
-//    public Mono<CashResponseClientDto> deposit(CashRequestClientDto requestDto) {
-//        String path = "/api/cash/deposit";
-//        String operation = "Deposit: " + requestDto;
-//        String errorPrefix = "Ошибка депозита: ";
-//        return performMono(HttpMethod.POST, path, requestDto, CashResponseClientDto.class, operation, errorPrefix, true)
-//                .doOnSuccess(response -> log.info("Deposit success: {}", response));
-//    }
-//
-//    public Mono<CashResponseClientDto> withdraw(CashRequestClientDto requestDto) {
-//        String path = "/api/cash/withdraw";
-//        String operation = "Withdraw: " + requestDto;
-//        String errorPrefix = "Ошибка депозита: ";
-//        return performMono(HttpMethod.POST, path, requestDto, CashResponseClientDto.class, operation, errorPrefix, true)
-//                .doOnSuccess(response -> log.info("Withdraw success: {}", response));
-//    }
-
     public Mono<CashResponseClientDto> cashOperation(CashRequestClientDto requestDto) {
         String path = "/api/cash/cash-operation";
         String operation = "Cash-operation: " + requestDto;

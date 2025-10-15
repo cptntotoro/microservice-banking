@@ -18,7 +18,6 @@ public class NotificationRequestDto {
     /**
      * Идентификатор пользователя
      */
-    //TODO WWWWWWHYYYYYYYY userId? accountId? не?
     private UUID userId;
 
     /**

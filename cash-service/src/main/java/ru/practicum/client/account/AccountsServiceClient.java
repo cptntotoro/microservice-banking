@@ -43,7 +43,6 @@ public class AccountsServiceClient extends BaseServiceClient {
         return "account-service";
     }
 
-    //TODO delete
     public Mono<Boolean> verifyAccount(UUID accountId, UUID userId) {
         String path = "/accounts/verify/" + userId + "/" + accountId;
         String operation = "Verify account: " + accountId;
@@ -52,7 +51,6 @@ public class AccountsServiceClient extends BaseServiceClient {
                 .doOnSuccess(response -> log.info("Account verified: {}", accountId));
     }
 
-    //TODO delete
     public Mono<BigDecimal> getAccountBalance(UUID accountId) {
         String path = "/accounts/balance?accountId=" + accountId;
         String operation = "Get account balance: " + accountId;
@@ -61,7 +59,6 @@ public class AccountsServiceClient extends BaseServiceClient {
                 .doOnSuccess(response -> log.info("Account balance got: {}", accountId));
     }
 
-    //TODO delete
     public Mono<Void> updateAccountBalance(BalanceUpdateRequestDto request) {
         String path = "/accounts/update-balance";
         String operation = "Update account balance: " + request;

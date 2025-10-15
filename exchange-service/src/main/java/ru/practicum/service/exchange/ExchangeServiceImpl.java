@@ -28,11 +28,6 @@ import java.util.stream.Stream;
 public class ExchangeServiceImpl implements ExchangeService {
 
     /**
-     * Сервис управления валютными операциями
-     */
-    private final OperationService operationService;
-
-    /**
      * In-memory кэш курсов относительно RUB
      */
     private final Map<String, ExchangeRate> rubRatesCache = new ConcurrentHashMap<>();
@@ -168,24 +163,6 @@ public class ExchangeServiceImpl implements ExchangeService {
                 .buyRate(BigDecimal.ONE.divide(rate.getSellRate(), scale, RoundingMode.HALF_UP))
                 .sellRate(BigDecimal.ONE.divide(rate.getBuyRate(), scale, RoundingMode.HALF_UP))
                 .build();
-    }
-
-//    private Mono<Void> saveOperation(String from, String to, BigDecimal amount, BigDecimal converted, BigDecimal rate, OperationType type, UUID userId) {
-//        Operation operation = Operation.builder()
-//                .userId(userId)
-//                .fromCurrency(from)
-//                .toCurrency(to)
-//                .amount(amount)
-//                .convertedAmount(converted)
-//                .exchangeRate(rate)
-//                .operationType(type)
-//                .createdAt(LocalDateTime.now())
-//                .build();
-//        return operationService.saveOperation(operation).then();
-//    }
-
-    private BigDecimal calculateConversion(BigDecimal amount, BigDecimal rate) {
-        return amount.multiply(rate).setScale(2, RoundingMode.HALF_UP);
     }
 
     private boolean isSameCurrency(String from, String to) {

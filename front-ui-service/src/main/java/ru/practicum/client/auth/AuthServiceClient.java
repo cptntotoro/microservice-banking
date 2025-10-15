@@ -61,12 +61,10 @@ public class AuthServiceClient extends BaseServiceClient {
         String path = "/auth/refresh";
         String operation = "Refreshing token: " + refreshToken;
         String errorPrefix = "Ошибка обновления токена: ";
-        //TODO .header(HttpHeaders.AUTHORIZATION, refreshToken)
         return performMono(HttpMethod.POST, path, null, LoginResponseClientDto.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Token refreshed : {}", response));
     }
 
-    //TODO Перенести в Аккаунт ru.practicum.client.account.account.AccountServiceClient.getFullUser
     public Mono<UserProfileResponseClientDto> getProfile(String token) {
         return Mono.just(new UserProfileResponseClientDto());
 //        return webClientBuilder.build()
@@ -81,7 +79,6 @@ public class AuthServiceClient extends BaseServiceClient {
 //                });
     }
 
-    //TODO Перенести в Аккаунт
     public Mono<UserProfileResponseClientDto> updateProfile(EditUserProfileDto updateRequest, String token) {
         return Mono.just(new UserProfileResponseClientDto());
 //        return webClientBuilder.build()
@@ -98,7 +95,6 @@ public class AuthServiceClient extends BaseServiceClient {
 //                });
     }
 
-    //TODO Перенести в Аккаунт
     public Mono<ResponseEntity<Void>> changePassword(ChangePasswordRequestDto changePasswordRequest, String token) {
         return Mono.empty();
 //        return webClientBuilder.build()
@@ -115,7 +111,6 @@ public class AuthServiceClient extends BaseServiceClient {
 //                });
     }
 
-    //TODO Перенести в Аккаунт
     public Mono<ResponseEntity<Void>> deleteAccount(String token) {
         return Mono.empty();
 //        return webClientBuilder.build()
@@ -130,7 +125,6 @@ public class AuthServiceClient extends BaseServiceClient {
 //                });
     }
 
-    //TODO Перенести в Аккаунт
     public Mono<ResponseEntity<Void>> validateToken(String token) {
         return Mono.empty();
 //        return webClientBuilder.build()
@@ -145,7 +139,6 @@ public class AuthServiceClient extends BaseServiceClient {
 //                });
     }
 
-    //TODO Перенести в Аккаунт
     public Mono<Boolean> checkUsernameAvailability(String username) {
         return Mono.just(false);
 //        return webClientBuilder.build()
@@ -159,7 +152,6 @@ public class AuthServiceClient extends BaseServiceClient {
 //                });
     }
 
-    //TODO Перенести в Аккаунт
     public Mono<Boolean> checkEmailAvailability(String email) {
         return Mono.just(false);
 //        return webClientBuilder.build()

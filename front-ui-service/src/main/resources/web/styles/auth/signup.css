@@ -64,7 +64,6 @@
     font-weight: normal;
     cursor: pointer;
     font-size: 14px;
-    /* TODO: мб лишнее */
     color: var(--ink);
 }
 

@@ -9,8 +9,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.exchange.ExchangeRateDto;
-import ru.practicum.dto.transfer.OtherTransferRequestDto;
-import ru.practicum.dto.transfer.OwnTransferRequestDto;
 import ru.practicum.dto.user.UserDashboardDto;
 import ru.practicum.mapper.exchange.ExchangeRateMapper;
 import ru.practicum.mapper.user.UserMapper;
@@ -53,10 +51,6 @@ public class DashboardController extends BaseController {
                 .flatMap(userDashboardDto -> {
                     model.addAttribute("user", userDashboardDto);
                     model.addAttribute("userAccounts", userDashboardDto.getAccounts());
-
-//                    // Инициализируем формы для переводов
-//                    model.addAttribute("ownTransferRequest", new OwnTransferRequestDto());
-//                    model.addAttribute("otherTransferRequest", new OtherTransferRequestDto());
 
                     // Обработка сообщений
                     String error = exchange.getRequest().getQueryParams().getFirst("error");

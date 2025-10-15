@@ -28,14 +28,4 @@ public class WebClientConfig {
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
-//    @Bean
-//    public CorsWebFilter corsFilter() {
-//        return new CorsWebFilter(source -> {
-//            CorsConfiguration config = new CorsConfiguration();
-//            config.addAllowedOrigin("*");
-//            config.addAllowedHeader("*");
-//            config.addAllowedMethod("*");
-//            return config;
-//        });
-//    }
 }

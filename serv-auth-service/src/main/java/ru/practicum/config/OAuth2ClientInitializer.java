@@ -54,8 +54,6 @@ public class OAuth2ClientInitializer {
                                 .clientSecretExpiresAt(Instant.now().plus(Duration.ofHours(1)))
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-//                                .scope("notification-service.read")
-//                                .scope("notification-service.write")
                                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
                                 .tokenSettings(TokenSettings.builder().build())
                                 .build();

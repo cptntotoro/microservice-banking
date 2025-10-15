@@ -49,18 +49,6 @@ public class CashServiceImpl implements CashService {
      */
     private final CashOperationRepository cashOperationRepository;
 
-//    @Override
-//    @Transactional
-//    public Mono<CashResponse> deposit(CashRequest request) {
-//        return processCashOperation(request, DEPOSIT);
-//    }
-//
-//    @Override
-//    @Transactional
-//    public Mono<CashResponse> withdraw(CashRequest request) {
-//        return processCashOperation(request, "WITHDRAW");
-//    }
-
     @Override
     @Transactional
     public Mono<CashResponse> cashOperation(CashRequestDto request) {
@@ -137,17 +125,12 @@ public class CashServiceImpl implements CashService {
     }
 
     private Mono<CashResponse> executeFinancialOperation(CashRequestDto request, UUID operationId, String operationType) {
-//        return verifyAccount(request.getAccountId(), request.getUserId())
-//                .flatMap(isValid -> handleAccountVerification(isValid, operationId))
-//                .flatMap(verified -> checkSufficientFunds(request, operationId, operationType))
-//                .flatMap(sufficient -> updateAccountBalance(request, operationType))
         return checkAndUpdateAccountBalance(request)
                 .flatMap(updated -> sendNotification(request))
                 .flatMap(notified -> completeOperation(operationId, operationType))
                 .onErrorResume(error -> handleExecutionError(error, operationId));
     }
 
-    //TODO delete
     private Mono<Boolean> verifyAccount(UUID accountId, UUID userId) {
         return accountsServiceClient.verifyAccount(accountId, userId)
                 .onErrorResume(e -> {
@@ -164,7 +147,6 @@ public class CashServiceImpl implements CashService {
         return Mono.just(true);
     }
 
-    //TODO delete
     private Mono<Boolean> checkSufficientFunds(CashRequest request, UUID operationId, String operationType) {
         if ("WITHDRAW".equals(operationType)) {
             return accountsServiceClient.getAccountBalance(request.getAccountId())
@@ -179,7 +161,6 @@ public class CashServiceImpl implements CashService {
         return Mono.just(true);
     }
 
-    //TODO delete
     private Mono<Boolean> updateAccountBalance(CashRequest request, String operationType) {
         boolean isDeposit = DEPOSIT.equalsIgnoreCase(operationType);
 
@@ -219,7 +200,6 @@ public class CashServiceImpl implements CashService {
                         .thenReturn(true))
                 .onErrorResume(e -> {
                     log.warn("Ошибка отправки уведомления: {}", e.getMessage());
-//        // TODO
                     return Mono.just(true); // Продолжаем даже если уведомление не отправлено
                 });
     }

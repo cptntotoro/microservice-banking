@@ -65,7 +65,6 @@ public abstract class BaseController {
      */
     protected Mono<String> renderPage(Model model, String page, String title, String description,
                                       String styles, String scripts) {
-        // TODO: вынести BankingApp в .properties
         model.addAttribute("title", title + " | BankingApp");
         model.addAttribute("description", description);
         model.addAttribute("page", page);

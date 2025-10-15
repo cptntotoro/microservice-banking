@@ -18,20 +18,4 @@ public interface CashService {
      * @return Операция с наличными
      */
     Mono<Cash> cashOperation(UUID userId, DepositWithdrawCashRequestDto requestDto);
-
-//    /**
-//     * Пополнить свой счета
-//     *
-//     * @param cash Операция с наличными
-//     * @return Операция с наличными
-//     */
-//    Mono<Cash> deposit(CashRequestClientDto cash);
-//
-//    /**
-//     * Снять средства со своего счета
-//     *
-//     * @param cash Операция с наличными
-//     * @return Операция с наличными
-//     */
-//    Mono<Cash> withdraw(CashRequestClientDto cash);
 }

@@ -50,46 +50,6 @@ public class AccountServiceClient extends BaseServiceClient {
                 .doOnSuccess(response -> log.info("Account retrieved: {}", response));
     }
 
-    public Mono<AccountResponseDto> getAccountByUserUsername(String username) {
-        String path = "/api/accounts/by-username/" + username;
-        String operation = "Getting account by username: " + username;
-        String errorPrefix = "Ошибка получения счета: ";
-        return performMono(HttpMethod.GET, path, null, AccountResponseDto.class, operation, errorPrefix, true)
-                .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
-    }
-
-    public Mono<Void> deposit(DepositWithdrawDto depositWithdrawDto) {
-        String path = "/api/accounts/deposit";
-        String operation = "Deposit: " + depositWithdrawDto;
-        String errorPrefix = "Ошибка депозита: ";
-        return performMono(HttpMethod.POST, path, depositWithdrawDto, Void.class, operation, errorPrefix, true)
-                .doOnSuccess(response -> log.info("Deposit success"));
-    }
-
-    public Mono<Void> withdraw(DepositWithdrawDto depositWithdrawDto) {
-        String path = "/api/accounts/withdraw";
-        String operation = "Withdraw: " + depositWithdrawDto;
-        String errorPrefix = "Ошибка вывода средств: ";
-        return performMono(HttpMethod.POST, path, depositWithdrawDto, Void.class, operation, errorPrefix, true)
-                .doOnSuccess(response -> log.info("Withdraw success"));
-    }
-
-//    public Mono<Void> transferBetweenOwnAccounts(TransferDto transferDto) {
-//        String path = "/api/accounts/transfer/own";
-//        String operation = "transferBetweenOwnAccounts: " + transferDto;
-//        String errorPrefix = "Ошибка перевода средств: ";
-//        return performMono(HttpMethod.POST, path, transferDto, Void.class, operation, errorPrefix, true)
-//                .doOnSuccess(response -> log.info("transferBetweenOwnAccounts success"));
-//    }
-//
-//    public Mono<Void> transferToOtherAccount(TransferDto transferDto) {
-//        String path = "/api/accounts/transfer/other";
-//        String operation = "transferToOtherAccount: " + transferDto;
-//        String errorPrefix = "Ошибка перевода средств: ";
-//        return performMono(HttpMethod.POST, path, transferDto, Void.class, operation, errorPrefix, true)
-//                .doOnSuccess(response -> log.info("transferToOtherAccount success"));
-//    }
-
     public Mono<Void> transfer(TransferDto transferDto) {
         String path = "/api/accounts/transfer";
         String operation = "transferToOtherAccount: " + transferDto;
