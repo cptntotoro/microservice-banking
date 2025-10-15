@@ -21,6 +21,7 @@ public class AccountResponseDto {
      * Идентификатор счета
      */
     private UUID id;
+    private UUID userId;
 
     /**
      * Код валюты

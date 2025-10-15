@@ -1,7 +1,8 @@
 package ru.practicum.service.user;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,29 +30,34 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     /**
      * Репозиторий пользователей
      */
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Репозиторий ролей пользователей
      */
-    private final UserRoleRepository userRoleRepository;
+    @Autowired
+    private UserRoleRepository userRoleRepository;
 
     /**
      * Сервис для работы со счетами
      */
-    private final AccountService accountService;
+    @Autowired
+    @Lazy
+    private AccountService accountService;
 
     /**
      * Маппер пользователей
      */
-    private final UserMapper userMapper;
+    @Autowired
+    private UserMapper userMapper;
 
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -139,6 +145,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username)
                 .flatMap(this::getUserWithRoles)
                 .switchIfEmpty(Mono.error(new NotFoundException("Пользователь с username", username)));
+    }
+
+    @Override
+    public Mono<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .flatMap(this::getUserWithRoles)
+                .switchIfEmpty(Mono.error(new NotFoundException("Пользователь с email", email)));
     }
 
     @Override

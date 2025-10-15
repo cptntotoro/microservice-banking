@@ -85,8 +85,6 @@ public class DashboardController extends BaseController {
                                                 accountDashboardDto -> accountDashboardDto.getCurrencyCode().equals(currency))).toList();
                                 model.addAttribute("userCurrencies", userCurrencies);
                                 model.addAttribute("userNotHaveCurrencies", tuple2.getT2().stream().filter(currency -> !userCurrencies.contains(currency)));
-                                log.error("222222222");
-                                log.error("Загружено {} валют", tuple2.getT2());
 
                                 return renderPage(model, "page/dashboard", "Главная страница",
                                         "Главная страница приложения BankingApp", "page/dashboard", "dashboard");

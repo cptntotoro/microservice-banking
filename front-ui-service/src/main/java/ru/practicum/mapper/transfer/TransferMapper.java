@@ -23,14 +23,14 @@ public interface TransferMapper {
      */
     OwnTransferRequestDto ownTransferToOwnTransferRequestDto(OwnTransfer ownTransfer);
 
-    /**
-     * Смаппить перевод средств другому пользователю в DTO
-     *
-     * @param otherTransfer Перевод средств другому пользователю
-     * @return DTO запроса на перевод средств другому пользователю
-     */
-    @Mapping(target = "fromUserId", source = "userId")
-    OtherTransferRequestDto otherTransferToOtherTransferRequestDto(OtherTransfer otherTransfer);
+//    /**
+//     * Смаппить перевод средств другому пользователю в DTO
+//     *
+//     * @param otherTransfer Перевод средств другому пользователю
+//     * @return DTO запроса на перевод средств другому пользователю
+//     */
+//    @Mapping(target = "fromUserId", source = "userId")
+//    OtherTransferRequestDto otherTransferToOtherTransferRequestDto(OtherTransfer otherTransfer);
 
     /**
      * Смаппить DTO запроса на перевод средств между своими счетами в клиентский DTO

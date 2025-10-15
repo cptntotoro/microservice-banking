@@ -53,16 +53,11 @@ public class AuthController extends BaseController {
                                      Model model) {
         return authService.login(loginRequest)
                 .flatMap(tokenResponse -> exchange.getSession().flatMap(session -> {
-                    log.error("55555555555");
                     session.getAttributes().put("access_token", tokenResponse.getAccessToken());
-                    log.error("66666666666");
 //                    session.getAttributes().put("refresh_token", tokenResponse.getRefreshToken());
-                    log.error("7777777777");
                     return Mono.just("redirect:dashboard");
                 }))
                 .onErrorResume(e -> {
-                    log.error("888888888");
-                    log.error(e.getMessage());
                     model.addAttribute("error", "Неверные учетные данные: " + e.getMessage());
                     model.addAttribute("loginRequest", loginRequest);
                     return renderPage(model, "auth/login",
@@ -109,7 +104,7 @@ public class AuthController extends BaseController {
     /**
      * Обработка выхода из системы
      */
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public Mono<String> performLogout(ServerWebExchange exchange) {
         return exchange.getSession().doOnNext(authService::logout)
                 .then(encodeSuccessRedirect("login", "Вы разлогинились!"));

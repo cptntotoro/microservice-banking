@@ -73,12 +73,19 @@ public class AccountController {
                 .map(accountMapper::accountToAccountWithUserResponseDto);
     }
 
-    @GetMapping("/user/{userId}")
-    public Flux<AccountResponseDto> getUserAccounts(@PathVariable UUID userId) {
-        log.info("Получение счетов пользователя: {}", userId);
-        return accountService.getUserAccounts(userId)
-                .map(accountMapper::accountToAccountResponseDto);
+    @GetMapping("/user-by-email/{email}/{currency}")
+    public Mono<AccountWithUserResponseDto> getAccountWithUserByEmailAndCurrency(@PathVariable String email, @PathVariable String currency) {
+        log.info("Получение счета по email: {}", email);
+        return accountService.getAccountWithUserByEmailAndCurrency(email, currency)
+                .map(accountMapper::accountToAccountWithUserResponseDto);
     }
+
+//    @GetMapping("/user/{userId}")
+//    public Flux<AccountResponseDto> getUserAccounts(@PathVariable UUID userId) {
+//        log.info("Получение счетов пользователя: {}", userId);
+//        return accountService.getUserAccounts(userId)
+//                .map(accountMapper::accountToAccountResponseDto);
+//    }
 
     @DeleteMapping("/{accountId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -101,17 +108,23 @@ public class AccountController {
 //                .map(accountMapper::accountToAccountResponseDto);
 //    }
 
-    @PostMapping("/transfer/own")
-    public Mono<Void> transferBetweenOwnAccounts(@Valid @RequestBody TransferDto dto) {
+    @PostMapping("/transfer")
+    public Mono<Void> transfer(@Valid @RequestBody TransferDto dto) {
         log.info("Перевод между своими счетами: с {} на {} сумма {}", dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
-        return accountService.transferBetweenOwnAccounts(dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
+        return accountService.transferBetweenAccounts(dto);
     }
 
-    @PostMapping("/transfer/other")
-    public Mono<Void> transferToOtherAccount(@Valid @RequestBody TransferDto dto) {
-        log.info("Перевод на другой счет: с {} на номер {} сумма {}", dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
-        return accountService.transferToOtherAccount(dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
-    }
+//    @PostMapping("/transfer/own")
+//    public Mono<Void> transferBetweenOwnAccounts(@Valid @RequestBody TransferDto dto) {
+//        log.info("Перевод между своими счетами: с {} на {} сумма {}", dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
+//        return accountService.transferBetweenOwnAccounts(dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
+//    }
+//
+//    @PostMapping("/transfer/other")
+//    public Mono<Void> transferToOtherAccount(@Valid @RequestBody TransferDto dto) {
+//        log.info("Перевод на другой счет: с {} на номер {} сумма {}", dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
+//        return accountService.transferToOtherAccount(dto.getFromAccountId(), dto.getToAccountId(), dto.getAmount());
+//    }
 
     @PostMapping("/check-update-balance")
     public Mono<Boolean> checkAndUpdateBalance(@Valid @RequestBody BalanceUpdateRequestDto requestDto) {

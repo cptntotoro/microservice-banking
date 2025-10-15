@@ -35,7 +35,6 @@ public interface ExchangeRateMapper {
     /**
      * Создать DTO ответа из результата конвертации
      */
-    @Mapping(target = "operationType", constant = "BUY")
     ExchangeResponseDto toResponseDto(String fromCurrency, String toCurrency,
-                                      BigDecimal originalAmount, BigDecimal convertedAmount, BigDecimal exchangeRate);
+                                      BigDecimal originalAmount, BigDecimal convertedAmount);
 }

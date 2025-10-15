@@ -1,4 +1,4 @@
-package ru.practicum.client.account.dto;
-
-public class AccountByEmailRequestDto {
-}
+//package ru.practicum.client.account.dto;
+//
+//public class AccountByEmailRequestDto {
+//}

@@ -90,14 +90,21 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public Mono<BigDecimal> convert(String fromCurrency, String toCurrency, BigDecimal amount, OperationType type, UUID userId) {
-        return getRate(fromCurrency, toCurrency)
-                .flatMap(rate -> {
-                    BigDecimal exchangeRate = (type == OperationType.BUY) ? rate.getBuyRate() : rate.getSellRate();
-                    BigDecimal converted = calculateConversion(amount, exchangeRate);
-                    return saveOperation(fromCurrency, toCurrency, amount, converted, exchangeRate, type, userId)
-                            .thenReturn(converted);
-                });
+    public Mono<BigDecimal> convert(String fromCurrency, String toCurrency, BigDecimal amount) {
+        String normalizedFrom = fromCurrency.toUpperCase();
+        String normalizedTo = toCurrency.toUpperCase();
+        ExchangeRate fromRate = rubRatesCache.get(normalizedFrom);
+        ExchangeRate toRate = rubRatesCache.get(normalizedTo);
+        return Mono.just(amount.multiply(fromRate.getBuyRate()).divide(toRate.getSellRate(), 2, RoundingMode.HALF_UP));
+
+//        return getRate(fromCurrency, toCurrency)
+//                .flatMap(rate -> {
+//                    BigDecimal exchangeRate = (type == OperationType.BUY) ? rate.getBuyRate() : rate.getSellRate();
+//                    BigDecimal converted = calculateConversion(amount, exchangeRate);
+////                    return saveOperation(fromCurrency, toCurrency, amount, converted, exchangeRate, type, userId)
+////                            .thenReturn(converted);
+//                    return converted;
+//                });
     }
 
     @Override
@@ -163,19 +170,19 @@ public class ExchangeServiceImpl implements ExchangeService {
                 .build();
     }
 
-    private Mono<Void> saveOperation(String from, String to, BigDecimal amount, BigDecimal converted, BigDecimal rate, OperationType type, UUID userId) {
-        Operation operation = Operation.builder()
-                .userId(userId)
-                .fromCurrency(from)
-                .toCurrency(to)
-                .amount(amount)
-                .convertedAmount(converted)
-                .exchangeRate(rate)
-                .operationType(type)
-                .createdAt(LocalDateTime.now())
-                .build();
-        return operationService.saveOperation(operation).then();
-    }
+//    private Mono<Void> saveOperation(String from, String to, BigDecimal amount, BigDecimal converted, BigDecimal rate, OperationType type, UUID userId) {
+//        Operation operation = Operation.builder()
+//                .userId(userId)
+//                .fromCurrency(from)
+//                .toCurrency(to)
+//                .amount(amount)
+//                .convertedAmount(converted)
+//                .exchangeRate(rate)
+//                .operationType(type)
+//                .createdAt(LocalDateTime.now())
+//                .build();
+//        return operationService.saveOperation(operation).then();
+//    }
 
     private BigDecimal calculateConversion(BigDecimal amount, BigDecimal rate) {
         return amount.multiply(rate).setScale(2, RoundingMode.HALF_UP);

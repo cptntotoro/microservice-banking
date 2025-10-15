@@ -25,7 +25,7 @@ public class OperationCheckRequestDto {
     /**
      * Тип операции
      */
-    private String operationType; // "DEPOSIT", "WITHDRAWAL", "TRANSFER"
+    private String operationType; // "DEPOSIT", "WITHDRAW", "TRANSFER"
 
     /**
      * Идентификатор пользователя

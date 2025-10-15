@@ -11,7 +11,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
-import ru.practicum.client.account.dto.*;
+import ru.practicum.client.account.dto.AccountRequestDto;
+import ru.practicum.client.account.dto.AccountResponseDto;
+import ru.practicum.client.account.dto.SignUpResponseDto;
+import ru.practicum.client.account.dto.UserFullResponseClientDto;
 import ru.practicum.dto.auth.SignUpRequestDto;
 
 import java.util.UUID;
@@ -70,16 +73,16 @@ public class AccountServiceClient extends BaseServiceClient {
                 .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
     }
 
-    /**
-     * Получение счета по идентификатору
-     */
-    public Mono<AccountResponseDto> getAccount(AccountByEmailRequestDto accountRequestDto) {
-        String path = "/api/accounts/get";
-        String operation = "Getting account by [userID, currencyCode]: {" + accountRequestDto.getUserId() + ", " + accountRequestDto.getCurrencyCode() + "}";
-        String errorPrefix = "Ошибка получения счета: ";
-        return performMono(HttpMethod.POST, path, accountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
-                .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
-    }
+//    /**
+//     * Получение счета по идентификатору
+//     */
+//    public Mono<AccountResponseDto> getAccount(AccountByEmailRequestDto accountRequestDto) {
+//        String path = "/api/accounts/get";
+//        String operation = "Getting account by [userID, currencyCode]: {" + accountRequestDto.getUserId() + ", " + accountRequestDto.getCurrencyCode() + "}";
+//        String errorPrefix = "Ошибка получения счета: ";
+//        return performMono(HttpMethod.POST, path, accountRequestDto, AccountResponseDto.class, operation, errorPrefix, true)
+//                .doOnSuccess(response -> log.info("Account retrieved: {}", response.getId()));
+//    }
 
     /**
      * Получение счета по идентификатору

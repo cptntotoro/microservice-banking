@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.account.AccountServiceClient;
-import ru.practicum.client.account.dto.AccountByEmailRequestDto;
 import ru.practicum.client.account.dto.AccountRequestDto;
-import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.mapper.account.AccountMapper;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.account.Account;
@@ -65,11 +63,11 @@ public class AccountServiceImpl implements AccountService {
                 .doOnError(error -> log.error("Ошибка получения счета пользователя {}: {}", accountRequestDto, error.getMessage()));
     }
 
-    @Override
-    public Mono<Account> getAccountByEmail(AccountByEmailRequestDto requestDto) {
-        return accountServiceClient.getAccount(requestDto)
-                .map(accountMapper::toAccount)
-                .doOnSuccess(account -> log.info("Счет пользователя получен: {}", account))
-                .doOnError(error -> log.error("Ошибка получения счета пользователя {}: {}", requestDto, error.getMessage()));
-    }
+//    @Override
+//    public Mono<Account> getAccountByEmail(AccountByEmailRequestDto requestDto) {
+//        return accountServiceClient.getAccount(requestDto)
+//                .map(accountMapper::toAccount)
+//                .doOnSuccess(account -> log.info("Счет пользователя получен: {}", account))
+//                .doOnError(error -> log.error("Ошибка получения счета пользователя {}: {}", requestDto, error.getMessage()));
+//    }
 }

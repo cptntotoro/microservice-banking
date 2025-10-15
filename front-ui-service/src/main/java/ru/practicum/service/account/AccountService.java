@@ -1,9 +1,7 @@
 package ru.practicum.service.account;
 
 import reactor.core.publisher.Mono;
-import ru.practicum.client.account.dto.AccountByEmailRequestDto;
 import ru.practicum.client.account.dto.AccountRequestDto;
-import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.model.account.Account;
 import ru.practicum.model.user.UserWithAccounts;
 
@@ -28,5 +26,5 @@ public interface AccountService {
 
     Mono<Account> getAccount(AccountRequestDto accountRequestDto);
 
-    Mono<Account> getAccountByEmail(AccountByEmailRequestDto requestDto);
+//    Mono<Account> getAccountByEmail(AccountByEmailRequestDto requestDto);
 }

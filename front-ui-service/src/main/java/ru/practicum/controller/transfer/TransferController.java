@@ -39,7 +39,7 @@ public class TransferController extends BaseController {
                 requestDto.getFromAccountId(), requestDto.getToAccountId(), requestDto.getAmount());
 
         return withAuthenticatedUser(exchange, userId -> transferService.performOwnTransfer(requestDto, userId)
-                .flatMap(result -> encodeSuccessRedirect("dashboard", "Перевод успешно выполнен"))
+                .then(encodeSuccessRedirect("dashboard", "Перевод успешно выполнен"))
                 .onErrorResume(e -> encodeErrorRedirect("dashboard", "Произошла непредвиденная ошибка: " + e.getMessage())));
     }
 
@@ -48,8 +48,8 @@ public class TransferController extends BaseController {
         log.info("Обработка запроса перевода между счетами: getFromAccountId={}, getToCurrency={}, getRecipientEmail={}, getAmount={}",
                 requestDto.getFromAccountId(), requestDto.getToCurrency(), requestDto.getRecipientEmail(), requestDto.getAmount());
 
-        return withAuthenticatedUser(exchange, userId -> transferService.performOtherTransfer(mapToOtherTransferModel(userId, requestDto))
-                .flatMap(result -> encodeSuccessRedirect("dashboard", "Перевод успешно выполнен"))
+        return withAuthenticatedUser(exchange, userId -> transferService.performOtherTransfer(requestDto, userId)
+                .then(encodeSuccessRedirect("dashboard", "Перевод успешно выполнен"))
                 .onErrorResume(e -> encodeErrorRedirect("dashboard", "Произошла непредвиденная ошибка: " + e.getMessage())));
     }
 

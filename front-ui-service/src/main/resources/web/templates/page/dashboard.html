@@ -203,7 +203,6 @@
                     <div class="form__row">
                         <label class="label">Получатель</label>
                         <input class="input" type="text" name="recipientEmail" placeholder="Введите email получателя" required/>
-                        <div th:if="${#fields.hasErrors('recipientEmail')}" th:errors="*{recipientEmail}" class="error"></div>
                     </div>
                     <div class="form__row">
                         <label class="label">Сумма</label>

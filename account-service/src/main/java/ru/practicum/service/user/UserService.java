@@ -60,6 +60,7 @@ public interface UserService {
      * @return Модель пользователя
      */
     Mono<User> getUserByUsername(String login);
+    Mono<User> getUserByEmail(String email);
 
     /**
      * Обновление данных пользователя

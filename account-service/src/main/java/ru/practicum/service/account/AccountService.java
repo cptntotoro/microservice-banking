@@ -1,10 +1,12 @@
 package ru.practicum.service.account;
 
+import org.springframework.web.bind.annotation.PathVariable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.account.AccountRequestDto;
 import ru.practicum.dto.account.AccountWithUserResponseDto;
 import ru.practicum.dto.account.BalanceUpdateRequestDto;
+import ru.practicum.dto.account.TransferDto;
 import ru.practicum.model.account.Account;
 
 import java.math.BigDecimal;
@@ -30,6 +32,7 @@ public interface AccountService {
      * @return Счет
      */
     Mono<Account> getAccountById(UUID accountId);
+    Mono<Account> getAccountWithUserByEmailAndCurrency(String email, String currency);
 
     /**
      * Получить счета пользователя
@@ -68,43 +71,44 @@ public interface AccountService {
 
     Mono<Boolean> checkAndUpdateBalance(BalanceUpdateRequestDto balanceUpdateRequestDto);
 
-    /**
-     * Пополнить счет
-     *
-     * @param accountId Идентификатор счета
-     * @param amount    Сумма пополнения
-     * @return Обновленный счет
-     */
-    Mono<Account> deposit(UUID accountId, BigDecimal amount);
+//    /**
+//     * Пополнить счет
+//     *
+//     * @param accountId Идентификатор счета
+//     * @param amount    Сумма пополнения
+//     * @return Обновленный счет
+//     */
+//    Mono<Account> deposit(UUID accountId, BigDecimal amount);
 
-    /**
-     * Снять деньги со счета
-     *
-     * @param accountId Идентификатор счета
-     * @param amount    Сумма снятия
-     * @return Обновленный счет
-     */
-    Mono<Account> withdraw(UUID accountId, BigDecimal amount);
+//    /**
+//     * Снять деньги со счета
+//     *
+//     * @param accountId Идентификатор счета
+//     * @param amount    Сумма снятия
+//     * @return Обновленный счет
+//     */
+//    Mono<Account> withdraw(UUID accountId, BigDecimal amount);
+//
+//    /**
+//     * Перевести деньги между счетами одного пользователя
+//     *
+//     * @param fromAccountId Идентификатор счета отправителя
+//     * @param toAccountId   Идентификатор счета получателя
+//     * @param amount        Сумма перевода
+//     * @return Пустой результат
+//     */
+//    Mono<Void> transferBetweenOwnAccounts(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
+    Mono<Void> transferBetweenAccounts(TransferDto dto);
 
-    /**
-     * Перевести деньги между счетами одного пользователя
-     *
-     * @param fromAccountId Идентификатор счета отправителя
-     * @param toAccountId   Идентификатор счета получателя
-     * @param amount        Сумма перевода
-     * @return Пустой результат
-     */
-    Mono<Void> transferBetweenOwnAccounts(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
-
-    /**
-     * Перевести деньги на счет другого пользователя
-     *
-     * @param fromAccountId Идентификатор счета отправителя
-     * @param toAccountId   Идентификатор счета получателя
-     * @param amount        Сумма перевода
-     * @return Пустой результат
-     */
-    Mono<Void> transferToOtherAccount(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
+//    /**
+//     * Перевести деньги на счет другого пользователя
+//     *
+//     * @param fromAccountId Идентификатор счета отправителя
+//     * @param toAccountId   Идентификатор счета получателя
+//     * @param amount        Сумма перевода
+//     * @return Пустой результат
+//     */
+//    Mono<Void> transferToOtherAccount(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
 
     Mono<Boolean> existsAccount(UUID userId, UUID accountId);
 

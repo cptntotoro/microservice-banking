@@ -65,28 +65,17 @@ public class ExchangeRateController {
     @PostMapping("/convert")
     @ResponseStatus(HttpStatus.OK)
     public Mono<ExchangeResponseDto> convertCurrency(@Valid @RequestBody ExchangeRequestDto requestDto) {
-        log.info("Conversion request: {} to {}, amount {}, type {}, userId {}",
-                requestDto.getFromCurrency(), requestDto.getToCurrency(), requestDto.getAmount(),
-                requestDto.getOperationType(), requestDto.getUserId());
+        log.info("Conversion request: {} to {}, amount {}",
+                requestDto.getFromCurrency(), requestDto.getToCurrency(), requestDto.getAmount());
         return exchangeService.convert(
                 requestDto.getFromCurrency(),
                 requestDto.getToCurrency(),
+                requestDto.getAmount()
+        ).map(converted -> exchangeRateMapper.toResponseDto(
+                requestDto.getFromCurrency(),
+                requestDto.getToCurrency(),
                 requestDto.getAmount(),
-                requestDto.getOperationType(),
-                requestDto.getUserId()
-        ).flatMap(converted ->
-                exchangeService.getRate(requestDto.getFromCurrency(), requestDto.getToCurrency())
-                        .map(rate -> {
-                            BigDecimal usedRate = (requestDto.getOperationType() == OperationType.BUY) ? rate.getBuyRate() : rate.getSellRate();
-                            return exchangeRateMapper.toResponseDto(
-                                    requestDto.getFromCurrency(),
-                                    requestDto.getToCurrency(),
-                                    requestDto.getAmount(),
-                                    converted,
-                                    usedRate
-                            );
-                        })
-        );
+                converted));
     }
 
     @GetMapping("/currencies")

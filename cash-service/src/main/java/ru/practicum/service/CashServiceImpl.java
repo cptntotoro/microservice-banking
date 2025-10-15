@@ -91,8 +91,6 @@ public class CashServiceImpl implements CashService {
     }
 
     private Mono<CashOperationDao> createOperationRecord(CashRequestDto request, String operationType) {
-        log.error("1111111111111");
-
         CashOperationDao operation = CashOperationDao.builder()
                 .accountId(request.getAccountId())
                 .operationType(operationType)
@@ -103,8 +101,6 @@ public class CashServiceImpl implements CashService {
                         operationType, request.getAmount(), request.getCurrency()))
                 .createdAt(LocalDateTime.now())
                 .build();
-
-        log.error(operation.toString());
 
         log.info("Начало операции: {}", operation);
 

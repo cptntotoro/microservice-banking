@@ -39,7 +39,7 @@ public interface ExchangeService {
      *
      * @return Значение конвертации
      */
-    Mono<BigDecimal> convert(String fromCurrency, String toCurrency, BigDecimal amount, OperationType type, UUID userId);
+    Mono<BigDecimal> convert(String fromCurrency, String toCurrency, BigDecimal amount);
 
     /**
      * Получить доступные валюты для конвертации

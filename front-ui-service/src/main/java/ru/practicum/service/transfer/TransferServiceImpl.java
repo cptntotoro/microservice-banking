@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.transfer.TransferServiceClient;
+import ru.practicum.client.transfer.dto.OtherTransferRequestClientDto;
 import ru.practicum.client.transfer.dto.OwnTransferRequestClientDto;
+import ru.practicum.client.transfer.dto.TransferResponseDto;
 import ru.practicum.dto.transfer.OtherTransferRequestDto;
 import ru.practicum.dto.transfer.OwnTransferRequestDto;
 import ru.practicum.exception.ServiceUnavailableException;
@@ -45,110 +47,112 @@ public class TransferServiceImpl implements TransferService {
     private final AccountService accountService;
 
     @Override
-    public Mono<TransferResult> performOwnTransfer(OwnTransferRequestDto requestDto, UUID userId) {
+    public Mono<TransferResponseDto> performOwnTransfer(OwnTransferRequestDto requestDto, UUID userId) {
         OwnTransferRequestClientDto clientDto = transferMapper.ownTransferRequestDtoToOwnTransferRequestClientDto(requestDto);
         clientDto.setUserId(userId);
-        transferServiceClient.performOwnTransfer(clientDto)
-                .flatMap()
+        return transferServiceClient.performOwnTransfer(clientDto);
 
-        return validateCurrencies(model.getFromCurrency(), model.getToCurrency())
-                .flatMap(valid -> {
-                    if (!valid) {
-                        log.warn("Недопустимая валюта для перевода: fromCurrency={}, toCurrency={}",
-                                model.getFromCurrency(), model.getToCurrency());
-                        return Mono.just(createFailedResult(
-                                model.getFromAccountId(),
-                                model.getToAccountId(),
-                                model.getAmount(),
-                                "Недопустимая валюта: " + model.getFromCurrency() + " или " + model.getToCurrency(),
-                                TransferErrorCode.INVALID_CURRENCY));
-                    }
-                    log.info("Обработка перевода между своими счетами для пользователя {}: {} -> {}",
-                            model.getUserId(), model.getFromAccountId(), model.getToAccountId());
-
-
-
-                    OwnTransferRequestDto dto = transferMapper.ownTransferToOwnTransferRequestDto(model);
-                    return transferServiceClient.performOwnTransfer(
-                                    , model.getUserId())
-                            .map(v -> createSuccessResult(
-                                    model.getFromAccountId(),
-                                    model.getToAccountId(),
-                                    model.getAmount(),
-                                    "Перевод успешно выполнен"))
-                            .onErrorResume(TransferException.class, e -> {
-                                log.warn("Ошибка перевода между своими счетами: {}", e.getMessage());
-                                return Mono.just(createFailedResult(
-                                        model.getFromAccountId(),
-                                        model.getToAccountId(),
-                                        model.getAmount(),
-                                        e.getMessage(),
-                                        e.getErrorCode()));
-                            })
-                            .onErrorResume(ServiceUnavailableException.class, e ->
-                                    createServiceUnavailableResult(model, e, "Сервис переводов недоступен")) // Removed Mono.just
-                            .onErrorResume(e -> {
-                                log.error("Неизвестная ошибка при переводе между своими счетами для пользователя {}: {}",
-                                        model.getUserId(), e.getMessage());
-                                return Mono.just(createFailedResult(
-                                        model.getFromAccountId(),
-                                        model.getToAccountId(),
-                                        model.getAmount(),
-                                        "Неизвестная ошибка: " + e.getMessage(),
-                                        TransferErrorCode.UNKNOWN_ERROR));
-                            });
-                });
+//        return validateCurrencies(model.getFromCurrency(), model.getToCurrency())
+//                .flatMap(valid -> {
+//                    if (!valid) {
+//                        log.warn("Недопустимая валюта для перевода: fromCurrency={}, toCurrency={}",
+//                                model.getFromCurrency(), model.getToCurrency());
+//                        return Mono.just(createFailedResult(
+//                                model.getFromAccountId(),
+//                                model.getToAccountId(),
+//                                model.getAmount(),
+//                                "Недопустимая валюта: " + model.getFromCurrency() + " или " + model.getToCurrency(),
+//                                TransferErrorCode.INVALID_CURRENCY));
+//                    }
+//                    log.info("Обработка перевода между своими счетами для пользователя {}: {} -> {}",
+//                            model.getUserId(), model.getFromAccountId(), model.getToAccountId());
+//
+//
+//
+//                    OwnTransferRequestDto dto = transferMapper.ownTransferToOwnTransferRequestDto(model);
+//                    return transferServiceClient.performOwnTransfer(
+//                                    , model.getUserId())
+//                            .map(v -> createSuccessResult(
+//                                    model.getFromAccountId(),
+//                                    model.getToAccountId(),
+//                                    model.getAmount(),
+//                                    "Перевод успешно выполнен"))
+//                            .onErrorResume(TransferException.class, e -> {
+//                                log.warn("Ошибка перевода между своими счетами: {}", e.getMessage());
+//                                return Mono.just(createFailedResult(
+//                                        model.getFromAccountId(),
+//                                        model.getToAccountId(),
+//                                        model.getAmount(),
+//                                        e.getMessage(),
+//                                        e.getErrorCode()));
+//                            })
+//                            .onErrorResume(ServiceUnavailableException.class, e ->
+//                                    createServiceUnavailableResult(model, e, "Сервис переводов недоступен")) // Removed Mono.just
+//                            .onErrorResume(e -> {
+//                                log.error("Неизвестная ошибка при переводе между своими счетами для пользователя {}: {}",
+//                                        model.getUserId(), e.getMessage());
+//                                return Mono.just(createFailedResult(
+//                                        model.getFromAccountId(),
+//                                        model.getToAccountId(),
+//                                        model.getAmount(),
+//                                        "Неизвестная ошибка: " + e.getMessage(),
+//                                        TransferErrorCode.UNKNOWN_ERROR));
+//                            });
+//                });
     }
 
     @Override
-    public Mono<TransferResult> performOtherTransfer(OtherTransfer model) {
+    public Mono<TransferResponseDto> performOtherTransfer(OtherTransferRequestDto requestDto, UUID userId) {
+        OtherTransferRequestClientDto clientDto = transferMapper.otherTransferRequestDtoToOtherTransferRequestClientDto(requestDto);
+        clientDto.setFromUserId(userId);
+        return transferServiceClient.performOtherTransfer(clientDto);
 //        accountService.getAccountByEmail(model.get(), model.)
-        return validateCurrencies(model.getFromCurrency(), model.getToCurrency())
-                .flatMap(valid -> {
-                    if (!valid) {
-                        log.warn("Недопустимая валюта для перевода: fromCurrency={}, toCurrency={}",
-                                model.getFromCurrency(), model.getToCurrency());
-                        return Mono.just(createFailedResult(
-                                model.getFromAccountId(),
-                                null,
-                                model.getAmount(),
-                                "Недопустимая валюта: " + model.getFromCurrency() + " или " + model.getToCurrency(),
-                                TransferErrorCode.INVALID_CURRENCY));
-                    }
-                    log.info("Обработка перевода другому пользователю для пользователя {}: на email {}",
-                            model.getUserId(), model.getRecipientEmail());
-
-                    OtherTransferRequestDto dto = transferMapper.otherTransferToOtherTransferRequestDto(model);
-                    return transferServiceClient.performOtherTransfer(
-                                    transferMapper.otherTransferRequestDtoToOtherTransferRequestClientDto(dto), model.getUserId())
-                            .map(v -> createSuccessResult(
-                                    model.getFromAccountId(),
-                                    model.getAmount(),
-                                    model.getToCurrency(),
-                                    model.getRecipientEmail(),
-                                    "Перевод успешно выполнен"))
-                            .onErrorResume(TransferException.class, e -> {
-                                log.warn("Ошибка перевода другому пользователю: {}", e.getMessage());
-                                return Mono.just(createFailedResult(
-                                        model.getFromAccountId(),
-                                        null,
-                                        model.getAmount(),
-                                        e.getMessage(),
-                                        e.getErrorCode()));
-                            })
-                            .onErrorResume(ServiceUnavailableException.class, e ->
-                                    createServiceUnavailableResult(model, e, "Сервис переводов недоступен")) // Removed Mono.just
-                            .onErrorResume(e -> {
-                                log.error("Неизвестная ошибка при переводе другому пользователю для пользователя {}: {}",
-                                        model.getUserId(), e.getMessage());
-                                return Mono.just(createFailedResult(
-                                        model.getFromAccountId(),
-                                        null,
-                                        model.getAmount(),
-                                        "Неизвестная ошибка: " + e.getMessage(),
-                                        TransferErrorCode.UNKNOWN_ERROR));
-                            });
-                });
+//        return validateCurrencies(model.getFromCurrency(), model.getToCurrency())
+//                .flatMap(valid -> {
+//                    if (!valid) {
+//                        log.warn("Недопустимая валюта для перевода: fromCurrency={}, toCurrency={}",
+//                                model.getFromCurrency(), model.getToCurrency());
+//                        return Mono.just(createFailedResult(
+//                                model.getFromAccountId(),
+//                                null,
+//                                model.getAmount(),
+//                                "Недопустимая валюта: " + model.getFromCurrency() + " или " + model.getToCurrency(),
+//                                TransferErrorCode.INVALID_CURRENCY));
+//                    }
+//                    log.info("Обработка перевода другому пользователю для пользователя {}: на email {}",
+//                            model.getUserId(), model.getRecipientEmail());
+//
+//                    OtherTransferRequestDto dto = transferMapper.otherTransferToOtherTransferRequestDto(model);
+//                    return transferServiceClient.performOtherTransfer(
+//                                    transferMapper.otherTransferRequestDtoToOtherTransferRequestClientDto(dto), model.getUserId())
+//                            .map(v -> createSuccessResult(
+//                                    model.getFromAccountId(),
+//                                    model.getAmount(),
+//                                    model.getToCurrency(),
+//                                    model.getRecipientEmail(),
+//                                    "Перевод успешно выполнен"))
+//                            .onErrorResume(TransferException.class, e -> {
+//                                log.warn("Ошибка перевода другому пользователю: {}", e.getMessage());
+//                                return Mono.just(createFailedResult(
+//                                        model.getFromAccountId(),
+//                                        null,
+//                                        model.getAmount(),
+//                                        e.getMessage(),
+//                                        e.getErrorCode()));
+//                            })
+//                            .onErrorResume(ServiceUnavailableException.class, e ->
+//                                    createServiceUnavailableResult(model, e, "Сервис переводов недоступен")) // Removed Mono.just
+//                            .onErrorResume(e -> {
+//                                log.error("Неизвестная ошибка при переводе другому пользователю для пользователя {}: {}",
+//                                        model.getUserId(), e.getMessage());
+//                                return Mono.just(createFailedResult(
+//                                        model.getFromAccountId(),
+//                                        null,
+//                                        model.getAmount(),
+//                                        "Неизвестная ошибка: " + e.getMessage(),
+//                                        TransferErrorCode.UNKNOWN_ERROR));
+//                            });
+//                });
     }
 
     // Вспомогательный метод для валидации валют

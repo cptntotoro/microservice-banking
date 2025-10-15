@@ -83,7 +83,7 @@ public abstract class BaseController {
     }
 
     protected Mono<String> encodeRedirect(String path, String paramName, String paramValue) {
-        return Mono.just("redirect:" + path + "?" + paramName + "=" + encode(paramValue));
+        return Mono.just("redirect:/" + path + "?" + paramName + "=" + encode(paramValue));
     }
 
     private String encode(String paramValue) {
