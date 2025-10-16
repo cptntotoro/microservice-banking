@@ -13,6 +13,9 @@ import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
 import ru.practicum.client.blocker.dto.OperationCheckResponseDto;
 
+/**
+ * Клиент для сервиса блокировки подозрительных операций
+ */
 @Component
 @Slf4j
 public class BlockerServiceClient extends BaseServiceClient {

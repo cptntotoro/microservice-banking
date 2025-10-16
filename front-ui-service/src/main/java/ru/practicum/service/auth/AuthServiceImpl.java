@@ -16,9 +16,15 @@ import ru.practicum.dto.auth.SignUpRequestDto;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
+    /**
+     * Клиент для сервиса аккаунтов
+     */
     private final AccountServiceClient accountServiceClient;
-    private final AuthServiceClient authServiceClient;
 
+    /**
+     * Клиент для сервиса аутентификации
+     */
+    private final AuthServiceClient authServiceClient;
 
     @Override
     public Mono<SignUpResponseDto> createUser(SignUpRequestDto signUpRequestDto) {

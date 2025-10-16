@@ -1,6 +1,5 @@
 package ru.practicum.dto.account;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO для перевода
+ * DTO перевода
  */
 @Getter
 @Setter
@@ -23,7 +22,6 @@ public class TransferDto {
     /**
      * Идентификатор счета отправителя
      */
-    @NotNull(message = "ID счета отправителя обязательно")
     private UUID fromAccountId;
 
     /**
@@ -36,4 +34,9 @@ public class TransferDto {
      */
     @Positive(message = "Сумма должна быть положительной")
     private BigDecimal amount;
+
+    /**
+     * Конвертированная сумма для зачисления
+     */
+    private BigDecimal convertedAmount;
 }

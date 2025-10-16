@@ -1,15 +1,14 @@
 package ru.practicum.dto.exchange;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.model.operation.OperationType;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 /**
  * Запрос на конвертацию валют
@@ -19,34 +18,23 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExchangeRequestDto {
+
     /**
      * Код исходной валюты
      */
-    @NotNull
+    @NotBlank(message = "Код валюты отправителя обязателен")
     private String fromCurrency;
 
     /**
      * Код целевой валюты
      */
-    @NotNull
+    @NotBlank(message = "Код валюты получателя обязателен")
     private String toCurrency;
 
     /**
      * Сумма операции
      */
-    @NotNull
-    @Positive
+    @NotNull(message = "Сумма обязательна")
+    @Positive(message = "Сумма должна быть положительной")
     private BigDecimal amount;
-
-    /**
-     * Покупка / Продажа
-     */
-    @NotNull
-    private OperationType operationType;
-
-    /**
-     * Идентификатор пользователя
-     */
-    @NotNull
-    private UUID userId;
 }

@@ -34,14 +34,4 @@ public class ExchangeResponseDto {
      * Результат конвертации
      */
     private BigDecimal convertedAmount;
-
-    /**
-     * Использованный курс обмена
-     */
-    private BigDecimal exchangeRate;
-
-    /**
-     * Тип операции (покупка/продажа)
-     */
-    private String operationType;
 }

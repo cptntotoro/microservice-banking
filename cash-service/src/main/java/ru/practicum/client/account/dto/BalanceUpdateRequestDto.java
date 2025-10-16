@@ -19,6 +19,11 @@ public class BalanceUpdateRequestDto {
     /**
      * Идентификатор аккаунта
      */
+    private UUID userId;
+
+    /**
+     * Идентификатор аккаунта
+     */
     private UUID accountId;
 
     /**

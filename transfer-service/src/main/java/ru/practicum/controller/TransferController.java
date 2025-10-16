@@ -13,7 +13,6 @@ import ru.practicum.dto.OtherTransferRequestDto;
 import ru.practicum.dto.OwnTransferRequestDto;
 import ru.practicum.dto.TransferResponseDto;
 import ru.practicum.mapper.TransferMapper;
-import ru.practicum.model.TransferRequest;
 import ru.practicum.service.TransferService;
 
 @RestController
@@ -33,16 +32,14 @@ public class TransferController {
     @PostMapping("/own")
     @ResponseStatus(HttpStatus.OK)
     public Mono<TransferResponseDto> transferOwn(@Valid @RequestBody OwnTransferRequestDto requestDto) {
-        TransferRequest request = transferMapper.transferRequestDtoToTransferRequest(requestDto);
-        return transferService.transferBetweenOwnAccounts(request)
+        return transferService.transferBetweenOwnAccounts(requestDto)
                 .map(transferMapper::transferResponseToTransferResponseDto);
     }
 
     @PostMapping("/other")
     @ResponseStatus(HttpStatus.OK)
     public Mono<TransferResponseDto> transferOther(@Valid @RequestBody OtherTransferRequestDto requestDto) {
-        TransferRequest request = transferMapper.otherTransferRequestDtoToTransferRequest(requestDto);
-        return transferService.transferToOtherAccount(request)
+        return transferService.transferToOtherAccount(requestDto)
                 .map(transferMapper::transferResponseToTransferResponseDto);
     }
 }

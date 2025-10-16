@@ -7,10 +7,16 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * DTO доступных валют
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AvailableCurrenciesDto {
+    /**
+     * Список 3-буквенных кодов валют
+     */
     private List<String> currencies;
 }

@@ -15,6 +15,9 @@ import ru.practicum.exception.ServiceUnavailableException;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Базовый клиент сервисов
+ */
 public abstract class BaseServiceClient {
     private final WebClient webClient;
     private final DiscoveryClient discoveryClient;
@@ -25,6 +28,7 @@ public abstract class BaseServiceClient {
     }
 
     protected abstract Logger getLogger();
+
     protected abstract String getServiceId();
 
     protected WebClient getWebClient() {

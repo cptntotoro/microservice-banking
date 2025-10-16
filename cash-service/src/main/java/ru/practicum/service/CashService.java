@@ -1,7 +1,7 @@
 package ru.practicum.service;
 
 import reactor.core.publisher.Mono;
-import ru.practicum.model.CashRequest;
+import ru.practicum.dto.CashRequestDto;
 import ru.practicum.model.CashResponse;
 
 /**
@@ -9,18 +9,10 @@ import ru.practicum.model.CashResponse;
  */
 public interface CashService {
     /**
-     * Пололнить счет
+     * Произвести валютную операцию
      *
-     * @param request Запрос на пополнение счета
-     * @return Ответ
+     * @param request DTO запроса на пополнение счета
+     * @return Ответ на запрос на пополнение счета
      */
-    Mono<CashResponse> deposit(CashRequest request);
-
-    /**
-     * Снять средства со счета
-     *
-     * @param request Запрос на снятие средств
-     * @return Ответ
-     */
-    Mono<CashResponse> withdraw(CashRequest request);
+    Mono<CashResponse> cashOperation(CashRequestDto request);
 }

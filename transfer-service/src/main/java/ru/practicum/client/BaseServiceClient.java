@@ -15,6 +15,9 @@ import ru.practicum.exception.ServiceUnavailableException;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Базовый клиент сервисов
+ */
 public abstract class BaseServiceClient {
     private final WebClient webClient;
     private final DiscoveryClient discoveryClient;
@@ -39,7 +42,7 @@ public abstract class BaseServiceClient {
                 throw new ServiceUnavailableException(
                         "Сервис " + getServiceId() + " не найден в реестре",
                         getServiceId(),
-                        "Не удалось обнаружить экземпляры сервиса в Eureka/Consul");
+                        "Не удалось обнаружить экземпляры сервиса в Consul");
             }
 
             ServiceInstance instance = instances.getFirst();

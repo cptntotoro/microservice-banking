@@ -1,7 +1,8 @@
 package ru.practicum.service;
 
 import reactor.core.publisher.Mono;
-import ru.practicum.model.TransferRequest;
+import ru.practicum.dto.OtherTransferRequestDto;
+import ru.practicum.dto.OwnTransferRequestDto;
 import ru.practicum.model.TransferResponse;
 
 /**
@@ -14,13 +15,12 @@ public interface TransferService {
      * @param request Запрос на перевод средств
      * @return Результат перевода средств
      */
-    Mono<TransferResponse> transferBetweenOwnAccounts(TransferRequest request);
+    Mono<TransferResponse> transferBetweenOwnAccounts(OwnTransferRequestDto request);
 
     /**
      * Перевести средства на счет другого пользователя
      *
-     * @param request Запрос на перевод средств
      * @return Результат перевода средств
      */
-    Mono<TransferResponse> transferToOtherAccount(TransferRequest request);
+    Mono<TransferResponse> transferToOtherAccount(OtherTransferRequestDto requestDto);
 }

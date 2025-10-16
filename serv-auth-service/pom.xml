@@ -35,7 +35,6 @@
             <version>2.18.3</version>
         </dependency>
 
-
         <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,7 +52,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-
 
         <!-- Spring Cloud -->
         <dependency>

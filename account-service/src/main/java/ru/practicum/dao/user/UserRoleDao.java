@@ -18,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table("user_roles")
 public class UserRoleDao {
-
     /**
      * Идентификатор пользователя
      */

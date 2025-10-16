@@ -15,5 +15,11 @@ public interface CurrencyService {
      */
     Flux<Currency> getAllCurrencies();
 
+    /**
+     * Проверить валидность кода валюты
+     *
+     * @param code Код валюты
+     * @return Да / Нет
+     */
     boolean isValidCurrency(String code);
 }

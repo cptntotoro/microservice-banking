@@ -22,11 +22,39 @@ public class UserProfileResponseClientDto {
      * Email пользователя
      */
     private String email;
+
+    /**
+     * Имя
+     */
     private String firstName;
+
+    /**
+     * Фамилия
+     */
     private String lastName;
+
+    /**
+     * Дата рождения
+     */
     private LocalDate birthDate;
+
+    /**
+     * Дата создания
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * Дата последнего логина
+     */
     private LocalDateTime lastLoginAt;
+
+    /**
+     * Флаг подтверждения адреса электронной почты
+     */
     private Boolean emailVerified;
+
+    /**
+     * Флаг активности аккаунта
+     */
     private Boolean accountEnabled;
 }

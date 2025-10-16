@@ -1,6 +1,7 @@
 package ru.practicum.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.dao.TransferDao;
 import ru.practicum.dto.OtherTransferRequestDto;
 import ru.practicum.dto.OwnTransferRequestDto;
@@ -30,6 +31,7 @@ public interface TransferMapper {
      * @param otherTransferRequestDto DTO запроса на перевод другому человеку
      * @return Запрос на перевод средств
      */
+    @Mapping(target = "toAccountId", ignore = true)
     TransferRequest otherTransferRequestDtoToTransferRequest(OtherTransferRequestDto otherTransferRequestDto);
 
     /**
@@ -48,7 +50,7 @@ public interface TransferMapper {
      * @param toCurrency Валюта получателя
      * @param timestamp Время операции
      * @param type Тип операции
-     * @param errorDescription Описание ошибки (если FAILED)
+     * @param errorDescription Описание ошибки
      * @return TransferDao
      */
     default TransferDao transferResponseToTransferDao(TransferResponse response, String fromCurrency, String toCurrency, LocalDateTime timestamp,

@@ -1,27 +1,23 @@
 package ru.practicum.client.account;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.account.dto.BalanceUpdateRequestDto;
+import ru.practicum.client.account.dto.UserResponseDto;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 /**
- * Клиент для обращений к сервису аккаунтов
+ * Клиент для сервиса аккаунтов
  */
 @Component
 @Slf4j
@@ -39,11 +35,11 @@ public class AccountsServiceClient extends BaseServiceClient {
 
     @Override
     protected String getServiceId() {
-        return "accounts-service";
+        return "account-service";
     }
 
     public Mono<Boolean> verifyAccount(UUID accountId, UUID userId) {
-        String path = "/accounts/verify?accountId=" + accountId + "&userId=" + userId;
+        String path = "/accounts/verify/" + userId + "/" + accountId;
         String operation = "Verify account: " + accountId;
         String errorPrefix = "Ошибка верификации счета: ";
         return performMono(HttpMethod.GET, path, null, Boolean.class, operation, errorPrefix, true)
@@ -64,5 +60,21 @@ public class AccountsServiceClient extends BaseServiceClient {
         String errorPrefix = "Ошибка обновления баланса счета: ";
         return performMono(HttpMethod.POST, path, request, Void.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Account balance updated"));
+    }
+
+    public Mono<Boolean> checkAndUpdateAccountBalance(BalanceUpdateRequestDto request) {
+        String path = "/api/accounts/check-update-balance";
+        String operation = "Update account balance: " + request;
+        String errorPrefix = "Ошибка обновления баланса счета: ";
+        return performMono(HttpMethod.POST, path, request, Boolean.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("Account balance updated"));
+    }
+
+    public Mono<UserResponseDto> getUser(UUID userId) {
+        String path = "/api/users/" + userId;
+        String operation = "Getting  user profile by ID: " + userId;
+        String errorPrefix = "Ошибка получения профиля пользователя: ";
+        return performMono(HttpMethod.GET, path, null, UserResponseDto.class, operation, errorPrefix, true)
+                .doOnSuccess(response -> log.info("User profile retrieved: {}", userId));
     }
 }

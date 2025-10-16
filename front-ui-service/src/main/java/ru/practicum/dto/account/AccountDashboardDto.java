@@ -16,7 +16,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountDashboardDto {
-
     /**
      * Идентификатор счета
      */

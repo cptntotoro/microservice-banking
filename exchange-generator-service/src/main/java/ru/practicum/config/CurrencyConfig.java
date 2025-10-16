@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 public class CurrencyConfig {
     /**
-     * Поддерживаемые валюты (3-буквенные коды)
+     * Поддерживаемые коды валют
      */
     private List<String> supported;
 }

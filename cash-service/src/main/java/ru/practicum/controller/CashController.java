@@ -26,21 +26,10 @@ public class CashController {
      */
     private final CashMapper cashMapper;
 
-    @PostMapping("/deposit")
-    public Mono<ResponseEntity<CashResponseDto>> deposit(@RequestBody CashRequestDto requestDto) {
-        return cashService.deposit(cashMapper.toModel(requestDto))
-                .map(cashMapper::toDto)
-                .map(ResponseEntity::ok)
-                .onErrorResume(IllegalArgumentException.class, e ->
-                        Mono.just(ResponseEntity.badRequest().body(new CashResponseDto("ERROR", e.getMessage()))))
-                .onErrorResume(Exception.class, e ->
-                        Mono.just(ResponseEntity.status(500).body(new CashResponseDto("ERROR", "Internal server error"))));
-    }
-
-    @PostMapping("/withdraw")
-    public Mono<ResponseEntity<CashResponseDto>> withdraw(@RequestBody CashRequestDto requestDto) {
-        return cashService.withdraw(cashMapper.toModel(requestDto))
-                .map(cashMapper::toDto)
+    @PostMapping("/cash-operation")
+    public Mono<ResponseEntity<CashResponseDto>> cashOperation(@RequestBody CashRequestDto requestDto) {
+        return cashService.cashOperation(requestDto)
+                .map(cashMapper::cashResponseToCashResponseDto)
                 .map(ResponseEntity::ok)
                 .onErrorResume(IllegalArgumentException.class, e ->
                         Mono.just(ResponseEntity.badRequest().body(new CashResponseDto("ERROR", e.getMessage()))))

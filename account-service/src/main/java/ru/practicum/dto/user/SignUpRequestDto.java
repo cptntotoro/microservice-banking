@@ -1,6 +1,11 @@
 package ru.practicum.dto.user;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +33,7 @@ public class SignUpRequestDto {
      * Пароль пользователя
      */
     @NotBlank(message = "Пароль не может быть пустым")
-    @Size(min = 6, message = "Пароль должен содержать не менее 6 символов")
+//    @Size(min = 6, message = "Пароль должен содержать не менее 6 символов")
     private String password;
 
     /**

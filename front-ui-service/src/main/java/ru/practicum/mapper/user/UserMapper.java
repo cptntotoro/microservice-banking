@@ -2,15 +2,13 @@ package ru.practicum.mapper.user;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.client.account.dto.UserFullResponseClientDto;
 import ru.practicum.dto.user.UserDashboardDto;
 import ru.practicum.mapper.account.AccountMapper;
-import ru.practicum.model.account.Account;
 import ru.practicum.model.user.UserWithAccounts;
 
 /**
- * Маппер для преобразования моделей пользователя в DTO
+ * Маппер пользователей
  */
 @Mapper(componentModel = "spring", uses = {AccountMapper.class})
 public interface UserMapper {

@@ -4,9 +4,15 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * Запрос на валидацию токена
+ */
 @AllArgsConstructor
 @Data
-public class TokenValidationRequest {
+public class TokenValidationRequestDto {
+    /**
+     * Токен
+     */
     @NotBlank
     private String token;
 }

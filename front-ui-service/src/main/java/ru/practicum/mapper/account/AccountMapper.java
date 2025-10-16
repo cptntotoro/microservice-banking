@@ -14,10 +14,10 @@ public interface AccountMapper {
     /**
      * Преобразование Account в AccountDashboardDto
      */
-    AccountDashboardDto toAccountDashboardDto(Account account);
+    AccountDashboardDto accountToAccountDashboardDto(Account account);
 
     /**
      * Преобразование AccountResponseClientDto в Account
      */
-    Account toAccount(AccountResponseDto dto);
+    Account accountResponseDtoToAccount(AccountResponseDto accountResponseDto);
 }

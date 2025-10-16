@@ -22,10 +22,10 @@ public interface CurrencyService {
     /**
      * Получить валюту по идентификатору
      *
-     * @param id Идентификатор валюты
+     * @param currencyId Идентификатор валюты
      * @return Валюта
      */
-    Mono<Currency> getCurrencyById(UUID id);
+    Mono<Currency> getCurrencyById(UUID currencyId);
 
     /**
      * Получить валюту по коду
@@ -42,5 +42,11 @@ public interface CurrencyService {
      */
     Flux<Currency> getAllCurrencies();
 
+    /**
+     * Проверить валидность кода валюты
+     *
+     * @param code Код валюты
+     * @return Да / Нет
+     */
     Mono<Boolean> isValidCurrency(String code);
 }

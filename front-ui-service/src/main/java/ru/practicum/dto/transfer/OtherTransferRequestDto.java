@@ -22,15 +22,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class OtherTransferRequestDto {
-    /**
-     * Идентификатор пользователя
-     */
-    private UUID fromUserId;
 
     /**
      * Идентификатор счета отправителя
      */
-    @NotNull(message = "ID счета отправителя обязателен")
+    @NotNull(message = "Идентификатор счета отправителя обязателен")
     private UUID fromAccountId;
 
     /**

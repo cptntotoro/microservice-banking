@@ -16,6 +16,9 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
+/**
+ * Конфигурация JWT
+ */
 @Configuration
 @Slf4j
 public class JwtConfig {

@@ -18,10 +18,7 @@ import ru.practicum.dto.exchange.ExchangeRateDto;
 import ru.practicum.dto.exchange.ExchangeRequestDto;
 import ru.practicum.dto.exchange.ExchangeResponseDto;
 import ru.practicum.mapper.exchange.ExchangeRateMapper;
-import ru.practicum.model.operation.OperationType;
 import ru.practicum.service.exchange.ExchangeService;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/exchange")
@@ -49,7 +46,7 @@ public class ExchangeRateController {
 
     @GetMapping("/rates")
     public Flux<ExchangeRateDto> getCurrentRates() {
-        log.info("Request for all current rates");
+        log.info("Запрос всех текущих валют");
         return exchangeService.getCurrentRates()
                 .map(exchangeRateMapper::exchangeRateToExchangeRateDto);
     }
@@ -57,7 +54,7 @@ public class ExchangeRateController {
     @GetMapping("/rates/{from}/{to}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<ExchangeRateDto> getRate(@PathVariable String from, @PathVariable String to) {
-        log.info("Request for rate: {} to {}", from, to);
+        log.info("Запрос курса валюты: из {} в {}", from, to);
         return exchangeService.getRate(from, to)
                 .map(exchangeRateMapper::exchangeRateToExchangeRateDto);
     }
@@ -65,34 +62,23 @@ public class ExchangeRateController {
     @PostMapping("/convert")
     @ResponseStatus(HttpStatus.OK)
     public Mono<ExchangeResponseDto> convertCurrency(@Valid @RequestBody ExchangeRequestDto requestDto) {
-        log.info("Conversion request: {} to {}, amount {}, type {}, userId {}",
-                requestDto.getFromCurrency(), requestDto.getToCurrency(), requestDto.getAmount(),
-                requestDto.getOperationType(), requestDto.getUserId());
+        log.info("Запрос на конвертацию: {} в {}, сумма {}",
+                requestDto.getFromCurrency(), requestDto.getToCurrency(), requestDto.getAmount());
         return exchangeService.convert(
                 requestDto.getFromCurrency(),
                 requestDto.getToCurrency(),
+                requestDto.getAmount()
+        ).map(converted -> exchangeRateMapper.toResponseDto(
+                requestDto.getFromCurrency(),
+                requestDto.getToCurrency(),
                 requestDto.getAmount(),
-                requestDto.getOperationType(),
-                requestDto.getUserId()
-        ).flatMap(converted ->
-                exchangeService.getRate(requestDto.getFromCurrency(), requestDto.getToCurrency())
-                        .map(rate -> {
-                            BigDecimal usedRate = (requestDto.getOperationType() == OperationType.BUY) ? rate.getBuyRate() : rate.getSellRate();
-                            return exchangeRateMapper.toResponseDto(
-                                    requestDto.getFromCurrency(),
-                                    requestDto.getToCurrency(),
-                                    requestDto.getAmount(),
-                                    converted,
-                                    usedRate
-                            );
-                        })
-        );
+                converted));
     }
 
     @GetMapping("/currencies")
     @ResponseStatus(HttpStatus.OK)
     public Mono<AvailableCurrenciesDto> getAvailableCurrencies() {
-        log.info("Request for available currencies");
+        log.info("Запрос всех доступных валют");
         return exchangeService.getAvailableCurrencies()
                 .collectList()
                 .map(currencies -> AvailableCurrenciesDto.builder()

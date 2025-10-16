@@ -1,11 +1,10 @@
 package ru.practicum.mapper.exchange;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import ru.practicum.dto.exchange.ExchangeRateDto;
-import ru.practicum.model.exchange.ExchangeRate;
 import ru.practicum.dto.exchange.ExchangeResponseDto;
+import ru.practicum.model.exchange.ExchangeRate;
 
 import java.math.BigDecimal;
 
@@ -35,7 +34,6 @@ public interface ExchangeRateMapper {
     /**
      * Создать DTO ответа из результата конвертации
      */
-    @Mapping(target = "operationType", constant = "BUY")
     ExchangeResponseDto toResponseDto(String fromCurrency, String toCurrency,
-                                      BigDecimal originalAmount, BigDecimal convertedAmount, BigDecimal exchangeRate);
+                                      BigDecimal originalAmount, BigDecimal convertedAmount);
 }

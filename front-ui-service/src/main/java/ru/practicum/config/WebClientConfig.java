@@ -46,7 +46,7 @@ public class WebClientConfig {
 
     @Bean("exchangeServiceWebClient")
     public WebClient exchangeServiceWebClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
-                                             ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+                                              ReactiveOAuth2AuthorizedClientService authorizedClientService) {
         AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
                 new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
                         clientRegistrationRepository, authorizedClientService);
@@ -62,7 +62,7 @@ public class WebClientConfig {
 
     @Bean("cashServiceWebClient")
     public WebClient cashServiceWebClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
-                                             ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+                                          ReactiveOAuth2AuthorizedClientService authorizedClientService) {
         AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
                 new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
                         clientRegistrationRepository, authorizedClientService);
@@ -78,7 +78,7 @@ public class WebClientConfig {
 
     @Bean("transferServiceWebClient")
     public WebClient transferServiceWebClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
-                                             ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+                                              ReactiveOAuth2AuthorizedClientService authorizedClientService) {
         AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
                 new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
                         clientRegistrationRepository, authorizedClientService);

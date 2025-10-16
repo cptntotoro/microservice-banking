@@ -23,6 +23,11 @@ public class AccountResponseDto {
     private UUID id;
 
     /**
+     * Идентификатор пользователя
+     */
+    private UUID userId;
+
+    /**
      * Код валюты
      */
     private String currencyCode;

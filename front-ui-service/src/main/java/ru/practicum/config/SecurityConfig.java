@@ -9,12 +9,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import reactor.core.publisher.Mono;
 import ru.practicum.service.auth.AuthService;
 import ru.practicum.service.jwtvalidation.JwtValidationService;
@@ -42,24 +40,11 @@ public class SecurityConfig {
 
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/login", "/signup", "/fragments/**", "/templates/**", "/styles/**", "/scripts/**", "/images/**").permitAll()
-                        .pathMatchers("/dashboard").authenticated()
+                        .pathMatchers("/dashboard", "/logout").authenticated()
                         .anyExchange().authenticated()
                 )
 
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessHandler((exchange, authentication) -> {
-                            // Очистка сессии
-                            return exchange.getExchange().getSession()
-                                    .flatMap(session -> {
-                                        session.getAttributes().clear();
-                                        return Mono.empty();
-                                    })
-                                    .then(Mono.just("redirect:/login?logout").then());
-                        })
-                )
 
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint((exchange, ex) -> {

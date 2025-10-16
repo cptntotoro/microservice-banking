@@ -1,7 +1,10 @@
 package ru.practicum.service.cash;
 
 import reactor.core.publisher.Mono;
+import ru.practicum.dto.cash.DepositWithdrawCashRequestDto;
 import ru.practicum.model.cash.Cash;
+
+import java.util.UUID;
 
 /**
  * Сервис обналичивания денег
@@ -9,18 +12,11 @@ import ru.practicum.model.cash.Cash;
 public interface CashService {
 
     /**
-     * Пополнить свой счета
+     * Выполнить операцию с наличными
      *
-     * @param cash Операция с наличными
+     * @param userId Идентификатор пользователя
+     * @param requestDto DTO запроса на операции с наличными (внесение/снятие)
      * @return Операция с наличными
      */
-    Mono<Cash> deposit(Cash cash);
-
-    /**
-     * Снять средства со своего счета
-     *
-     * @param cash Операция с наличными
-     * @return Операция с наличными
-     */
-    Mono<Cash> withdraw(Cash cash);
+    Mono<Cash> cashOperation(UUID userId, DepositWithdrawCashRequestDto requestDto);
 }

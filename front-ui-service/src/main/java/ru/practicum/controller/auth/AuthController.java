@@ -2,6 +2,7 @@ package ru.practicum.controller.auth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +17,12 @@ import ru.practicum.dto.auth.SignUpRequestDto;
 import ru.practicum.service.auth.AuthService;
 
 @Controller
+@Slf4j
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
+    /**
+     * Сервис авторизации
+     */
     private final AuthService authService;
 
     @GetMapping("/login")
@@ -35,7 +40,6 @@ public class AuthController extends BaseController {
             model.addAttribute("success", "Вы успешно вышли из системы.");
         }
 
-
         model.addAttribute("loginRequest", new LoginRequestDto());
         return renderPage(model, "auth/login",
                 "Войти", "Залогиниться в приложение",
@@ -52,8 +56,8 @@ public class AuthController extends BaseController {
         return authService.login(loginRequest)
                 .flatMap(tokenResponse -> exchange.getSession().flatMap(session -> {
                     session.getAttributes().put("access_token", tokenResponse.getAccessToken());
-                    session.getAttributes().put("refresh_token", tokenResponse.getRefreshToken());
-                    return Mono.just("redirect:/dashboard");
+//                    session.getAttributes().put("refresh_token", tokenResponse.getRefreshToken());
+                    return Mono.just("redirect:dashboard");
                 }))
                 .onErrorResume(e -> {
                     model.addAttribute("error", "Неверные учетные данные: " + e.getMessage());
@@ -88,8 +92,7 @@ public class AuthController extends BaseController {
         return authService.createUser(signupRequest)
                 .flatMap(signupResponse -> {
                     // После успешной регистрации перенаправляем на страницу логина
-                    model.addAttribute("success", "Регистрация успешна! Теперь вы можете войти в систему.");
-                    return Mono.just("redirect:/login?success");
+                    return encodeSuccessRedirect("login", "Регистрация успешна! Теперь вы можете войти в систему.");
                 })
                 .onErrorResume(e -> {
                     model.addAttribute("error", "Ошибка регистрации: " + e.getMessage());
@@ -100,20 +103,9 @@ public class AuthController extends BaseController {
                 });
     }
 
-    /**
-     * Обработка выхода из системы
-     */
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public Mono<String> performLogout(ServerWebExchange exchange) {
-        return exchange.getSession().doOnNext(authService::logout).then(Mono.just("redirect:/login?logout"));
-    }
-
-    /**
-     * Вспомогательный метод для получения токена из сессии
-     */
-    private Mono<String> getAuthToken(ServerWebExchange exchange) {
-        return exchange.getSession()
-                .map(session -> (String) session.getAttributes().get("access_token"))
-                .defaultIfEmpty("");
+        return exchange.getSession().doOnNext(authService::logout)
+                .then(encodeSuccessRedirect("login", "Вы разлогинились!"));
     }
 }
