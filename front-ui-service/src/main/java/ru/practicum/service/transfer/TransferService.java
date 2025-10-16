@@ -4,9 +4,6 @@ import reactor.core.publisher.Mono;
 import ru.practicum.client.transfer.dto.TransferResponseDto;
 import ru.practicum.dto.transfer.OtherTransferRequestDto;
 import ru.practicum.dto.transfer.OwnTransferRequestDto;
-import ru.practicum.model.transfer.OtherTransfer;
-import ru.practicum.model.transfer.OwnTransfer;
-import ru.practicum.model.transfer.TransferResult;
 
 import java.util.UUID;
 

@@ -23,7 +23,7 @@ public interface UserService {
     /**
      * Добавление новой роли пользователю
      *
-     * @param userId Идентификатор пользователя
+     * @param userId   Идентификатор пользователя
      * @param roleName Название роли
      */
     Mono<Void> addUserRole(UUID userId, String roleName);
@@ -31,7 +31,7 @@ public interface UserService {
     /**
      * Убрать роль у пользователя
      *
-     * @param userId Идентификатор пользователя
+     * @param userId   Идентификатор пользователя
      * @param roleName Название роли
      */
     Mono<Void> removeUserRole(UUID userId, String roleName);
@@ -39,7 +39,7 @@ public interface UserService {
     /**
      * Проверить наличие роли у пользователя
      *
-     * @param userId Идентификатор пользователя
+     * @param userId   Идентификатор пользователя
      * @param roleName Название роли
      * @return Да / Нет
      */
@@ -60,13 +60,14 @@ public interface UserService {
      * @return Модель пользователя
      */
     Mono<User> getUserByUsername(String login);
+
     Mono<User> getUserByEmail(String email);
 
     /**
      * Обновление данных пользователя
      *
      * @param userId Идентификатор пользователя
-     * @param user Модель с обновленными данными
+     * @param user   Модель с обновленными данными
      * @return Модель обновленного пользователя
      */
     Mono<User> updateUser(UUID userId, User user);
@@ -74,7 +75,7 @@ public interface UserService {
     /**
      * Изменение пароля пользователя
      *
-     * @param userId Идентификатор пользователя
+     * @param userId      Идентификатор пользователя
      * @param newPassword Новый пароль
      * @return Результат операции
      */

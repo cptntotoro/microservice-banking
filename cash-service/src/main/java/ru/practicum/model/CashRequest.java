@@ -28,7 +28,7 @@ public class CashRequest {
     private BigDecimal amount;
 
     /**
-     * Валюта
+     * Код валюты
      */
     private String currency;
 }

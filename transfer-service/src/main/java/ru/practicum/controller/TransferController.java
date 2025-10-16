@@ -13,7 +13,6 @@ import ru.practicum.dto.OtherTransferRequestDto;
 import ru.practicum.dto.OwnTransferRequestDto;
 import ru.practicum.dto.TransferResponseDto;
 import ru.practicum.mapper.TransferMapper;
-import ru.practicum.model.TransferRequest;
 import ru.practicum.service.TransferService;
 
 @RestController

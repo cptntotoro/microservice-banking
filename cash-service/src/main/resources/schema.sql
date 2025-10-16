@@ -14,6 +14,5 @@ CREATE TABLE IF NOT EXISTS cash_operations
 );
 
 CREATE INDEX idx_cash_operations_account ON cash_operations (account_id);
-CREATE INDEX idx_cash_operations_type ON cash_operations (type);
 CREATE INDEX idx_cash_operations_status ON cash_operations (status);
 CREATE INDEX idx_cash_operations_created_at ON cash_operations (created_at);

@@ -18,7 +18,7 @@ public interface CashMapper {
      * @param cashRequestDto DTO запроса на пополнение счета
      * @return Запрос на пополнение счета
      */
-    CashRequest toModel(CashRequestDto cashRequestDto);
+    CashRequest cashRequestDtoToCashRequest(CashRequestDto cashRequestDto);
 
     /**
      * Смаппить ответ на запрос на пополнение счета в DTO
@@ -26,5 +26,5 @@ public interface CashMapper {
      * @param cashResponse Ответ на запрос на пополнение счета
      * @return DTO ответа на запрос на пополнение счета
      */
-    CashResponseDto toDto(CashResponse cashResponse);
+    CashResponseDto cashResponseToCashResponseDto(CashResponse cashResponse);
 }

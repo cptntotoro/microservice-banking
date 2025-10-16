@@ -33,6 +33,13 @@ public interface AccountMapper {
      * @return DTO ответа с данными счета
      */
     AccountResponseDto accountToAccountResponseDto(Account account);
+
+    /**
+     * Смаппить счет в DTO ответа с данными счета
+     *
+     * @param account Счет
+     * @return DTO ответа с данными счета
+     */
     AccountWithUserResponseDto accountToAccountWithUserResponseDto(Account account);
 
     /**
@@ -41,6 +48,7 @@ public interface AccountMapper {
      * @param account Счет
      * @return DAO счета
      */
+    @Mapping(target = "currencyId", ignore = true)
     AccountDao accountToAccountDao(Account account);
 
     /**
@@ -49,5 +57,6 @@ public interface AccountMapper {
      * @param accountDao DAO счета
      * @return Счет
      */
+    @Mapping(target = "currencyCode", ignore = true)
     Account accountDaoToAccount(AccountDao accountDao);
 }

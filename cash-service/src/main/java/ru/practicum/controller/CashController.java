@@ -29,7 +29,7 @@ public class CashController {
     @PostMapping("/cash-operation")
     public Mono<ResponseEntity<CashResponseDto>> cashOperation(@RequestBody CashRequestDto requestDto) {
         return cashService.cashOperation(requestDto)
-                .map(cashMapper::toDto)
+                .map(cashMapper::cashResponseToCashResponseDto)
                 .map(ResponseEntity::ok)
                 .onErrorResume(IllegalArgumentException.class, e ->
                         Mono.just(ResponseEntity.badRequest().body(new CashResponseDto("ERROR", e.getMessage()))))

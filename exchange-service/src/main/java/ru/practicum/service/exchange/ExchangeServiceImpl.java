@@ -7,17 +7,12 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.model.exchange.ExchangeRate;
-import ru.practicum.model.operation.Operation;
-import ru.practicum.model.operation.OperationType;
-import ru.practicum.service.operation.OperationService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,15 +86,6 @@ public class ExchangeServiceImpl implements ExchangeService {
         ExchangeRate fromRate = rubRatesCache.get(normalizedFrom);
         ExchangeRate toRate = rubRatesCache.get(normalizedTo);
         return Mono.just(amount.multiply(fromRate.getBuyRate()).divide(toRate.getSellRate(), 2, RoundingMode.HALF_UP));
-
-//        return getRate(fromCurrency, toCurrency)
-//                .flatMap(rate -> {
-//                    BigDecimal exchangeRate = (type == OperationType.BUY) ? rate.getBuyRate() : rate.getSellRate();
-//                    BigDecimal converted = calculateConversion(amount, exchangeRate);
-////                    return saveOperation(fromCurrency, toCurrency, amount, converted, exchangeRate, type, userId)
-////                            .thenReturn(converted);
-//                    return converted;
-//                });
     }
 
     @Override
@@ -131,13 +117,12 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private Mono<ExchangeRate> calculateCrossRateThroughRUB(String fromCurrency, String toCurrency) {
         return Mono.zip(
-                getRate(fromCurrency, "RUB"), // Например, EUR/RUB
-                getRate(toCurrency, "RUB")    // Например, USD/RUB
+                getRate(fromCurrency, "RUB"),
+                getRate(toCurrency, "RUB")
         ).map(tuple -> {
-            ExchangeRate fromToRub = tuple.getT1(); // EUR/RUB
-            ExchangeRate toToRub = tuple.getT2();   // USD/RUB
+            ExchangeRate fromToRub = tuple.getT1();
+            ExchangeRate toToRub = tuple.getT2();
 
-            // Правильный расчет: EUR/USD = (EUR/RUB) / (USD/RUB)
             BigDecimal crossBuyRate = fromToRub.getBuyRate()
                     .divide(toToRub.getSellRate(), 6, RoundingMode.HALF_UP);
             BigDecimal crossSellRate = fromToRub.getSellRate()

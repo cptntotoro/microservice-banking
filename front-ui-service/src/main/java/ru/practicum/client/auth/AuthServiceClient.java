@@ -13,14 +13,14 @@ import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.auth.dto.LoginResponseClientDto;
 import ru.practicum.client.auth.dto.TokenResponseDto;
-import ru.practicum.client.auth.dto.TokenValidationRequest;
+import ru.practicum.client.auth.dto.TokenValidationRequestDto;
 import ru.practicum.client.auth.dto.UserProfileResponseClientDto;
 import ru.practicum.dto.auth.ChangePasswordRequestDto;
 import ru.practicum.dto.auth.LoginRequestDto;
 import ru.practicum.dto.user.EditUserProfileDto;
 
 /**
- * Клиент для сервиса аутентификации
+ * Клиент сервиса аутентификации
  */
 @Component
 @Slf4j
@@ -53,7 +53,7 @@ public class AuthServiceClient extends BaseServiceClient {
         String path = "/auth/getUserId";
         String operation = "Token: " + token;
         String errorPrefix = "Ошибка получения userId: ";
-        return performMono(HttpMethod.POST, path, new TokenValidationRequest(token), String.class, operation, errorPrefix, true)
+        return performMono(HttpMethod.POST, path, new TokenValidationRequestDto(token), String.class, operation, errorPrefix, true)
                 .doOnSuccess(response -> log.info("Account created: {}", response));
     }
 

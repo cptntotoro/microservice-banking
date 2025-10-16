@@ -17,11 +17,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountWithUserResponseDto {
-
     /**
      * Идентификатор счета
      */
     private UUID id;
+
+    /**
+     * Идентификатор пользователя
+     */
     private UUID userId;
 
     /**

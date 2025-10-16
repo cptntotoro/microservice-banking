@@ -18,7 +18,7 @@ class CashMapperTest {
     private final CashMapper mapper = Mappers.getMapper(CashMapper.class);
 
     @Test
-    void testToModelCashRequestDto() {
+    void testCashRequestDtoToCashRequestCashRequestDto() {
         CashRequestDto dto = CashRequestDto.builder()
                 .accountId(UUID.randomUUID())
                 .userId(UUID.randomUUID())
@@ -26,7 +26,7 @@ class CashMapperTest {
                 .currency("RUB")
                 .build();
 
-        CashRequest model = mapper.toModel(dto);
+        CashRequest model = mapper.cashRequestDtoToCashRequest(dto);
 
         assertNotNull(model);
         assertEquals(dto.getAccountId(), model.getAccountId());
@@ -36,13 +36,13 @@ class CashMapperTest {
     }
 
     @Test
-    void testToDtoCashResponse() {
+    void testCashResponseToCashResponseDtoCashResponse() {
         CashResponse model = CashResponse.builder()
                 .status("SUCCESS")
                 .message("Deposit successful")
                 .build();
 
-        CashResponseDto dto = mapper.toDto(model);
+        CashResponseDto dto = mapper.cashResponseToCashResponseDto(model);
 
         assertNotNull(dto);
         assertEquals(model.getStatus(), dto.getStatus());

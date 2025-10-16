@@ -42,7 +42,7 @@ public class AccountServiceImpl implements AccountService {
     public Mono<Account> createAccount(UUID userId, String currencyCode) {
         log.warn("Создание счета: {}, {}", userId, currencyCode);
         return accountServiceClient.createAccount(AccountRequestDto.builder().userId(userId).currencyCode(currencyCode).build())
-                .map(accountMapper::toAccount)
+                .map(accountMapper::accountResponseDtoToAccount)
                 .doOnSuccess(userWithAccounts -> log.info("Счет пользователя успешно создан для ID: {}", userId))
                 .doOnError(error -> log.error("Ошибка создания счета пользователя для ID {}: {}", userId, error.getMessage()));
     }
@@ -58,7 +58,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<Account> getAccount(AccountRequestDto accountRequestDto) {
         return accountServiceClient.getAccount(accountRequestDto)
-                .map(accountMapper::toAccount)
+                .map(accountMapper::accountResponseDtoToAccount)
                 .doOnSuccess(account -> log.info("Счет пользователя получен: {}", account))
                 .doOnError(error -> log.error("Ошибка получения счета пользователя {}: {}", accountRequestDto, error.getMessage()));
     }

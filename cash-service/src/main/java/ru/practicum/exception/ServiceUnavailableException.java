@@ -28,10 +28,10 @@ public class ServiceUnavailableException extends BaseException {
     /**
      * Конструктор с сообщением об ошибке, статусом HTTP, причиной и идентификатором сервиса.
      *
-     * @param message текст ошибки для пользователя
-     * @param status HTTP статус ответа
-     * @param reason причина ошибки (краткое описание)
-     * @param serviceId идентификатор недоступного сервиса
+     * @param message      текст ошибки для пользователя
+     * @param status       HTTP статус ответа
+     * @param reason       причина ошибки (краткое описание)
+     * @param serviceId    идентификатор недоступного сервиса
      * @param serviceIssue детальное описание проблемы с сервисом
      */
     public ServiceUnavailableException(String message, HttpStatus status, String reason,
@@ -45,7 +45,7 @@ public class ServiceUnavailableException extends BaseException {
      * Конструктор с сообщением об ошибке и идентификатором сервиса.
      * Использует стандартное описание проблемы.
      *
-     * @param message текст ошибки для пользователя
+     * @param message   текст ошибки для пользователя
      * @param serviceId идентификатор недоступного сервиса
      */
     public ServiceUnavailableException(String message, String serviceId) {

@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * DTO запроса на обновление баланса
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -13,6 +13,9 @@ import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.exchange.dto.ExchangeRequestDto;
 import ru.practicum.client.exchange.dto.ExchangeResponseDto;
 
+/**
+ * Клиент для сервиса обмена валют
+ */
 @Component
 @Slf4j
 public class ExchangeServiceClient extends BaseServiceClient {
@@ -37,6 +40,6 @@ public class ExchangeServiceClient extends BaseServiceClient {
         String operation = "convertCurrency: " + requestDto;
         String errorPrefix = "Ошибка конвертации валют: ";
         return performMono(HttpMethod.POST, path, requestDto, ExchangeResponseDto.class, operation, errorPrefix, true)
-                .doOnNext(account -> log.debug("Сonvert Currency"));
+                .doOnNext(account -> log.debug("Convert Currency"));
     }
 }

@@ -8,7 +8,7 @@ import ru.practicum.model.user.UserWithAccounts;
 import java.util.UUID;
 
 /**
- * Сервис управления пользователями
+ * Сервис управления счетами
  */
 public interface AccountService {
 
@@ -20,11 +20,28 @@ public interface AccountService {
      */
     Mono<UserWithAccounts> getUserWithAccounts(UUID userId);
 
+    /**
+     * Создать счет
+     *
+     * @param userId Идентификатор пользователя
+     * @param currencyCode Код валюты
+     * @return Счет
+     */
     Mono<Account> createAccount(UUID userId, String currencyCode);
 
+    /**
+     * Удалить счет
+     *
+     * @param userId Идентификатор пользователя
+     * @param accountId Идентификатор счета
+     */
     Mono<Void> deleteAccount(UUID userId, UUID accountId);
 
+    /**
+     * Получить счет по идентификатору пользователя и коду валюты
+     *
+     * @param accountRequestDto DTO запроса на добавление счета в новой валюте
+     * @return Счет
+     */
     Mono<Account> getAccount(AccountRequestDto accountRequestDto);
-
-//    Mono<Account> getAccountByEmail(AccountByEmailRequestDto requestDto);
 }

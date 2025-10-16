@@ -31,7 +31,7 @@ public class SignUpRequestDto {
     private String username;
 
     @NotBlank(message = "Пароль не может быть пустым")
-    @Size(min = 6, message = "Пароль должен содержать не менее 6 символов")
+//    @Size(min = 6, message = "Пароль должен содержать не менее 6 символов")
     private String password;
 
     @NotBlank(message = "Имя не может быть пустым")

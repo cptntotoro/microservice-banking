@@ -20,7 +20,7 @@ public class AccountRequestDto {
     /**
      * Идентификатор пользователя
      */
-    @NotNull(message = "ID пользователя обязателен")
+    @NotNull(message = "Идентификатор пользователя обязателен")
     private UUID userId;
 
     /**

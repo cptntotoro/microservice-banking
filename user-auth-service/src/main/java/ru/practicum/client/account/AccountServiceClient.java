@@ -14,7 +14,7 @@ import ru.practicum.client.account.dto.UserResponseDto;
 import ru.practicum.dto.AuthRequest;
 
 /**
- * Клиент для обращений к сервису аккаунтов
+ * Клиент для сервиса аккаунтов
  */
 @Component
 @Slf4j
@@ -36,9 +36,10 @@ public class AccountServiceClient extends BaseServiceClient {
     }
 
     /**
-     * Проверка учетных данных пользователя через Account Service
+     * Проверка учетных данных пользователя
+     *
      * @param request DTO с логином и паролем
-     * @return Mono с UserResponseDto при успешной проверке
+     * @return DTO пользователя
      */
     public Mono<UserResponseDto> validateCredentials(AuthRequest request) {
         String path = "/api/users/validate";

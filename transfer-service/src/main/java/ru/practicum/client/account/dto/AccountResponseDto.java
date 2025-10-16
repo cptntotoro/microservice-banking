@@ -21,6 +21,10 @@ public class AccountResponseDto {
      * Идентификатор счета
      */
     private UUID id;
+
+    /**
+     * Идентификатор пользователя
+     */
     private UUID userId;
 
     /**

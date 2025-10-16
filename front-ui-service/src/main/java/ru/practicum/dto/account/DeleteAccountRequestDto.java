@@ -18,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class DeleteAccountRequestDto {
-
     /**
      * Идентификатор счета
      */

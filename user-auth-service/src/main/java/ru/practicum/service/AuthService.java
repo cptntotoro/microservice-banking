@@ -14,13 +14,16 @@ import ru.practicum.dto.AuthResponse;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
+    /**
+     * Клиент для сервиса аккаунтов
+     */
     private final AccountServiceClient accountServiceClient;
     private final JwtUtil jwtUtil;
     private final JwtConfig jwtConfig;
 
     /**
      * Аутентификация пользователя через Account Service и генерация JWT-токена
+     *
      * @param request DTO с логином и паролем
      * @return Mono с AuthResponse, содержащим токен и время жизни
      */
@@ -37,6 +40,7 @@ public class AuthService {
 
     /**
      * Валидация JWT-токена
+     *
      * @param token JWT-токен
      * @return Mono с результатом валидации (true/false)
      */

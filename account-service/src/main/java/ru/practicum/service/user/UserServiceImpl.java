@@ -77,7 +77,6 @@ public class UserServiceImpl implements UserService {
                 .flatMap(savedUser -> addUserRole(savedUser.getUuid(), "ROLE_USER")
                         .thenReturn(savedUser))
                 .map(userMapper::userDaoToUser);
-//                .doOnError(error -> log.error("Ошибка при регистрации пользователя: {}", error.getMessage(), error));
     }
 
     @Transactional

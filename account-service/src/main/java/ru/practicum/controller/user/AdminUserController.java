@@ -3,7 +3,15 @@ package ru.practicum.controller.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.user.UserResponseDto;
@@ -30,45 +38,30 @@ public class AdminUserController {
      */
     private final UserMapper userMapper;
 
-    /**
-     * Активация пользователя
-     */
     @PatchMapping("/{userId}/activate")
     public Mono<Void> activateUser(@PathVariable UUID userId) {
         log.info("Активация пользователя: {}", userId);
         return userService.activateUser(userId);
     }
 
-    /**
-     * Деактивация пользователя
-     */
     @PatchMapping("/{userId}/deactivate")
     public Mono<Void> deactivateUser(@PathVariable UUID userId) {
         log.info("Деактивация пользователя: {}", userId);
         return userService.deactivateUser(userId);
     }
 
-    /**
-     * Блокировка аккаунта пользователя
-     */
     @PatchMapping("/{userId}/lock")
     public Mono<Void> lockAccount(@PathVariable UUID userId) {
         log.info("Блокировка аккаунта пользователя: {}", userId);
         return userService.lockAccount(userId);
     }
 
-    /**
-     * Разблокировка аккаунта пользователя
-     */
     @PatchMapping("/{userId}/unlock")
     public Mono<Void> unlockAccount(@PathVariable UUID userId) {
         log.info("Разблокировка аккаунта пользователя: {}", userId);
         return userService.unlockAccount(userId);
     }
 
-    /**
-     * Добавить роль пользователю
-     */
     @PostMapping("/{userId}/roles/{roleName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> addUserRole(@PathVariable UUID userId, @PathVariable String roleName) {
@@ -76,9 +69,6 @@ public class AdminUserController {
         return userService.addUserRole(userId, roleName);
     }
 
-    /**
-     * Удалить роль у пользователя
-     */
     @DeleteMapping("/{userId}/roles/{roleName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> removeUserRole(@PathVariable UUID userId, @PathVariable String roleName) {
@@ -86,9 +76,6 @@ public class AdminUserController {
         return userService.removeUserRole(userId, roleName);
     }
 
-    /**
-     * Получение всех пользователей
-     */
     @GetMapping
     public Flux<UserResponseDto> getAllUsers() {
         log.info("Получение всех пользователей");
@@ -96,9 +83,6 @@ public class AdminUserController {
                 .map(userMapper::userToResponseDto);
     }
 
-    /**
-     * Получение пользователей по статусу активности
-     */
     @GetMapping("/by-status")
     public Flux<UserResponseDto> getUsersByStatus(@RequestParam boolean enabled) {
         log.info("Получение пользователей по статусу активности: {}", enabled);
@@ -106,9 +90,6 @@ public class AdminUserController {
                 .map(userMapper::userToResponseDto);
     }
 
-    /**
-     * Получение пользователей по статусу блокировки
-     */
     @GetMapping("/by-lock-status")
     public Flux<UserResponseDto> getUsersByLockStatus(@RequestParam boolean locked) {
         log.info("Получение пользователей по статусу блокировки: {}", locked);

@@ -24,26 +24,6 @@ public interface UserRoleRepository extends ReactiveCrudRepository<UserRoleDao, 
     @Query("SELECT r.name FROM roles r JOIN user_roles ur ON r.role_uuid = ur.role_uuid WHERE ur.user_uuid = :userUuid")
     Flux<String> findRoleNamesByUserUuid(UUID userUuid);
 
-//    /**
-//     * Добавить роль пользователю
-//     *
-//     * @param userUuid Идентификатор пользователя
-//     * @param roleUuid Идентификатор роли
-//     */
-//    @Query("INSERT INTO user_roles (user_uuid, role_uuid) " +
-//            "VALUES (:userUuid, (SELECT role_uuid FROM roles WHERE name = :roleName))")
-//    Mono<Void> addRoleToUser(UUID userUuid, UUID roleUuid);
-//
-//    /**
-//     * Удалить роль у пользователя
-//     *
-//     * @param userUuid Идентификатор пользователя
-//     * @param roleUuid Идентификатор роли
-//     */
-//    @Query("DELETE FROM user_roles WHERE user_uuid = :userUuid " +
-//            "AND role_uuid = (SELECT role_uuid FROM roles WHERE name = :roleName)")
-//    Mono<Void> removeRoleFromUser(UUID userUuid, UUID roleUuid);
-
     /**
      * Проверить, есть ли у пользователя роль
      *

@@ -17,7 +17,6 @@ import ru.practicum.service.account.AccountService;
 @RequiredArgsConstructor
 @Slf4j
 public class AccountController extends BaseController {
-
     /**
      * Сервис пользователей
      */
@@ -36,7 +35,6 @@ public class AccountController extends BaseController {
                 })
         );
     }
-
 
     @PostMapping("/delete-account")
     public Mono<String> deleteAccount(@ModelAttribute @Valid DeleteAccountRequestDto requestDto, ServerWebExchange exchange) {

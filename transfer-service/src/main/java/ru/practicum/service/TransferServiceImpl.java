@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
-import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.client.account.AccountServiceClient;
+import ru.practicum.client.account.dto.AccountResponseDto;
 import ru.practicum.client.account.dto.TransferDto;
 import ru.practicum.client.blocker.BlockerServiceClient;
 import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
@@ -37,11 +37,34 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TransferServiceImpl implements TransferService {
+    /**
+     * Клиент для сервиса аккаунтов
+     */
     private final AccountServiceClient accountServiceClient;
+
+    /**
+     * Клиент для сервиса блокировки подозрительных операций
+     */
     private final BlockerServiceClient blockerServiceClient;
+
+    /**
+     * Клиент для сервиса оповещений
+     */
     private final NotificationsServiceClient notificationsServiceClient;
+
+    /**
+     * Клиент для сервиса обмена валют
+     */
     private final ExchangeServiceClient exchangeServiceClient;
+
+    /**
+     * Репозиторий операций перевода средств
+     */
     private final TransferRepository transferRepository;
+
+    /**
+     * Маппер запросов на перевод
+     */
     private final TransferMapper transferMapper;
 
     @Transactional
@@ -135,7 +158,7 @@ public class TransferServiceImpl implements TransferService {
                 (!fromAccount.getUserId().equals(toAccount.getUserId()) ||
                         !fromAccount.getUserId().equals(userId) ||
                         !toAccount.getUserId().equals(userId))) {
-            String errorMessage = "Юзеру не принадлежит один из счетов";
+            String errorMessage = "Пользователю не принадлежит ни один из счетов";
             return saveFailedTransfer(fromAccount.getId(), toAccount.getId(), amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null,
                     timestamp, type, errorMessage)
                     .then(Mono.error(new ValidationException(errorMessage)));
@@ -144,7 +167,7 @@ public class TransferServiceImpl implements TransferService {
                 (fromAccount.getUserId().equals(toAccount.getUserId()) ||
                         !fromAccount.getUserId().equals(userId) ||
                         toAccount.getUserId().equals(userId))) {
-            String errorMessage = "Юзеру принадлежат оба счета или юзеру не принадлежит исходящий счет или юзеру принадлежит целевой счет ";
+            String errorMessage = "Пользователю принадлежат оба счета или пользователю не принадлежит исходящий или целевой счет ";
             return saveFailedTransfer(fromAccount.getId(), toAccount.getId(), amount, fromAccount.getCurrencyCode(), toAccount.getCurrencyCode(), null,
                     timestamp, type, errorMessage)
                     .then(Mono.error(new ValidationException(errorMessage)));

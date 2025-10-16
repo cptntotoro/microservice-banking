@@ -1,10 +1,17 @@
-package ru.practicum.client.notification.dto;
+package ru.practicum.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+/**
+ * DTO запроса
+ */
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class NotificationRequestDto {

@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * DTO запроса на смену пароля
+ */
 @Getter
 @Setter
 @NoArgsConstructor

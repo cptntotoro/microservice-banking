@@ -15,26 +15,29 @@ import java.util.function.Function;
 @Slf4j
 public abstract class BaseController {
 
+    /**
+     * Сервис авторизации
+     */
     @Autowired
     protected AuthService authService;
 
     /**
-     * Validates session and retrieves user ID, executing the provided action if valid.
+     * Валидирует сессию и получает userId и выполняет переданное действие
      *
-     * @param exchange The ServerWebExchange containing session information
-     * @param action   The action to perform with the user ID
-     * @return Mono<String> representing the result of the action or a redirect on error
+     * @param exchange ServerWebExchange
+     * @param action   Действие для выполнения с userId
+     * @return Результат действия и редирект на ошибку
      */
     protected Mono<String> withAuthenticatedUser(ServerWebExchange exchange,
                                                  Function<UUID, Mono<String>> action) {
         return exchange.getSession().flatMap(session -> {
                     if (session.getAttributes().get("access_token") == null) {
-                        log.warn("No access token found in session");
+                        log.warn("В сессии нет токена доступа");
                         return encodeErrorRedirect("login", "Залогиньтесь");
                     }
                     return authService.getUserId((String) session.getAttributes().get("access_token"))
                             .flatMap(userId -> {
-                                log.info("Юзер загружен: " + userId);
+                                log.info("Пользователь загружен: " + userId);
                                 if (userId == null) {
                                     log.warn("User ID is null, session closed");
                                     return encodeErrorRedirect("login", "Залогиньтесь, сессия закрыта");

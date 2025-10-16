@@ -18,7 +18,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponseDto {
-
     /**
      * Идентификатор пользователя
      */

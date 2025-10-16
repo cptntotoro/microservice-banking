@@ -90,12 +90,12 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public Mono<Currency> getCurrencyById(UUID id) {
-        log.debug("Получение валюты по ID: {}", id);
+    public Mono<Currency> getCurrencyById(UUID currencyId) {
+        log.debug("Получение валюты по ID: {}", currencyId);
 
-        return currencyRepository.findById(id)
+        return currencyRepository.findById(currencyId)
                 .map(currencyMapper::currencyDaoToCurrency)
-                .switchIfEmpty(Mono.error(new NotFoundException("Валюта", id.toString())));
+                .switchIfEmpty(Mono.error(new NotFoundException("Валюта", currencyId.toString())));
     }
 
     @Override

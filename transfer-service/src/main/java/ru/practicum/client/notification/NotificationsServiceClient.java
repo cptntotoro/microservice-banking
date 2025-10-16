@@ -13,7 +13,7 @@ import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.notification.dto.NotificationRequestDto;
 
 /**
- * Клиент для обращений к сервису оповещений
+ * Клиент для сервиса оповещений
  */
 @Component
 @Slf4j

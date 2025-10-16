@@ -19,7 +19,9 @@ import ru.practicum.dto.user.EditUserProfileDto;
 @RequiredArgsConstructor
 @RequestMapping("/profile")
 public class ProfileController extends BaseController {
-
+    /**
+     * Клиент сервиса аутентификации
+     */
     private final AuthServiceClient authServiceClient;
 
     @PostMapping("/update")

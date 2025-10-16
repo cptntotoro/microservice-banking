@@ -7,14 +7,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseController;
 import ru.practicum.dto.cash.DepositWithdrawCashRequestDto;
 import ru.practicum.mapper.cash.CashMapper;
-import ru.practicum.service.auth.AuthService;
 import ru.practicum.service.cash.CashService;
 
 import java.util.Collections;
@@ -33,7 +31,6 @@ public class CashController extends BaseController {
      * Маппер операций с наличными
      */
     private final CashMapper cashMapper;
-
 
     @PostMapping
     public Mono<String> cashOperation(@ModelAttribute @Valid DepositWithdrawCashRequestDto requestDto, ServerWebExchange exchange, Model model) {

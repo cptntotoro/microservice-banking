@@ -11,14 +11,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.BaseServiceClient;
 import ru.practicum.client.account.dto.AccountResponseDto;
-import ru.practicum.client.account.dto.DepositWithdrawDto;
 import ru.practicum.client.account.dto.TransferDto;
 
 import java.util.UUID;
 
+/**
+ * Клиент для сервиса аккаунтов
+ */
 @Component
 @Slf4j
 public class AccountServiceClient extends BaseServiceClient {
+
     @Autowired
     public AccountServiceClient(@Qualifier("accountServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
         super(webClient, discoveryClient);

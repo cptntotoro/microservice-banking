@@ -37,8 +37,11 @@ public class CashServiceImpl implements CashService {
      * Сервис курсов обмена валют
      */
     private final ExchangeRateService exchangeRateService;
-    private final AccountService accountService;
 
+    /**
+     * Сервис управления счетами
+     */
+    private final AccountService accountService;
 
     @Override
     public Mono<Cash> cashOperation(UUID userId, DepositWithdrawCashRequestDto requestDto) {
@@ -77,5 +80,4 @@ public class CashServiceImpl implements CashService {
                 .defaultIfEmpty(false)
                 .doOnNext(valid -> log.debug("Валидация валюты {}: {}", currency, valid));
     }
-
 }

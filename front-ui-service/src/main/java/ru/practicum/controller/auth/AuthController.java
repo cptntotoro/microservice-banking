@@ -20,6 +20,9 @@ import ru.practicum.service.auth.AuthService;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
+    /**
+     * Сервис авторизации
+     */
     private final AuthService authService;
 
     @GetMapping("/login")
@@ -36,7 +39,6 @@ public class AuthController extends BaseController {
         if (logout != null) {
             model.addAttribute("success", "Вы успешно вышли из системы.");
         }
-
 
         model.addAttribute("loginRequest", new LoginRequestDto());
         return renderPage(model, "auth/login",
@@ -101,21 +103,9 @@ public class AuthController extends BaseController {
                 });
     }
 
-    /**
-     * Обработка выхода из системы
-     */
     @GetMapping("/logout")
     public Mono<String> performLogout(ServerWebExchange exchange) {
         return exchange.getSession().doOnNext(authService::logout)
                 .then(encodeSuccessRedirect("login", "Вы разлогинились!"));
-    }
-
-    /**
-     * Вспомогательный метод для получения токена из сессии
-     */
-    private Mono<String> getAuthToken(ServerWebExchange exchange) {
-        return exchange.getSession()
-                .map(session -> (String) session.getAttributes().get("access_token"))
-                .defaultIfEmpty("");
     }
 }
