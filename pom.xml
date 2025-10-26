@@ -22,7 +22,6 @@
         <!--   Infrastructure   -->
         <module>discovery-server</module>
         <module>api-gateway-server</module>
-        <module>config-server</module>
         <module>user-auth-service</module>
         <module>serv-auth-service</module>
 
