@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+data:
+  application.yml: |-
+    server:
+      port: {{ .Values.service.port }}
+    spring:
+      application:
+        name: {{ .Values.config.spring.application.name }}
+      cloud:
+        gateway:
+          discovery:
+            locator:
+              enabled: {{ .Values.config.spring.cloud.gateway.discovery.locator.enabled }}
+              lower-case-service-id: {{ .Values.config.spring.cloud.gateway.discovery.locator.lower_case_service_id }}
+          routes: {{ toYaml .Values.config.spring.cloud.gateway.routes | nindent 10 }}
+          httpclient:
+            connect-timeout: {{ .Values.config.spring.cloud.gateway.httpclient.connect_timeout }}
+            response-timeout: {{ .Values.config.spring.cloud.gateway.httpclient.response_timeout }}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: {{ toYaml .Values.config.management.endpoints.web.exposure.include | nindent 14 }}
+      endpoint:
+        health:
+          show-details: {{ .Values.config.management.endpoint.health.show_details }}
+        gateway:
+          enabled: {{ .Values.config.management.endpoint.gateway.enabled }}
+    logging:
+      level:
+        org.springframework.cloud.gateway: {{ .Values.config.logging.level.org_springframework_cloud_gateway }}
+        org.springframework.cloud.consul: {{ .Values.config.logging.level.org_springframework_cloud_consul }}

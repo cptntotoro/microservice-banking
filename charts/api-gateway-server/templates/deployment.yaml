@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-api-gateway-server
+  labels:
+    app: api-gateway-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: api-gateway-server
+  template:
+    metadata:
+      labels:
+        app: api-gateway-server
+    spec:
+      containers:
+        - name: api-gateway-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            # Добавьте другие env, если нужны; секреты из Secret
+          volumeMounts:
+            - name: config
+              mountPath: /workspace/config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: api-gateway-config
