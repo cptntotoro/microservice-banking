@@ -1,0 +1,15 @@
+#apiVersion: v1
+#kind: Pod
+#metadata:
+#  name: "{{ .Release.Name }}-test-connection"
+#  labels:
+#    app: exchange-generator-service
+#  annotations:
+#    "helm.sh/hook": test
+#spec:
+#  containers:
+#    - name: wget
+#      image: busybox
+#      command: ['wget']
+#      args: ['exchange-generator-service:{{ .Values.service.port }}/actuator/health']
+#  restartPolicy: Never
