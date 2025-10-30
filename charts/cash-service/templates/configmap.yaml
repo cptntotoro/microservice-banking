@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cash-config
+data:
+  application.yml: |-
+    server:
+      port: {{ .Values.service.port }}
+    spring:
+      application:
+        name: cash-service
+      main:
+        web-application-type: reactive
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: "{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}"
+              jwk-set-uri: "{{ .Values.env.AUTH_SERVICE_JWK_SET_URI }}"
+          client:
+            registration:
+              account-service:
+                provider: {{ .Values.config.security.oauth2.client.registration.account_service.provider }}
+                client-id: {{ .Values.config.security.oauth2.client.registration.account_service.client_id }}
+                client-authentication-method: {{ .Values.config.security.oauth2.client.registration.account_service.client_authentication_method }}
+                authorization-grant-type: {{ .Values.config.security.oauth2.client.registration.account_service.authorization_grant_type }}
+                scope: {{ toYaml .Values.config.security.oauth2.client.registration.account_service.scope | nindent 16 }}
+              blocker-service:
+                provider: {{ .Values.config.security.oauth2.client.registration.blocker_service.provider }}
+                client-id: {{ .Values.config.security.oauth2.client.registration.blocker_service.client_id }}
+                client-authentication-method: {{ .Values.config.security.oauth2.client.registration.blocker_service.client_authentication_method }}
+                authorization-grant-type: {{ .Values.config.security.oauth2.client.registration.blocker_service.authorization_grant_type }}
+                scope: {{ toYaml .Values.config.security.oauth2.client.registration.blocker_service.scope | nindent 16 }}
+              notification-service:
+                provider: {{ .Values.config.security.oauth2.client.registration.notification_service.provider }}
+                client-id: {{ .Values.config.security.oauth2.client.registration.notification_service.client_id }}
+                client-authentication-method: {{ .Values.config.security.oauth2.client.registration.notification_service.client_authentication_method }}
+                authorization-grant-type: {{ .Values.config.security.oauth2.client.registration.notification_service.authorization_grant_type }}
+                scope: {{ toYaml .Values.config.security.oauth2.client.registration.notification_service.scope | nindent 16 }}
+            provider:
+              account-service:
+                token-uri: {{ .Values.config.security.oauth2.client.provider.account_service.token_uri }}
+              blocker-service:
+                token-uri: {{ .Values.config.security.oauth2.client.provider.blocker_service.token_uri }}
+              notification-service:
+                token-uri: {{ .Values.config.security.oauth2.client.provider.notification_service.token_uri }}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: {{ toYaml .Values.config.management.endpoints.web.exposure.include | nindent 14 }}
+      endpoint:
+        health:
+          show_details: {{ .Values.config.management.endpoint.health.show_details }}
+    logging:
+      level:
+        org.springframework: {{ .Values.config.logging.level.org_springframework }}
+        ru.practicum: {{ .Values.config.logging.level.ru_practicum }}
+        org.springframework.web: {{ .Values.config.logging.level.org_springframework_web }}
+        org.springframework.cloud.gateway: {{ .Values.config.logging.level.org_springframework_cloud_gateway }}
+        reactor.netty: {{ .Values.config.logging.level.reactor_netty }}
+      pattern:
+        console: {{ .Values.config.logging.pattern.console | quote }}
