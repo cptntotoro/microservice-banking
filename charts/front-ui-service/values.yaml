@@ -1,0 +1,112 @@
+replicaCount: 1
+
+image:
+  repository: minikube.local/front-ui-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8081
+
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  AUTH_SERVICE_TOKEN_URL: http://ingress-nginx-controller/serv-auth-service/oauth2/token
+
+secrets:
+  CLIENT_SECRET: showcase-secret  # Для OAuth clients
+  JWT_SECRET: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
+
+config:
+  app:
+    currencies:
+      supported:
+        - RUB
+        - USD
+        - EUR
+        - CNY
+        - GBP
+        - JPY
+  spring:
+    thymeleaf:
+      prefix: classpath:/web/templates/
+      suffix: .html
+      mode: HTML
+      encoding: UTF-8
+      cache: false
+      servlet:
+        content_type: text/html
+      enable_spring_el_compiler: true
+      render_hidden_markers_before_checkboxes: true
+    webflux:
+      static_path_pattern: /**
+    web:
+      resources:
+        static_locations: classpath:/web/
+        cache:
+          period: 0
+          cachecontrol:
+            max_age: 1h
+            no_cache: false
+    main:
+      web_application_type: reactive
+    security:
+      oauth2:
+        client:
+          registration:
+            account_service:
+              provider: account-service
+              client_id: front-ui-service
+              client_authentication_method: client_secret_basic
+              authorization_grant_type: client_credentials
+              scope: account-service.read,account-service.write
+            user_auth_service:
+              provider: user-auth-service
+              client_id: front-ui-service
+              client_authentication_method: client_secret_basic
+              authorization_grant_type: client_credentials
+              scope: user-auth-service.read,user-auth-service.write
+            cash_service:
+              provider: cash-service
+              client_id: front-ui-service
+              client_authentication_method: client_secret_basic
+              authorization_grant-type: client_credentials
+              scope: cash-service.read,cash-service.write
+            exchange_service:
+              provider: exchange-service
+              client_id: front-ui-service
+              client_authentication-method: client_secret_basic
+              authorization_grant_type: client_credentials
+              scope: exchange-service.read,exchange-service.write
+            transfer_service:
+              provider: transfer-service
+              client_id: front-ui-service
+              client_authentication-method: client_secret_basic
+              authorization_grant_type: client_credentials
+              scope: transfer-service.read,transfer-service.write
+          provider:
+            account_service:
+              token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
+            user_auth_service:
+              token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
+            cash_service:
+              token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
+            exchange_service:
+              token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
+            transfer_service:
+              token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics
+    endpoint:
+      health:
+        show_details: always
+  logging:
+    level:
+      ru_practicum: info
+    pattern:
+      console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  jwt:
+    secret: "{{ .Values.secrets.JWT_SECRET }}"  # Будет в env, но для ConfigMap

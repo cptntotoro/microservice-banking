@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-front-ui-service
+  labels:
+    app: front-ui-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: front-ui-service
+  template:
+    metadata:
+      labels:
+        app: front-ui-service
+    spec:
+      containers:
+        - name: front-ui-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            - name: AUTH_SERVICE_TOKEN_URL
+              value: {{ .Values.env.AUTH_SERVICE_TOKEN_URL | quote }}
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ACCOUNT_SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: front-ui-secrets
+                  key: CLIENT_SECRET
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_USER_AUTH_SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: front-ui-secrets
+                  key: CLIENT_SECRET
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: front-ui-secrets
+                  key: CLIENT_SECRET
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: front-ui-secrets
+                  key: CLIENT_SECRET
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TRANSFER_SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: front-ui-secrets
+                  key: CLIENT_SECRET
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: front-ui-secrets
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: config
+              mountPath: /workspace/config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: front-ui-config
