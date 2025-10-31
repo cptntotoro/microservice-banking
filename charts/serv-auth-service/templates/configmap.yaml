@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: serv-auth-config
+data:
+  application.yml: |-
+    server:
+      port: {{ .Values.service.port }}
+    spring:
+      application:
+        name: serv-auth-service
+      main:
+        allow-bean-definition-overriding: {{ .Values.config.spring.main.allow_bean_definition_overriding }}
+        web-application-type: {{ .Values.config.spring.main.web_application_type }}
+      security:
+        oauth2:
+          authorizationserver:
+            client:
+              front-ui-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.front_ui_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.front_ui_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.front_ui_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.front_ui_service.registration.scopes | nindent 18 }}
+              account-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.account_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.account_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.account_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.account_service.registration.scopes | nindent 18 }}
+              user-auth-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.user_auth_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.user_auth_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.user_auth_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.user_auth_service.registration.scopes | nindent 18 }}
+              blocker-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.blocker_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.blocker_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.blocker_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.blocker_service.registration.scopes | nindent 18 }}
+              cash-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.cash_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.cash_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.cash_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.cash_service.registration.scopes | nindent 18 }}
+              exchange-generator-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.exchange_generator_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.exchange_generator_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.exchange_generator_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.exchange_generator_service.registration.scopes | nindent 18 }}
+              exchange-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.exchange_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.exchange_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.exchange_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.exchange_service.registration.scopes | nindent 18 }}
+              transfer-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.transfer_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.transfer_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.transfer_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.transfer_service.registration.scopes | nindent 18 }}
+              notification-service:
+                registration:
+                  client-id: {{ .Values.config.spring.security.oauth2.authorizationserver.client.notification_service.registration.client_id }}
+                  client-authentication-methods: {{ .Values.config.spring.security.oauth2.authorizationserver.client.notification_service.registration.client_authentication_methods }}
+                  authorization-grant-types: {{ .Values.config.spring.security.oauth2.authorizationserver.client.notification_service.registration.authorization_grant_types }}
+                  scopes: {{ toYaml .Values.config.spring.security.oauth2.authorizationserver.client.notification_service.registration.scopes | nindent 18 }}
+          resourceserver:
+            jwt:
+              issuer-uri: "{{ .Values.config.spring.security.oauth2.resourceserver.jwt.issuer_uri }}"
+              jwk-set-uri: "{{ .Values.config.spring.security.oauth2.resourceserver.jwt.jwk_set_uri }}"
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: {{ toYaml .Values.config.management.endpoints.web.exposure.include | nindent 14 }}
+    endpoint:
+      health:
+        show_details: {{ .Values.config.management.endpoint.health.show_details }}
+  logging:
+    level:
+      org.springframework: {{ .Values.config.logging.level.org_springframework }}
+      ru.practicum: {{ .Values.config.logging.level.ru_practicum }}
+      org.springframework.web: {{ .Values.config.logging.level.org_springframework_web }}
+      org.springframework.cloud: {{ .Values.config.logging.level.org_springframework_cloud }}
+      org.springframework.cloud.gateway: {{ .Values.config.logging.level.org_springframework_cloud_gateway }}
+      reactor.netty: {{ .Values.config.logging.level.reactor_netty }}
+      org.springframework.security: {{ .Values.config.logging.level.org_springframework_security }}
+      org.springframework.cloud.consul: {{ .Values.config.logging.level.org_springframework_cloud_consul }}
+    pattern:
+      console: {{ .Values.config.logging.pattern.console | quote }}
