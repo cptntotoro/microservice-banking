@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-user-auth-service
+  labels:
+    app: user-auth-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: user-auth-service
+  template:
+    metadata:
+      labels:
+        app: user-auth-service
+    spec:
+      containers:
+        - name: user-auth-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: AUTH_SERVICE_JWT_ISSUER_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+            - name: AUTH_SERVICE_JWK_SET_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWK_SET_URI | quote }}
+            - name: AUTH_SERVICE_TOKEN_URL
+              value: {{ .Values.env.AUTH_SERVICE_TOKEN_URL | quote }}
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ACCOUNT_SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-auth-secrets
+                  key: CLIENT_SECRET
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-auth-secrets
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: config
+              mountPath: /workspace/config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: user-auth-config
