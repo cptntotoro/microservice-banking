@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-notification-service
+  labels:
+    app: notification-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            - name: AUTH_SERVICE_JWT_ISSUER_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+            - name: AUTH_SERVICE_JWK_SET_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWK_SET_URI | quote }}
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secrets
+                  key: MAIL_USERNAME
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secrets
+                  key: MAIL_PASSWORD
+          volumeMounts:
+            - name: config
+              mountPath: /workspace/config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: notification-config

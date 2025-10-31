@@ -1,0 +1,46 @@
+replicaCount: 1
+
+image:
+  repository: minikube.local/notification-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8089
+
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  AUTH_SERVICE_JWT_ISSUER_URI: http://ingress-nginx-controller/serv-auth-service
+  AUTH_SERVICE_JWK_SET_URI: http://ingress-nginx-controller/serv-auth-service/oauth2/jwks
+
+secrets:
+  MAIL_USERNAME: your-email@gmail.com
+  MAIL_PASSWORD: your-app-password
+
+config:
+  spring:
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics
+    endpoint:
+      health:
+        show_details: always
+  logging:
+    level:
+      org_springframework: INFO
+      ru_practicum: DEBUG
+      org_springframework_cloud_consul: INFO
+    pattern:
+      console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
