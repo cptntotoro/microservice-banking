@@ -1,0 +1,13 @@
+replicaCount: 1
+image: postgres:15
+dbPassword: "postgres"
+initScript: |-
+  CREATE DATABASE account_service;
+  CREATE DATABASE blocker_service;
+  CREATE DATABASE cash_service;
+  CREATE DATABASE exchange_service;
+  CREATE DATABASE serv_auth_service;
+  CREATE DATABASE transfer_service;
+persistence:
+  size: 10Gi
+namespace: dev
