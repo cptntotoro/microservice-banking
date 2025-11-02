@@ -1,3 +1,107 @@
+server:
+  port: 8080
+
 spring:
-  config:
-    import: optional:configmap:api-gateway-config
+  application:
+    name: api-gateway-server
+  cloud:
+    gateway:
+      routes:
+        - id: account-service
+          uri: http://account-service:8082
+          predicates:
+            - Path=/account-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: blocker-service
+          uri: http://blocker-service:8084
+          predicates:
+            - Path=/blocker-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: cash-service
+          uri: http://cash-service:8085
+          predicates:
+            - Path=/cash-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: exchange-generator-service
+          uri: http://exchange-generator-service:8087
+          predicates:
+            - Path=/exchange-generator-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: exchange-service
+          uri: http://exchange-service:8086
+          predicates:
+            - Path=/exchange-service/**
+          filters:
+            - StripPrefix=1
+
+        #        - id: front-ui-service
+        #          uri: lb://front-ui-service
+        #          predicates:
+        #            - Path=/front-ui-service/**
+        #          filters:
+        #            - StripPrefix=1
+
+        - id: notification-service
+          uri: http://notification-service:8089
+          predicates:
+            - Path=/notification-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: serv-auth-service
+          uri: http://serv-auth-service:9000
+          predicates:
+            - Path=/serv-auth-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: transfer-service
+          uri: http://transfer-service:8088
+          predicates:
+            - Path=/transfer-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: user-auth-service
+          uri: http://user-auth-service:8083
+          predicates:
+            - Path=/user-auth-service/**
+          filters:
+            - StripPrefix=1
+
+        # Health check endpoint для gateway
+        - id: gateway-health
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/actuator/health
+
+      # Глобальная конфигурация для всех маршрутов
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10s
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.consul: INFO
