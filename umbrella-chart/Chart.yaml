@@ -1,0 +1,67 @@
+apiVersion: v2
+name: microbank-umbrella
+description: Umbrella chart for FULL microbank
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: postgres
+    version: 0.1.0
+    repository: file://./charts/postgres
+    condition: postgres.enabled
+
+  - name: serv-auth-service
+    version: 0.1.0
+    repository: file://./charts/serv-auth-service
+    condition: serv-auth-service.enabled
+
+  - name: user-auth-service
+    version: 0.1.0
+    repository: file://./charts/user-auth-service
+    condition: user-auth-service.enabled
+
+  - name: account-service
+    version: 0.1.0
+    repository: file://./charts/account-service
+    condition: account-service.enabled
+
+  - name: blocker-service
+    version: 0.1.0
+    repository: file://./charts/blocker-service
+    condition: blocker-service.enabled
+
+  - name: cash-service
+    version: 0.1.0
+    repository: file://./charts/cash-service
+    condition: cash-service.enabled
+
+  - name: exchange-service
+    version: 0.1.0
+    repository: file://./charts/exchange-service
+    condition: exchange-service.enabled
+
+  - name: exchange-generator-service
+    version: 0.1.0
+    repository: file://./charts/exchange-generator-service
+    condition: exchange-generator-service.enabled
+
+  - name: notification-service
+    version: 0.1.0
+    repository: file://./charts/notification-service
+    condition: notification-service.enabled
+
+  - name: transfer-service
+    version: 0.1.0
+    repository: file://./charts/transfer-service
+    condition: transfer-service.enabled
+
+  - name: api-gateway-server
+    version: 0.1.0
+    repository: file://./charts/api-gateway-server
+    condition: api-gateway-server.enabled
+
+  - name: front-ui-service
+    version: 0.1.0
+    repository: file://./charts/front-ui-service
+    condition: front-ui-service.enabled

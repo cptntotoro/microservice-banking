@@ -1,0 +1,15 @@
+#apiVersion: v1
+#kind: Pod
+#metadata:
+#  name: "{{ .Release.Name }}-blocker-test-connection"
+#  labels:
+#    app: blocker-service
+#  annotations:
+#    "helm.sh/hook": test
+#spec:
+#  containers:
+#    - name: wget
+#      image: busybox
+#      command: ['wget']
+#      args: ['blocker-service:{{ .Values.service.port }}/actuator/health']
+#  restartPolicy: Never

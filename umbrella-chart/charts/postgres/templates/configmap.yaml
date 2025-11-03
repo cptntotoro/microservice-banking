@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgres-initdb
+  namespace: {{ .Values.namespace }}
+data:
+  create-databases.sql: {{ .Values.initDBScript | nindent 4 }}

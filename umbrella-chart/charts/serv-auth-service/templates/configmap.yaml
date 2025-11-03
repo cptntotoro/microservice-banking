@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-auth-config
+  namespace: {{ .Values.namespace }}
+data:
+  application.yml: |-
+    server:
+      port: {{ .Values.service.port }}
+    spring:
+      application:
+        name: serv-auth-service
+      main:
+        allow-bean-definition-overriding: true
+        web-application-type: reactive
+      r2dbc:
+        url: r2dbc:postgresql://{{ .Release.Name }}-{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/serv_auth_service
+        username: {{ .Values.env.DB_USERNAME }}
+        password: ${DB_PASSWORD}
+        pool:
+          enabled: true
+          initial-size: 10
+          max-size: 50
+          max-idle-time: 30m
+          max-life-time: 60m
+          validation-query: SELECT 1
+      security:
+        oauth2:
+          authorizationserver:
+            client:
+              front-ui-service:
+                registration:
+                  client-id: front-ui-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: front-ui-service.read,front-ui-service.write
+              account-service:
+                registration:
+                  client-id: account-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: account-service.read,account-service.write
+              user-auth-service:
+                registration:
+                  client-id: user-auth-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: user-auth-service.read,user-auth-service.write
+              blocker-service:
+                registration:
+                  client-id: blocker-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: blocker-service.read,blocker-service.write
+              cash-service:
+                registration:
+                  client-id: cash-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: cash-service.read,cash-service.write
+              exchange-generator-service:
+                registration:
+                  client-id: exchange-generator-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: exchange-generator-service.read,exchange-generator-service.write
+              exchange-service:
+                registration:
+                  client-id: exchange-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: exchange-service.read,exchange-service.write
+              transfer-service:
+                registration:
+                  client-id: transfer-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: transfer-service.read,transfer-service.write
+              notification-service:
+                registration:
+                  client-id: notification-service
+                  client-secret: ${CLIENT_SECRET}
+                  client-authentication-methods: client_secret_basic
+                  authorization-grant-types: client_credentials
+                  scopes: notification-service.read,notification-service.write
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health, info, metrics
+      endpoint:
+        health:
+          show-details: always
+    logging:
+      level:
+        org.springframework: ERROR
+        ru.practicum: WARN
+        org.springframework.web: WARN
+        org.springframework.cloud: WARN
+        org.springframework.cloud.gateway: DEBUG
+        reactor.netty: ERROR
+        org.springframework.security: DEBUG
+      pattern:
+        console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
