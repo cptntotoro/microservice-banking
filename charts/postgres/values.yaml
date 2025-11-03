@@ -1,13 +1,40 @@
 replicaCount: 1
-image: postgres:15
-dbPassword: "postgres"
-initScript: |-
+namespace: dev
+
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  tag: "16"
+
+service:
+  type: ClusterIP
+  port: 5432
+
+ingress:
+  enabled: false
+
+env:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  GATEWAY_URL: http://gateway.dev.svc.cluster.local:8080
+
+secret:
+  POSTGRES_PASSWORD: postgres
+
+resources: {}
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+
+initDBScript: |
   CREATE DATABASE account_service;
   CREATE DATABASE blocker_service;
   CREATE DATABASE cash_service;
   CREATE DATABASE exchange_service;
   CREATE DATABASE serv_auth_service;
   CREATE DATABASE transfer_service;
-persistence:
-  size: 10Gi
-namespace: dev
+  CREATE DATABASE exchange_generator_service;
+  CREATE DATABASE user_auth_service;
+  CREATE DATABASE notification_service;

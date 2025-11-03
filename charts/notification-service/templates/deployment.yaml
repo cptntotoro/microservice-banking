@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-notification-service
-  labels:
-    app: notification-service
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: notification-service
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: notification-service
+        app: {{ .Release.Name }}
     spec:
       containers:
-        - name: notification-service
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
@@ -25,23 +24,44 @@ spec:
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
             - name: AUTH_SERVICE_JWT_ISSUER_URI
               value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
-            - name: AUTH_SERVICE_JWK_SET_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWK_SET_URI | quote }}
-            - name: SPRING_MAIL_USERNAME
+            - name: AUTH_SERVICE_JWT_JWK_SET_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI | quote }}
+            - name: MAIL_HOST
+              value: {{ .Values.env.MAIL_HOST | quote }}
+            - name: MAIL_PORT
+              value: {{ .Values.env.MAIL_PORT | quote }}
+            - name: GATEWAY_URL
+              value: {{ .Values.env.GATEWAY_URL | quote }}
+            - name: MAIL_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: notification-secrets
+                  name: {{ .Release.Name }}-secret
                   key: MAIL_USERNAME
-            - name: SPRING_MAIL_PASSWORD
+            - name: MAIL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: notification-secrets
+                  name: {{ .Release.Name }}-secret
                   key: MAIL_PASSWORD
           volumeMounts:
-            - name: config
-              mountPath: /workspace/config
+            - name: config-volume
+              mountPath: /config/application.yml
+              subPath: application.yml
               readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
-        - name: config
+        - name: config-volume
           configMap:
-            name: notification-config
+            name: {{ .Release.Name }}-config

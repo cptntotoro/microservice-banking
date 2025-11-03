@@ -1,3 +1,3 @@
 FROM openjdk:21-jdk-slim
-COPY user-auth-service/target/user-auth-service.jar app.jar
+COPY target/user-auth-service.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

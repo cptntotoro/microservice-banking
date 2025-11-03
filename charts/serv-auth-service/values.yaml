@@ -1,115 +1,29 @@
 replicaCount: 1
+namespace: dev
 
 image:
-  repository: minikube.local/serv-auth-service
-  tag: latest
+  repository: serv-auth-service
   pullPolicy: IfNotPresent
+  tag: "latest"
 
 service:
   type: ClusterIP
   port: 9000
 
+ingress:
+  enabled: false
+
 env:
   SPRING_PROFILES_ACTIVE: prod
-  SPRING_R2DBC_URL: r2dbc:postgresql://postgres-service:5432/serv_auth_service
-  SPRING_R2DBC_USERNAME: postgres
-  AUTH_SERVICE_JWT_ISSUER_URI: http://ingress-nginx-controller/serv-auth-service
-  AUTH_SERVICE_JWT_JWK_SET_URI: http://ingress-nginx-controller/serv-auth-service/oauth2/jwks
-  SPRING_R2DBC_POOL_ENABLED: "true"
-  SPRING_R2DBC_POOL_INITIAL_SIZE: "10"
-  SPRING_R2DBC_POOL_MAX_SIZE: "50"
-  SPRING_R2DBC_POOL_MAX_IDLE_TIME: "30m"
-  SPRING_R2DBC_POOL_MAX_LIFE_TIME: "60m"
-  SPRING_R2DBC_POOL_VALIDATION_QUERY: "SELECT 1"
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_USERNAME: postgres
+  AUTH_SERVICE_JWT_ISSUER_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service/oauth2/jwks
+  GATEWAY_URL: http://gateway.dev.svc.cluster.local:8080
 
-secrets:
+secret:
   DB_PASSWORD: postgres
-  CLIENT_SECRET: $2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a  # Общий для всех clients
+  CLIENT_SECRET: $2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
 
-config:
-  spring:
-    main:
-      allow_bean_definition_overriding: true
-      web_application_type: reactive
-    security:
-      oauth2:
-        authorizationserver:
-          client:
-            front_ui_service:
-              registration:
-                client_id: front-ui-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: front-ui-service.read,front-ui-service.write
-            account_service:
-              registration:
-                client_id: account-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: account-service.read,account-service.write
-            user_auth_service:
-              registration:
-                client_id: user-auth-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: user-auth-service.read,user-auth-service.write
-            blocker_service:
-              registration:
-                client_id: blocker-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: blocker-service.read,blocker-service.write
-            cash_service:
-              registration:
-                client_id: cash-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: cash-service.read,cash-service.write
-            exchange_generator_service:
-              registration:
-                client_id: exchange-generator-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: exchange-generator-service.read,exchange-generator-service.write
-            exchange_service:
-              registration:
-                client_id: exchange-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: exchange-service.read,exchange-service.write
-            transfer_service:
-              registration:
-                client_id: transfer-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: transfer-service.read,transfer-service.write
-            notification_service:
-              registration:
-                client_id: notification-service
-                client_authentication_methods: client_secret_basic
-                authorization_grant_types: client_credentials
-                scopes: notification-service.read,notification-service.write
-        resourceserver:
-          jwt:
-            issuer_uri: "{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}"
-            jwk_set_uri: "{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}"
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics
-    endpoint:
-      health:
-        show_details: always
-  logging:
-    level:
-      org_springframework: ERROR
-      ru_practicum: WARN
-      org_springframework_web: WARN
-      org_springframework_cloud: WARN
-      org_springframework_cloud_gateway: DEBUG
-      reactor_netty: ERROR
-      org_springframework_security: DEBUG
-      org_springframework_cloud_consul: DEBUG
-    pattern:
-      console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+resources: {}

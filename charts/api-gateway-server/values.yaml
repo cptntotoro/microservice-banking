@@ -1,102 +1,21 @@
 replicaCount: 1
+namespace: dev
 
 image:
-  repository: minikube.local/api-gateway-server
-  tag: latest
+  repository: api-gateway-server
   pullPolicy: IfNotPresent
+  tag: "latest"
 
 service:
   type: ClusterIP
   port: 8080
 
+ingress:
+  enabled: true
+
 env:
-  SPRING_PROFILES_ACTIVE: prod  # Если нужно, иначе удалить
+  SPRING_PROFILES_ACTIVE: docker
 
-secrets: {}  # Нет явных секретов в application.yml; добавьте при необходимости, e.g., для auth
+secret: {}
 
-config:
-  spring:
-    application:
-      name: api-gateway-server
-    cloud:
-      gateway:
-        discovery:
-          locator:
-            enabled: true
-            lower_case_service_id: true
-        routes:
-          - id: account-service
-            uri: http://account-service  # Изменено с lb:// на http:// (K8s DNS)
-            predicates:
-              - Path=/account-service/**
-            filters:
-              - StripPrefix=1
-          - id: blocker-service
-            uri: http://blocker-service
-            predicates:
-              - Path=/blocker-service/**
-            filters:
-              - StripPrefix=1
-          - id: cash-service
-            uri: http://cash-service
-            predicates:
-              - Path=/cash-service/**
-            filters:
-              - StripPrefix=1
-          - id: exchange-generator-service
-            uri: http://exchange-generator-service
-            predicates:
-              - Path=/exchange-generator-service/**
-            filters:
-              - StripPrefix=1
-          - id: exchange-service
-            uri: http://exchange-service
-            predicates:
-              - Path=/exchange-service/**
-            filters:
-              - StripPrefix=1
-          - id: notification-service
-            uri: http://notification-service
-            predicates:
-              - Path=/notification-service/**
-            filters:
-              - StripPrefix=1
-          - id: serv-auth-service
-            uri: http://serv-auth-service
-            predicates:
-              - Path=/serv-auth-service/**
-            filters:
-              - StripPrefix=1
-          - id: transfer-service
-            uri: http://transfer-service
-            predicates:
-              - Path=/transfer-service/**
-            filters:
-              - StripPrefix=1
-          - id: user-auth-service
-            uri: http://user-auth-service
-            predicates:
-              - Path=/user-auth-service/**
-            filters:
-              - StripPrefix=1
-          - id: gateway-health
-            uri: http://localhost:8080  # Локальный health
-            predicates:
-              - Path=/actuator/health
-        httpclient:
-          connect_timeout: 5000
-          response_timeout: 10s
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics,gateway
-    endpoint:
-      health:
-        show_details: always
-      gateway:
-        enabled: true
-  logging:
-    level:
-      org_springframework_cloud_gateway: DEBUG
-      org_springframework_cloud_consul: INFO  # Consul удален, но уровень оставлен для совместимости
+resources: {}

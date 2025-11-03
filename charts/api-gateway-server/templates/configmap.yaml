@@ -1,35 +1,93 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: api-gateway-config
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
 data:
   application.yml: |-
     server:
       port: {{ .Values.service.port }}
     spring:
       application:
-        name: {{ .Values.config.spring.application.name }}
+        name: api-gateway-server
       cloud:
         gateway:
           discovery:
             locator:
-              enabled: {{ .Values.config.spring.cloud.gateway.discovery.locator.enabled }}
-              lower-case-service-id: {{ .Values.config.spring.cloud.gateway.discovery.locator.lower_case_service_id }}
-          routes: {{ toYaml .Values.config.spring.cloud.gateway.routes | nindent 10 }}
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: account
+              uri: http://account:8082
+              predicates:
+                - Path=/account-service/**
+              filters:
+                - StripPrefix=1
+            - id: blocker
+              uri: http://blocker:8084
+              predicates:
+                - Path=/blocker-service/**
+              filters:
+                - StripPrefix=1
+            - id: cash
+              uri: http://cash:8085
+              predicates:
+                - Path=/cash-service/**
+              filters:
+                - StripPrefix=1
+            - id: exchange-gen
+              uri: http://exchange-gen:8087
+              predicates:
+                - Path=/exchange-generator-service/**
+              filters:
+                - StripPrefix=1
+            - id: exchange
+              uri: http://exchange:8086
+              predicates:
+                - Path=/exchange-service/**
+              filters:
+                - StripPrefix=1
+            - id: notification
+              uri: http://notification:8089
+              predicates:
+                - Path=/notification-service/**
+              filters:
+                - StripPrefix=1
+            - id: auth
+              uri: http://auth:9000
+              predicates:
+                - Path=/serv-auth-service/**
+              filters:
+                - StripPrefix=1
+            - id: transfer
+              uri: http://transfer:8088
+              predicates:
+                - Path=/transfer-service/**
+              filters:
+                - StripPrefix=1
+            - id: user-auth
+              uri: http://user-auth:8083
+              predicates:
+                - Path=/user-auth-service/**
+              filters:
+                - StripPrefix=1
+            - id: gateway-health
+              uri: http://localhost:{{ .Values.service.port }}
+              predicates:
+                - Path=/actuator/health
           httpclient:
-            connect-timeout: {{ .Values.config.spring.cloud.gateway.httpclient.connect_timeout }}
-            response-timeout: {{ .Values.config.spring.cloud.gateway.httpclient.response_timeout }}
+            connect-timeout: 5000
+            response-timeout: 10s
     management:
       endpoints:
         web:
           exposure:
-            include: {{ toYaml .Values.config.management.endpoints.web.exposure.include | nindent 14 }}
+            include: health, info, metrics, gateway
       endpoint:
         health:
-          show-details: {{ .Values.config.management.endpoint.health.show_details }}
+          show-details: always
         gateway:
-          enabled: {{ .Values.config.management.endpoint.gateway.enabled }}
+          enabled: true
     logging:
       level:
-        org.springframework.cloud.gateway: {{ .Values.config.logging.level.org_springframework_cloud_gateway }}
-        org.springframework.cloud.consul: {{ .Values.config.logging.level.org_springframework_cloud_consul }}
+        org.springframework.cloud.gateway: DEBUG

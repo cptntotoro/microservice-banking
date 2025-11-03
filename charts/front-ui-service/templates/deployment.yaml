@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-front-ui-service
-  labels:
-    app: front-ui-service
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: front-ui-service
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: front-ui-service
+        app: {{ .Release.Name }}
     spec:
       containers:
-        - name: front-ui-service
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
@@ -25,41 +24,44 @@ spec:
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
             - name: AUTH_SERVICE_TOKEN_URL
               value: {{ .Values.env.AUTH_SERVICE_TOKEN_URL | quote }}
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ACCOUNT_SERVICE_CLIENT_SECRET
+            - name: AUTH_SERVICE_JWT_ISSUER_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+            - name: AUTH_SERVICE_JWT_JWK_SET_URI
+              value: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI | quote }}
+            - name: APP_CURRENCIES_SUPPORTED
+              value: {{ .Values.env.APP_CURRENCIES_SUPPORTED | quote }}
+            - name: GATEWAY_URL
+              value: {{ .Values.env.GATEWAY_URL | quote }}
+            - name: FRONT_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: front-ui-secrets
-                  key: CLIENT_SECRET
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_USER_AUTH_SERVICE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: front-ui-secrets
-                  key: CLIENT_SECRET
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CASH_SERVICE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: front-ui-secrets
-                  key: CLIENT_SECRET
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_EXCHANGE_SERVICE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: front-ui-secrets
-                  key: CLIENT_SECRET
-            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TRANSFER_SERVICE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: front-ui-secrets
-                  key: CLIENT_SECRET
+                  name: {{ .Release.Name }}-secret
+                  key: FRONT_CLIENT_SECRET
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: front-ui-secrets
+                  name: {{ .Release.Name }}-secret
                   key: JWT_SECRET
           volumeMounts:
-            - name: config
-              mountPath: /workspace/config
+            - name: config-volume
+              mountPath: /config/application.yml
+              subPath: application.yml
               readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
-        - name: config
+        - name: config-volume
           configMap:
-            name: front-ui-config
+            name: {{ .Release.Name }}-config

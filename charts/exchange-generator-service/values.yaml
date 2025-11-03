@@ -1,78 +1,33 @@
 replicaCount: 1
+namespace: dev
 
 image:
-  repository: minikube.local/exchange-generator-service
-  tag: latest
+  repository: exchange-generator-service
   pullPolicy: IfNotPresent
+  tag: "latest"
 
 service:
   type: ClusterIP
   port: 8087
 
+ingress:
+  enabled: false
+
 env:
   SPRING_PROFILES_ACTIVE: prod
-  SPRING_R2DBC_URL: r2dbc:postgresql://postgres-service:5432/exchange_generator_service
-  SPRING_R2DBC_USERNAME: postgres
-  AUTH_SERVICE_JWT_ISSUER_URI: http://ingress-nginx-controller/serv-auth-service
-  AUTH_SERVICE_JWK_SET_URI: http://ingress-nginx-controller/serv-auth-service/oauth2/jwks
-  AUTH_SERVICE_TOKEN_URL: http://ingress-nginx-controller/serv-auth-service/oauth2/token
-  SPRING_R2DBC_POOL_ENABLED: "true"
-  SPRING_R2DBC_POOL_INITIAL_SIZE: "10"
-  SPRING_R2DBC_POOL_MAX_SIZE: "50"
-  SPRING_R2DBC_POOL_MAX_IDLE_TIME: "30m"
-  SPRING_R2DBC_POOL_MAX_LIFE_TIME: "60m"
-  SPRING_R2DBC_POOL_VALIDATION_QUERY: "SELECT 1"
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_USERNAME: postgres
+  AUTH_SERVICE_JWT_ISSUER_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI: http://gateway.dev.svc.cluster.local:8080/servборе-auth-service/oauth2/jwks
+  AUTH_SERVICE_TOKEN_URL: http://gateway.dev.svc.cluster.local:8080/serv-auth-service/oauth2/token
+  EXCHANGE_RATE_GENERATION_INTERVAL_MS: "1000"
+  APP_CURRENCIES_SUPPORTED: "RUB,USD,EUR,CNY,GBP,JPY"
+  EXCHANGE_GENERATOR_CLIENT_SECRET: showcase-secret
+  GATEWAY_URL: http://gateway.dev.svc.cluster.local:8080
 
-secrets:
+secret:
   DB_PASSWORD: postgres
-  CLIENT_SECRET: showcase-secret  # Для OAuth client
+  EXCHANGE_GENERATOR_CLIENT_SECRET: showcase-secret
 
-config:
-  exchange:
-    rate:
-      generation:
-        interval:
-          ms: 1000
-  app:
-    currencies:
-      supported:
-        - RUB
-        - USD
-        - EUR
-        - CNY
-        - GBP
-        - JPY
-  spring:
-    scheduling:
-      enabled: true
-    task:
-      scheduling:
-        enabled: true
-  security:
-    oauth2:
-      client:
-        registration:
-          exchange_service:
-            provider: exchange-service
-            client_id: exchange-generator-service
-            client_authentication_method: client_secret_basic
-            authorization_grant_type: client_credentials
-            scope: exchange-service.read,exchange-service.write
-        provider:
-          exchange_service:
-            token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics
-    endpoint:
-      health:
-        show_details: always
-  logging:
-    level:
-      org_springframework: INFO
-      ru_practicum: DEBUG
-      org_springframework_cloud_consul: INFO
-    pattern:
-      console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+resources: {}

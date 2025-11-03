@@ -1,67 +1,32 @@
 replicaCount: 1
+namespace: dev
 
 image:
-  repository: minikube.local/user-auth-service
-  tag: latest
+  repository: user-auth-service
   pullPolicy: IfNotPresent
+  tag: "latest"
 
 service:
   type: ClusterIP
   port: 8083
 
-env:
-  AUTH_SERVICE_JWT_ISSUER_URI: http://ingress-nginx-controller/serv-auth-service
-  AUTH_SERVICE_JWK_SET_URI: http://ingress-nginx-controller/serv-auth-service/oauth2/jwks
-  AUTH_SERVICE_TOKEN_URL: http://ingress-nginx-controller/serv-auth-service/oauth2/token
+ingress:
+  enabled: false
 
-secrets:
-  CLIENT_SECRET: showcase-secret  # Для OAuth client
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_USERNAME: postgres
+  AUTH_SERVICE_JWT_ISSUER_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service/oauth2/jwks
+  AUTH_SERVICE_TOKEN_URL: http://gateway.dev.svc.cluster.local:8080/serv-auth-service/oauth2/token
+  USER_AUTH_CLIENT_SECRET: showcase-secret
+  GATEWAY_URL: http://gateway.dev.svc.cluster.local:8080
+
+secret:
+  DB_PASSWORD: postgres
+  USER_AUTH_CLIENT_SECRET: showcase-secret
   JWT_SECRET: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
 
-config:
-  spring:
-    main:
-      web_application_type: reactive
-    webflux:
-      static_path_pattern: /**
-    security:
-      oauth2:
-        resourceserver:
-          jwt:
-            issuer_uri: "{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}"
-            jwk_set_uri: "{{ .Values.env.AUTH_SERVICE_JWK_SET_URI }}"
-        client:
-          registration:
-            account_service:
-              provider: account-service
-              client_id: user-auth-service
-              client_authentication_method: client_secret_basic
-              authorization_grant_type: client_credentials
-              scope: account-service.read,account-service.write
-          provider:
-            account_service:
-              token_uri: "{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}"
-  jwt:
-    secret: "{{ .Values.secrets.JWT_SECRET }}"
-    expiration: 360000
-    issuer: user-auth-service
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics
-    endpoint:
-      health:
-        show_details: always
-  logging:
-    level:
-      org_springframework: ERROR
-      ru_practicum: WARN
-      org_springframework_web: WARN
-      org_springframework_cloud: WARN
-      org_springframework_cloud_gateway: DEBUG
-      reactor_netty: ERROR
-      org_springframework_security: DEBUG
-      org_springframework_cloud_consul: DEBUG
-    pattern:
-      console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+resources: {}

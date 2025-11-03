@@ -1,34 +1,47 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-api-gateway-server
-  labels:
-    app: api-gateway-server
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: api-gateway-server
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: api-gateway-server
+        app: {{ .Release.Name }}
     spec:
       containers:
-        - name: api-gateway-server
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
-            # Добавьте другие env, если нужны; секреты из Secret
           volumeMounts:
-            - name: config
-              mountPath: /workspace/config
+            - name: config-volume
+              mountPath: /config/application.yml
+              subPath: application.yml
               readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
-        - name: config
+        - name: config-volume
           configMap:
-            name: api-gateway-config
+            name: {{ .Release.Name }}-config

@@ -1,7 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: blocker-config
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
 data:
   application.yml: |-
     server:
@@ -11,20 +12,44 @@ data:
         name: blocker-service
       profiles:
         active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
+      r2dbc:
+        url: r2dbc:postgresql://{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/blocker_service
+        username: {{ .Values.env.DB_USERNAME }}
+        password: "{{ "{{" }} DB_PASSWORD {{ "}}" }}"
+        pool:
+          enabled: true
+          initial-size: 10
+          max-size: 50
+          max-idle-time: 30m
+          max-life-time: 60m
+          validation-query: SELECT 1
       main:
         web-application-type: reactive
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
     management:
       endpoints:
         web:
           exposure:
-            include: {{ toYaml .Values.config.management.endpoints.web.exposure.include | nindent 14 }}
+            include: health, info, metrics
       endpoint:
         health:
-          show_details: {{ .Values.config.management.endpoint.health.show_details }}
+          show-details: always
     logging:
       level:
-        org.springframework: {{ .Values.config.logging.level.org_springframework }}
-        ru.practicum: {{ .Values.config.logging.level.ru_practicum }}
-        org.springframework.cloud.consul: {{ .Values.config.logging.level.org_springframework_cloud_consul }}
+        org.springframework: INFO
+        ru.practicum: DEBUG
       pattern:
-        console: {{ .Values.config.logging.pattern.console | quote }}
+        console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    blocker:
+      frequency-threshold: {{ .Values.env.BLOCKER_FREQUENCY_THRESHOLD }}
+      risk-threshold: {{ .Values.env.BLOCKER_RISK_THRESHOLD }}
+      duplicate-risk-score: {{ .Values.env.BLOCKER_DUPLICATE_RISK_SCORE }}
+      amount-anomaly-risk-score: {{ .Values.env.BLOCKER_AMOUNT_ANOMALY_RISK_SCORE }}
+      unusual-time-risk-score: {{ .Values.env.BLOCKER_UNUSUAL_TIME_RISK_SCORE }}
+      high-frequency-risk-score: {{ .Values.env.BLOCKER_HIGH_FREQUENCY_RISK_SCORE }}
+      blocked-history-risk-score: {{ .Values.env.BLOCKER_BLOCKED_HISTORY_RISK_SCORE }}

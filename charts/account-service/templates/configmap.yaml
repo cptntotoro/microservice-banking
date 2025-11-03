@@ -1,37 +1,54 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: account-config
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
 data:
   application.yml: |-
     server:
       port: {{ .Values.service.port }}
     app:
       currencies:
-        supported: {{ toYaml .Values.config.app.currencies.supported | nindent 8 }}
+        supported: {{ .Values.env.APP_CURRENCIES_SUPPORTED | splitList "," | toYaml | nindent 8 }}
     spring:
       application:
         name: account-service
       profiles:
         active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
+      r2dbc:
+        url: r2dbc:postgresql://{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/account_service
+        username: {{ .Values.env.DB_USERNAME }}
+        password: "{{ "{{" }} DB_PASSWORD {{ "}}" }}"
+        pool:
+          enabled: true
+          initial-size: 10
+          max-size: 50
+          max-idle-time: 30m
+          max-life-time: 60m
+          validation-query: SELECT 1
       main:
         web-application-type: reactive
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
     management:
       endpoints:
         web:
           exposure:
-            include: {{ toYaml .Values.config.management.endpoints.web.exposure.include | nindent 14 }}
+            include: health, info, metrics
       endpoint:
         health:
-          show_details: {{ .Values.config.management.endpoint.health.show_details }}
+          show-details: always
     logging:
       level:
-        org.springframework: {{ .Values.config.logging.level.org_springframework }}
-        ru.practicum: {{ .Values.config.logging.level.ru_practicum }}
-        org.springframework.web: {{ .Values.config.logging.level.org_springframework_web }}
-        org.springframework.cloud: {{ .Values.config.logging.level.org_springframework_cloud }}
-        org.springframework.cloud.gateway: {{ .Values.config.logging.level.org_springframework_cloud_gateway }}
-        reactor.netty: {{ .Values.config.logging.level.reactor_netty }}
-        org.springframework.security: {{ .Values.config.logging.level.org_springframework_security }}
+        org.springframework: ERROR
+        ru.practicum: WARN
+        org.springframework.web: WARN
+        org.springframework.cloud: WARN
+        reactor.netty: ERROR
+        org.springframework.security: DEBUG
       pattern:
-        console: {{ .Values.config.logging.pattern.console | quote }}
+        console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

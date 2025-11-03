@@ -1,49 +1,31 @@
 replicaCount: 1
+namespace: dev
 
 image:
-  repository: minikube.local/exchange-service
-  tag: latest
+  repository: exchange-service
   pullPolicy: IfNotPresent
+  tag: "latest"
 
 service:
   type: ClusterIP
   port: 8086
 
+ingress:
+  enabled: false
+
 env:
   SPRING_PROFILES_ACTIVE: prod
-  SPRING_R2DBC_URL: r2dbc:postgresql://postgres-service:5432/exchange_service
-  SPRING_R2DBC_USERNAME: postgres
-  AUTH_SERVICE_JWT_ISSUER_URI: http://ingress-nginx-controller/serv-auth-service
-  AUTH_SERVICE_JWK_SET_URI: http://ingress-nginx-controller/serv-auth-service/oauth2/jwks
-  SPRING_R2DBC_POOL_ENABLED: "true"
-  SPRING_R2DBC_POOL_INITIAL_SIZE: "10"
-  SPRING_R2DBC_POOL_MAX_SIZE: "50"
-  SPRING_R2DBC_POOL_MAX_IDLE_TIME: "30m"
-  SPRING_R2DBC_POOL_MAX_LIFE_TIME: "60m"
-  SPRING_R2DBC_POOL_VALIDATION_QUERY: "SELECT 1"
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_USERNAME: postgres
+  AUTH_SERVICE_JWT_ISSUER_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI: http://gateway.dev.svc.cluster.local:8080/serv-auth-service/oauth2/jwks
+  EXCHANGE_SPREAD: "0.005"
+  EXCHANGE_SCALE: "4"
+  APP_CURRENCIES_SUPPORTED: "RUB,USD,EUR,CNY,GBP,JPY"
+  GATEWAY_URL: http://gateway.dev.svc.cluster.local:8080
 
-secrets:
+secret:
   DB_PASSWORD: postgres
 
-config:
-  exchange:
-    spread: 0.005
-    scale: 4
-  spring:
-    scheduling:
-      enabled: true
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics
-    endpoint:
-      health:
-        show_details: always
-  logging:
-    level:
-      org_springframework: INFO
-      ru_practicum: DEBUG
-      org_springframework_cloud_consul: INFO
-    pattern:
-      console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+resources: {}
