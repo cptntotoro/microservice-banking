@@ -125,6 +125,13 @@
                     <mainClass>ru.practicum.TransferApplication</mainClass>
                     <finalName>transfer-service</finalName>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

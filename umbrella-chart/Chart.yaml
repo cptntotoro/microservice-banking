@@ -56,10 +56,15 @@ dependencies:
     repository: file://./charts/transfer-service
     condition: transfer-service.enabled
 
-  - name: api-gateway-server
+  - name: nginx-gateway
     version: 0.1.0
-    repository: file://./charts/api-gateway-server
-    condition: api-gateway-server.enabled
+    repository: file://./charts/nginx-gateway
+    condition: nginx-gateway.enabled
+
+#  - name: ingress-nginx
+#    version: 4.11.3
+#    repository: https://kubernetes.github.io/ingress-nginx
+#    condition: nginx-gateway.enabled
 
   - name: front-ui-service
     version: 0.1.0

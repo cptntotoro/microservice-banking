@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-exchange-config
-  namespace: {{ .Values.namespace }}
+  name: {{ include "exchange-service.fullname" . }}
+  labels:
+    {{- include "exchange-service.labels" . | nindent 4 }}
 data:
   application.yml: |-
     server:
@@ -31,7 +32,7 @@ data:
             register: true
             enabled: true
       r2dbc:
-        url: r2dbc:postgresql://{{ .Release.Name }}-{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/exchange_service
+        url: r2dbc:postgresql://{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/exchange_service
         username: {{ .Values.env.DB_USERNAME }}
         password: ${DB_PASSWORD}
         pool:
@@ -49,8 +50,8 @@ data:
         oauth2:
           resourceserver:
             jwt:
-              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
-              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+              issuer-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
     management:
       endpoints:
         web:

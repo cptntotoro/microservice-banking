@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-exchange-gen-config
-  namespace: {{ .Values.namespace }}
+  name: {{ include "exchange-generator-service.fullname" . }}
+  labels:
+    {{- include "exchange-generator-service.labels" . | nindent 4 }}
 data:
   application.yml: |-
     server:
@@ -52,8 +53,8 @@ data:
         oauth2:
           resourceserver:
             jwt:
-              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
-              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+              issuer-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
           client:
             registration:
               exchange-service:
@@ -65,7 +66,7 @@ data:
                 scope: exchange-service.read,exchange-service.write
             provider:
               exchange-service:
-                token-uri: {{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
     management:
       endpoints:
         web:

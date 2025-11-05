@@ -1,0 +1,42 @@
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "api-gateway-server"
+  annotations: {}
+  paths:
+    - path: /account-service
+      service: account-service
+      port: 8082
+    - path: /blocker-service
+      service: blocker-service
+      port: 8084
+    - path: /cash-service
+      service: cash-service
+      port: 8085
+    - path: /exchange-generator-service
+      service: exchange-generator-service
+      port: 8087
+    - path: /exchange-service
+      service: exchange-service
+      port: 8086
+    - path: /notification-service
+      service: notification-service
+      port: 8089
+    - path: /serv-auth-service
+      service: serv-auth-service
+      port: 9000
+    - path: /transfer-service
+      service: transfer-service
+      port: 8088
+    - path: /user-auth-service
+      service: user-auth-service
+      port: 8083
+    - path: /front-ui-service
+      service: front-ui-service
+      port: 8081
+
+service:
+  enabled: false
+  internal:
+    enabled: true
+    port: 8080

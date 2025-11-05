@@ -1,51 +1,59 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-account
-  namespace: {{ .Values.namespace }}
+  name: {{ include "account-service.fullname" . }}
   labels:
-    app: {{ .Release.Name }}-account
+    {{- include "account-service.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-account
+      {{- include "account-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app: {{ .Release.Name }}-account
+        {{- include "account-service.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
     spec:
       initContainers:
         - name: wait-for-postgres
           image: postgres:15-alpine
-          command: ['sh', '-c', "until pg_isready -h {{ .Release.Name }}-postgres -p 5432 -U postgres; do echo 'Waiting for postgres...'; sleep 5; done;"]
+          command: ['sh', '-c', "until pg_isready -h postgres -p 5432 -U postgres; do echo 'Waiting for postgres...'; sleep 5; done;"]
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
             - name: DB_HOST
-              value: {{ .Release.Name }}-{{ .Values.env.DB_HOST }}
+              value: {{ .Values.env.DB_HOST }}
             - name: DB_PORT
               value: {{ .Values.env.DB_PORT | quote }}
             - name: DB_USERNAME
               value: {{ .Values.env.DB_USERNAME | quote }}
             - name: AUTH_SERVICE_JWT_ISSUER_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
             - name: AUTH_SERVICE_JWT_JWK_SET_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
             - name: APP_CURRENCIES_SUPPORTED
               value: {{ .Values.env.APP_CURRENCIES_SUPPORTED | quote }}
             - name: GATEWAY_URL
-              value: {{ .Values.env.GATEWAY_URL | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-account-secret
+                  name: {{ include "account-service.fullname" . }}
                   key: DB_PASSWORD
           volumeMounts:
             - name: config-volume
@@ -69,4 +77,4 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-account-config
+            name: {{ include "account-service.fullname" . }}

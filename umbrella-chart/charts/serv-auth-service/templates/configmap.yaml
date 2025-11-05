@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-auth-config
-  namespace: {{ .Values.namespace }}
+  name: {{ include "serv-auth-service.fullname" . }}
+  labels:
+    {{- include "serv-auth-service.labels" . | nindent 4 }}
 data:
   application.yml: |-
     server:
@@ -14,7 +15,7 @@ data:
         allow-bean-definition-overriding: true
         web-application-type: reactive
       r2dbc:
-        url: r2dbc:postgresql://{{ .Release.Name }}-{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/serv_auth_service
+        url: r2dbc:postgresql://{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/serv_auth_service
         username: {{ .Values.env.DB_USERNAME }}
         password: ${DB_PASSWORD}
         pool:
@@ -93,8 +94,8 @@ data:
                   scopes: notification-service.read,notification-service.write
           resourceserver:
             jwt:
-              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
-              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+              issuer-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
     management:
       endpoints:
         web:

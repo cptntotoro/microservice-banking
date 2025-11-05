@@ -3,4 +3,4 @@ Thank you for installing {{ .Chart.Name }}.
 Your release is named {{ .Release.Name }}.
 
 To check the status:
-  kubectl get pods -n {{ .Release.Namespace }} -l app={{ .Release.Name }}-user-auth
+  kubectl get pods -n {{ .Release.Namespace }} -l app={{ include "user-auth-service.fullname" . }}

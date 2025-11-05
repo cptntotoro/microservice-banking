@@ -1,13 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-account
-  namespace: {{ .Values.namespace }}
+  name: {{ include "account-service.fullname" . }}
+  labels:
+    {{- include "account-service.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+      targetPort: http
       protocol: TCP
+      name: http
   selector:
-    app: {{ .Release.Name }}-account
+    {{- include "account-service.selectorLabels" . | nindent 4 }}

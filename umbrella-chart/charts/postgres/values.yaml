@@ -1,5 +1,4 @@
 replicaCount: 1
-namespace: dev
 
 image:
   repository: postgres
@@ -37,3 +36,11 @@ initDBScript: |
   CREATE DATABASE exchange_generator_service;
   CREATE DATABASE user_auth_service;
   CREATE DATABASE notification_service;
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+fullnameOverride: postgres

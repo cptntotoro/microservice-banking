@@ -1,5 +1,4 @@
 replicaCount: 1
-namespace: dev
 
 image:
   repository: blocker-service
@@ -18,8 +17,8 @@ env:
   DB_HOST: postgres
   DB_PORT: 5432
   DB_USERNAME: postgres
-  AUTH_SERVICE_JWT_ISSUER_URI: http://microbank-gateway:8080/serv-auth-service
-  AUTH_SERVICE_JWT_JWK_SET_URI: http://microbank-gateway:8080/serv-auth-service/oauth2/jwks
+  AUTH_SERVICE_JWT_ISSUER_URI:  /serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI:  /serv-auth-service/oauth2/jwks
   BLOCKER_FREQUENCY_THRESHOLD: 5
   BLOCKER_RISK_THRESHOLD: 150
   BLOCKER_DUPLICATE_RISK_SCORE: 100
@@ -27,9 +26,17 @@ env:
   BLOCKER_UNUSUAL_TIME_RISK_SCORE: 70
   BLOCKER_HIGH_FREQUENCY_RISK_SCORE: 90
   BLOCKER_BLOCKED_HISTORY_RISK_SCORE: 50
-  GATEWAY_URL: http://microbank-gateway:8080
+  GATEWAY_URL: http://api-gateway-server
 
 secret:
   DB_PASSWORD: postgres
 
 resources: {}
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+fullnameOverride: blocker-service

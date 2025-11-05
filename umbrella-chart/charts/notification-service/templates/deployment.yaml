@@ -1,17 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-notification
-  namespace: {{ .Values.namespace }}
+  name: {{ include "notification-service.fullname" . }}
+  labels:
+    {{- include "notification-service.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-notification
+      {{- include "notification-service.selectorLabels" . | nindent 6 }}
   template:
-    metadata:
+    metadata:account-service
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app: {{ .Release.Name }}-notification
+        {{- include "notification-service.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -19,28 +27,30 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
             - name: AUTH_SERVICE_JWT_ISSUER_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
             - name: AUTH_SERVICE_JWT_JWK_SET_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
             - name: MAIL_HOST
               value: {{ .Values.env.MAIL_HOST | quote }}
             - name: MAIL_PORT
               value: {{ .Values.env.MAIL_PORT | quote }}
             - name: GATEWAY_URL
-              value: {{ .Values.env.GATEWAY_URL | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
             - name: MAIL_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-notification-secret
+                  name: {{ include "notification-service.fullname" . }}
                   key: MAIL_USERNAME
             - name: MAIL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-notification-secret
+                  name: {{ include "notification-service.fullname" . }}
                   key: MAIL_PASSWORD
           volumeMounts:
             - name: config-volume
@@ -64,4 +74,4 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-notification-config
+            name: {{ include "notification-service.fullname" . }}

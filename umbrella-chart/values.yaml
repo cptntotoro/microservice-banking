@@ -1,5 +1,4 @@
 global:
-  namespace: dev
   imagePullPolicy: IfNotPresent
   db:
     password: postgres
@@ -96,15 +95,14 @@ transfer-service:
   service:
     port: 8088
 
-api-gateway-server:
+nginx-gateway:
   enabled: true
-  replicaCount: 1
-  image:
-    repository: api-gateway-server
-    tag: latest
-  service:
-    port: 8080
-  namespace: dev
+
+ingress-nginx:
+  enabled: true
+  controller:
+    service:
+      type: NodePort  # или LoadBalancer
 
 front-ui-service:
   enabled: true

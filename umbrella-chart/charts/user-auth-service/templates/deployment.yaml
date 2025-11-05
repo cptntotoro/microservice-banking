@@ -1,17 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-user-auth
-  namespace: {{ .Values.namespace }}
+  name: {{ include "user-auth-service.fullname" . }}
+  labels:
+    {{- include "user-auth-service.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-user-auth
+      {{- include "user-auth-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app: {{ .Release.Name }}-user-auth
+        {{- include "user-auth-service.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -19,37 +27,39 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
             - name: DB_HOST
-              value: {{ .Release.Name }}-{{ .Values.env.DB_HOST }}
+              value: {{ .Values.env.DB_HOST }}
             - name: DB_PORT
               value: {{ .Values.env.DB_PORT | quote }}
             - name: DB_USERNAME
               value: {{ .Values.env.DB_USERNAME | quote }}
             - name: AUTH_SERVICE_JWT_ISSUER_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
             - name: AUTH_SERVICE_JWT_JWK_SET_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
             - name: AUTH_SERVICE_TOKEN_URL
-              value: {{ .Values.env.AUTH_SERVICE_TOKEN_URL | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
             - name: GATEWAY_URL
-              value: {{ .Values.env.GATEWAY_URL | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-user-auth-secret
+                  name: {{ include "user-auth-service.fullname" . }}
                   key: DB_PASSWORD
             - name: USER_AUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-user-auth-secret
+                  name: {{ include "user-auth-service.fullname" . }}
                   key: USER_AUTH_CLIENT_SECRET
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-user-auth-secret
+                  name: {{ include "user-auth-service.fullname" . }}
                   key: JWT_SECRET
           volumeMounts:
             - name: config-volume
@@ -73,4 +83,4 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-user-auth-config
+            name: {{ include "user-auth-service.fullname" . }}

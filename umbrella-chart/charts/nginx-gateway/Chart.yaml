@@ -1,0 +1,6 @@
+apiVersion: v2
+name: nginx-gateway
+description: Ingress for API Gateway with path rewriting
+type: application
+version: 0.1.0
+appVersion: "1.0"

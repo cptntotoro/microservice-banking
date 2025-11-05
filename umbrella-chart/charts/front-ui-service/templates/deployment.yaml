@@ -1,50 +1,56 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-front
-  namespace: {{ .Values.namespace }}
+  name: {{ include "front-ui-service.fullname" . }}
+  labels:
+    {{- include "front-ui-service.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-front
+      {{- include "front-ui-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app: {{ .Release.Name }}-front
+        {{- include "front-ui-service.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
     spec:
-      initContainers:
-        - name: wait-for-gateway
-          image: busybox:1.36
-          command: ['sh', '-c', "until wget -q --spider http://{{ .Release.Name }}-gateway:8080/actuator/health; do echo 'Waiting for gateway...'; sleep 5; done;"]
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
             - name: AUTH_SERVICE_TOKEN_URL
-              value: {{ .Values.env.AUTH_SERVICE_TOKEN_URL | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
             - name: AUTH_SERVICE_JWT_ISSUER_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
             - name: AUTH_SERVICE_JWT_JWK_SET_URI
-              value: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
             - name: APP_CURRENCIES_SUPPORTED
               value: {{ .Values.env.APP_CURRENCIES_SUPPORTED | quote }}
             - name: GATEWAY_URL
-              value: {{ .Values.env.GATEWAY_URL | quote }}
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
             - name: FRONT_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-front-secret
+                  name: {{ include "front-ui-service.fullname" . }}
                   key: FRONT_CLIENT_SECRET
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-front-secret
+                  name: {{ include "front-ui-service.fullname" . }}
                   key: JWT_SECRET
           volumeMounts:
             - name: config-volume
@@ -68,4 +74,4 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-front-config
+            name: {{ include "front-ui-service.fullname" . }}

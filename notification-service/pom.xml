@@ -65,6 +65,13 @@
                     <mainClass>ru.practicum.NotificationApplication</mainClass>
                     <finalName>notification-service</finalName>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

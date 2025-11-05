@@ -1,0 +1,19 @@
+{{- if .Values.service.internal.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.ingress.host }}-{{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.ingress.host }}-{{ .Release.Namespace }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: nginx-gateway-0.1.0
+spec:
+  type: ExternalName
+  externalName: ingress-nginx-controller.ingress-nginx.svc.cluster.local
+  ports:
+    - port: 8080
+      targetPort: 80
+      protocol: TCP
+      name: http
+{{- end }}

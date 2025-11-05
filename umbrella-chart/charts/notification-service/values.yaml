@@ -1,5 +1,4 @@
 replicaCount: 1
-namespace: dev
 
 image:
   repository: notification-service
@@ -15,14 +14,22 @@ ingress:
 
 env:
   SPRING_PROFILES_ACTIVE: prod
-  AUTH_SERVICE_JWT_ISSUER_URI: http://microbank-gateway:8080/serv-auth-service
-  AUTH_SERVICE_JWT_JWK_SET_URI: http://microbank-gateway:8080/serv-auth-service/oauth2/jwks
+  AUTH_SERVICE_JWT_ISSUER_URI:  /serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI:  /serv-auth-service/oauth2/jwks
   MAIL_HOST: smtp.gmail.com
   MAIL_PORT: "587"
-  GATEWAY_URL: http://microbank-gateway:8080
+  GATEWAY_URL: http://api-gateway-server
 
 secret:
   MAIL_USERNAME: your-email@gmail.com
   MAIL_PASSWORD: your-app-password
 
 resources: {}
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+fullnameOverride: notification-service

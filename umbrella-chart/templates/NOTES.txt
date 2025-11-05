@@ -1,51 +1,3 @@
-                            **Порядок поднятия:**
-
-# Запуск Minikube
-minikube start --memory=8192 --cpus=4 --driver=docker
-minikube addons enable ingress
-
-# Сборка и загрузка (пример для одного, повторите для всех или используйте скрипт)
-mvn clean package -pl account-service
-docker build -t account-service:latest ./account-service
-minikube image load account-service:latest
-
-# Повторить сборку для всех сервисов
-serv-auth-service
-user-auth-service
-blocker-service
-cash-service
-xchange-service
-exchange-generator-service
-notification-service
-transfer-service
-api-gateway-server
-front-ui-service
-
-# Проверка загруженных образов
-minikube image ls
-
-# Очистка предыдущих установок (опционально, но рекомендуется)
-helm uninstall microbank -n dev
-kubectl delete namespace dev
-
-# Обновление зависимостей umbrella-чарта
-helm dependency update ./umbrella-chart
-
-# Установка приложения через umbrella-чарт
-helm install microbank ./umbrella-chart -n dev --create-namespace --wait
-
-# Проверка статуса развёртывания
-helm list -n dev
-kubectl get pods -n dev
-
-# Проверка логов
-kubectl logs microbank-postgres-0 -n dev
-
-# Проброс порта фронтенда
-kubectl port-forward svc/microbank-front 8081:8081 -n dev
-
-
-
                             **Команды для отладки:**
 
 # Все ресурсы в dev
@@ -150,9 +102,14 @@ kubectl delete deployment --all -n dev
 kubectl delete statefulset --all -n dev
 kubectl delete pod --all -n dev --force --grace-period=0
 helm uninstall microbank -n dev --no-hooks
+kubectl delete pvc --all -n dev
+kubectl delete ingress --all -n dev
 
 # Показывает все Helm-релизы в dev, включая удалённые:
 helm list -n dev -a
 
 # Пробрасывает порт сервиса microbank-front (новое имя после umbrella-чарта) на localhost:8081:
-kubectl port-forward svc/microbank-front 8081:8081 -n dev
+kubectl port-forward svc/front-ui-service 8081:8081 -n dev
+
+minikube ssh docker images
+minikube ssh docker rmi <image-id>

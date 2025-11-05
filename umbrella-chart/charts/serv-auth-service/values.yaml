@@ -1,5 +1,4 @@
 replicaCount: 1
-namespace: dev
 
 image:
   repository: serv-auth-service
@@ -18,12 +17,20 @@ env:
   DB_HOST: postgres
   DB_PORT: 5432
   DB_USERNAME: postgres
-  AUTH_SERVICE_JWT_ISSUER_URI: http://microbank-gateway:8080/serv-auth-service
-  AUTH_SERVICE_JWT_JWK_SET_URI: http://microbank-gateway:8080/serv-auth-service/oauth2/jwks
-  GATEWAY_URL: http://microbank-gateway:8080
+  AUTH_SERVICE_JWT_ISSUER_URI:  /serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI:  /serv-auth-service/oauth2/jwks
+  GATEWAY_URL: http://api-gateway-server
 
 secret:
   DB_PASSWORD: postgres
   CLIENT_SECRET: $2a$10$OuxpJ2wwsMQABCtQX794deWIPqSaqUgevnNiAghcLrTVN44U2xG2a
 
 resources: {}
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+fullnameOverride: serv-auth-service

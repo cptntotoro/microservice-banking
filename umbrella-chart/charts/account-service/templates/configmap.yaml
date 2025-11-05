@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-account-config
-  namespace: {{ .Values.namespace }}
+  name: {{ include "account-service.fullname" . }}
+  labels:
+    {{- include "account-service.labels" . | nindent 4 }}
 data:
   application.yml: |-
     server:
@@ -16,7 +17,7 @@ data:
       profiles:
         active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
       r2dbc:
-        url: r2dbc:postgresql://{{ .Release.Name }}-{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/account_service
+        url: r2dbc:postgresql://{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/account_service
         username: {{ .Values.env.DB_USERNAME }}
         password: ${DB_PASSWORD}
         pool:
@@ -32,8 +33,8 @@ data:
         oauth2:
           resourceserver:
             jwt:
-              issuer-uri: {{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
-              jwk-set-uri: {{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+              issuer-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
     management:
       endpoints:
         web:

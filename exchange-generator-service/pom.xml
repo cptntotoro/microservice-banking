@@ -94,6 +94,13 @@
                     <mainClass>ru.practicum.ExchangeGeneratorApplication</mainClass>
                     <finalName>exchange-generator-service</finalName>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

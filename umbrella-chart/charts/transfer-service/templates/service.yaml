@@ -1,13 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-transfer
-  namespace: {{ .Values.namespace }}
+  name: {{ include "transfer-service.fullname" . }}
+  labels:
+    {{- include "transfer-service.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.port }}
       protocol: TCP
+      name: http
   selector:
-    app: {{ .Release.Name }}-transfer
+    {{- include "transfer-service.selectorLabels" . | nindent 4 }}
