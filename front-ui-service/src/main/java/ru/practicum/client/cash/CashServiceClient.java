@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,8 +20,8 @@ import ru.practicum.client.cash.dto.CashResponseClientDto;
 public class CashServiceClient extends BaseServiceClient {
 
     @Autowired
-    public CashServiceClient(@Qualifier("cashServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
-        super(webClient, discoveryClient);
+    public CashServiceClient(@Qualifier("cashServiceWebClient") WebClient webClient) {
+        super(webClient);
     }
 
     @Override

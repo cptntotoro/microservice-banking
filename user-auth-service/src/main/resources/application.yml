@@ -4,31 +4,18 @@ server:
 spring:
   application:
     name: user-auth-service
-
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      discovery:
-        enabled: true
-        register: true
-        instance-id: ${spring.application.name}:${random.uuid}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
   main:
     web-application-type: reactive
   webflux:
     static-path-pattern: /**
 
-#      config:
-#        enabled: true
-#        format: yaml
-#        prefix: config
-#        default-context: application
-#        profile-separator: ','
-#        data-key: data
+  #      config:
+  #        enabled: true
+  #        format: yaml
+  #        prefix: config
+  #        default-context: application
+  #        profile-separator: ','
+  #        data-key: data
 
   # ================ OAuth2 Client Configuration ================
   # OAuth2 Resource Server Configuration
@@ -36,8 +23,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
-          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://api-gateway-server:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
       client:
         registration:
           account-service:
@@ -49,7 +36,7 @@ spring:
             scope: account-service.read,account-service.write
         provider:
           account-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
 
 jwt:
   secret: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars

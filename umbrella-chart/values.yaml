@@ -1,0 +1,108 @@
+global:
+  imagePullPolicy: IfNotPresent
+  db:
+    password: postgres
+
+postgres:
+  enabled: true
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  secret:
+    POSTGRES_PASSWORD: postgres
+
+serv-auth-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: serv-auth-service
+    tag: latest
+  service:
+    port: 9000
+  secret:
+    DB_PASSWORD: postgres
+
+user-auth-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: user-auth-service
+    tag: latest
+  service:
+    port: 8083
+
+account-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: account-service
+    tag: latest
+  service:
+    port: 8082
+
+blocker-service:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: blocker-service
+    tag: latest
+  service:
+    port: 8084
+
+cash-service:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: cash-service
+    tag: latest
+  service:
+    port: 8085
+
+exchange-service:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: exchange-service
+    tag: latest
+  service:
+    port: 8086
+
+exchange-generator-service:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: exchange-generator-service
+    tag: latest
+  service:
+    port: 8087
+
+notification-service:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: notification-service
+    tag: latest
+  service:
+    port: 8089
+
+transfer-service:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: transfer-service
+    tag: latest
+  service:
+    port: 8088
+
+nginx-gateway:
+  enabled: true
+
+front-ui-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: front-ui-service
+    tag: latest
+  service:
+    port: 8081

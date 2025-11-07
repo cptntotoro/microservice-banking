@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "front-ui-service.fullname" . }}
+  labels:
+    {{- include "front-ui-service.labels" . | nindent 4 }}
+data:
+  application.yml: |-
+    server:
+      port: {{ .Values.service.port }}
+    app:
+      currencies:
+        supported: {{ .Values.env.APP_CURRENCIES_SUPPORTED | splitList "," | toYaml | nindent 8 }}
+    spring:
+      application:
+        name: front-ui-service
+      cloud:
+        consul:
+          discovery:
+            enabled: true
+            register: true
+            instance-id: ${spring.application.name}:${random.uuid}
+            service-name: ${spring.application.name}
+            prefer-ip-address: true
+            health-check-path: /actuator/health
+            health-check-interval: 15s
+      thymeleaf:
+        prefix: classpath:/web/templates/
+        suffix: .html
+        mode: HTML
+        encoding: UTF-8
+        cache: false
+        servlet:
+          content-type: text/html
+        enable-spring-el-compiler: true
+        render-hidden-markers-before-checkboxes: true
+      webflux:
+        static-path-pattern: /**
+      web:
+        resources:
+          static-locations: classpath:/web/
+          cache:
+            period: 0
+            cachecontrol:
+              max-age: 1h
+              no-cache: false
+      main:
+        web-application-type: reactive
+      security:
+        oauth2:
+          client:
+            registration:
+              account-service:
+                provider: account-service
+                client-id: front-ui-service
+                client-secret: ${FRONT_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: account-service.read,account-service.write
+              user-auth-service:
+                provider: user-auth-service
+                client-id: front-ui-service
+                client-secret: ${FRONT_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: user-auth-service.read,user-auth-service.write
+              cash-service:
+                provider: cash-service
+                client-id: front-ui-service
+                client-secret: ${FRONT_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: cash-service.read,cash-service.write
+              exchange-service:
+                provider: exchange-service
+                client-id: front-ui-service
+                client-secret: ${FRONT_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: exchange-service.read,exchange-service.write
+              transfer-service:
+                provider: transfer-service
+                client-id: front-ui-service
+                client-secret: ${FRONT_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: transfer-service.read,transfer-service.write
+            provider:
+              account-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              user-auth-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              cash-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              exchange-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              transfer-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health, info, metrics
+      endpoint:
+        health:
+          show-details: always
+    logging:
+      level:
+        ru.practicum: info
+      pattern:
+        console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: 360000
+      issuer: user-auth-service

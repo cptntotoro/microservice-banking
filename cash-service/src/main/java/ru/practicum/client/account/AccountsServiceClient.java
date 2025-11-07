@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -24,8 +23,8 @@ import java.util.UUID;
 public class AccountsServiceClient extends BaseServiceClient {
 
     @Autowired
-    public AccountsServiceClient(@Qualifier("accountServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
-        super(webClient, discoveryClient);
+    public AccountsServiceClient(@Qualifier("accountServiceWebClient") WebClient webClient) {
+        super(webClient);
     }
 
     @Override

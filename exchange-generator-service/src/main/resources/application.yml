@@ -21,21 +21,6 @@ spring:
   application:
     name: exchange-generator-service
 
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      config:
-        enabled: false
-      discovery:
-        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
-        register: true
-        enabled: true
-
   r2dbc:
     url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/exchange_generator_service}
     username: ${DB_USERNAME:postgres}
@@ -63,8 +48,8 @@ spring:
       # OAuth2 Resource Server Configuration
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
-          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://api-gateway-server:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
       # OAuth2 Client Configuration
       client:
         registration:
@@ -77,7 +62,7 @@ spring:
             scope: exchange-service.read,exchange-service.write
         provider:
           exchange-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
 
 management:
   endpoints:

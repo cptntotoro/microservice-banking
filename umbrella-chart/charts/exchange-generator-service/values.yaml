@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: exchange-generator-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8087
+
+ingress:
+  enabled: false
+
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_USERNAME: postgres
+  AUTH_SERVICE_JWT_ISSUER_URI:  /serv-auth-service
+  AUTH_SERVICE_JWT_JWK_SET_URI:  /servборе-auth-service/oauth2/jwks
+  AUTH_SERVICE_TOKEN_URL:  /serv-auth-service/oauth2/token
+  EXCHANGE_RATE_GENERATION_INTERVAL_MS: "1000"
+  APP_CURRENCIES_SUPPORTED: "RUB,USD,EUR,CNY,GBP,JPY"
+  EXCHANGE_GENERATOR_CLIENT_SECRET: showcase-secret
+  GATEWAY_URL: http://api-gateway-server
+
+secret:
+  DB_PASSWORD: postgres
+  EXCHANGE_GENERATOR_CLIENT_SECRET: showcase-secret
+
+resources: {}
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+fullnameOverride: exchange-generator-service

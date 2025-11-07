@@ -1,0 +1,15 @@
+#apiVersion: v1
+#kind: Pod
+#metadata:
+#  name: "{{ include "user-auth-service.fullname" . }}"
+#  labels:
+#    app: user-auth-service
+#  annotations:
+#    "helm.sh/hook": test
+#spec:
+#  containers:
+#    - name: wget
+#      image: busybox
+#      command: ['wget']
+#      args: ['user-auth-service:{{ .Values.service.port }}/actuator/health']
+#  restartPolicy: Never

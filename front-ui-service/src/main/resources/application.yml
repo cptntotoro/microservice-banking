@@ -15,19 +15,6 @@ spring:
   application:
     name: front-ui-service
 
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      discovery:
-        enabled: true
-        register: true
-        instance-id: ${spring.application.name}:${random.uuid}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
-
   thymeleaf:
     prefix: classpath:/web/templates/
     suffix: .html
@@ -96,15 +83,15 @@ spring:
             scope: transfer-service.read,transfer-service.write
         provider:
           account-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
           user-auth-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
           cash-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
           exchange-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
           transfer-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://localhost:8080/serv-auth-service/oauth2/token}
+            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
 
 management:
   endpoints:
@@ -118,14 +105,14 @@ management:
 
 logging:
   level:
-#    org.springframework: ERROR
+    #    org.springframework: ERROR
     ru.practicum: info
-#    org.springframework.web: WARN
-#    org.springframework.cloud: WARN
-#    org.springframework.cloud.gateway: DEBUG
-#    reactor.netty: ERROR
-#    org.springframework.security: DEBUG
-#    org.springframework.cloud.consul: DEBUG
+  #    org.springframework.web: WARN
+  #    org.springframework.cloud: WARN
+  #    org.springframework.cloud.gateway: DEBUG
+  #    reactor.netty: ERROR
+  #    org.springframework.security: DEBUG
+  #    org.springframework.cloud.consul: DEBUG
   pattern:
     console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

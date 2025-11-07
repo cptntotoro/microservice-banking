@@ -1,0 +1,115 @@
+                            **Команды для отладки:**
+
+# Все ресурсы в dev
+kubectl get all -n dev
+
+# Постоянные тома (PVC)
+kubectl get pvc -n dev
+
+# Подробный статус релиза
+helm status microbank -n dev
+
+# Список сервисов Minikube
+minikube service list
+
+
+
+                            **Остановка и очистка:**
+
+# Удалить релиз
+helm uninstall microbank -n dev --no-hooks
+
+# Удалить namespace
+kubectl delete namespace dev
+
+# Остановить Minikube
+minikube stop
+
+
+
+                            **Полезные команды:**
+
+# Запуск Minikube и включение аддона (позволяет использовать Ingress-контроллер для маршрутизации внешнего трафика к сервисам):
+minikube start --memory=8192 --cpus=4 --driver=docker
+minikube addons enable ingress
+
+# Сборка и загрузка образа account-service:
+mvn clean package -pl account-service
+docker build -t account-service:latest ./account-service
+minikube image load account-service:latest
+
+# Удаление всех Helm-релизв в namespace dev:
+helm uninstall serv-auth-service -n dev
+helm uninstall user-auth-service -n dev
+helm uninstall account-service -n dev
+helm uninstall blocker-service -n dev
+helm uninstall cash-service -n dev
+helm uninstall exchange-service -n dev
+helm uninstall exchange-generator-service -n dev
+helm uninstall notification-service -n dev
+helm uninstall transfer-service -n dev
+helm uninstall api-gateway-server -n dev
+helm uninstall front-ui-service -n dev
+
+# Принудительное удаление всех подов в namespace dev:
+# Последняя команда с --grace-period=0 завершает поды мгновенно, без ожидания graceful shutdown**
+kubectl delete pods --all -n dev --force
+kubectl delete pod --all -n dev --force
+kubectl delete pods --all -n dev --force --grace-period=0
+
+# Загрузка образов всех микросервисов в Minikube:
+minikube image load serv-auth-service:latest
+minikube image load user-auth-service:latest
+minikube image load account-service:latest
+minikube image load blocker-service:latest
+minikube image load cash-service:latest
+minikube image load exchange-service:latest
+minikube image load exchange-generator-service:latest
+minikube image load notification-service:latest
+minikube image load transfer-service:latest
+minikube image load api-gateway-server:latest
+minikube image load front-ui-service:latest
+
+# Проверка загруженных образов:
+minikube image ls
+
+# Обновляет зависимости umbrella-чарта, загружая необходимые подчарты из репозиториев:
+helm dependency update ./umbrella-chart
+
+# Устанавливает umbrella-чарт под именем microbank в пространство имён dev (создаёт его, если отсутствует):
+helm install microbank ./umbrella-chart -n dev --create-namespace --wait
+
+# Показывает список активных Helm-релизв в пространстве имён dev:
+helm list -n dev
+
+# Удаляет установленный релиз microbank из namespace dev:
+helm uninstall microbank -n dev
+
+# Выводит список всех подов в пространстве имён dev:
+kubectl get pods -n dev
+
+# Показывает логи пода microbank-postgres-0 в namespace dev:
+kubectl logs microbank-postgres-0 -n dev
+
+# Показывает все PVC (постоянные тома) в namespace dev:
+kubectl get pvc -n dev
+
+# Удаляет все PVC в пространстве имён dev:
+kubectl delete pvc --all -n dev
+
+# Полная очистка ресурсов:
+kubectl delete deployment --all -n dev
+kubectl delete statefulset --all -n dev
+kubectl delete pod --all -n dev --force --grace-period=0
+helm uninstall microbank -n dev --no-hooks
+kubectl delete pvc --all -n dev
+kubectl delete ingress --all -n dev
+
+# Показывает все Helm-релизы в dev, включая удалённые:
+helm list -n dev -a
+
+# Пробрасывает порт сервиса microbank-front (новое имя после umbrella-чарта) на localhost:8081:
+kubectl port-forward svc/front-ui-service 8081:8081 -n dev
+
+minikube ssh docker images
+minikube ssh docker rmi <image-id>

@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "transfer-service.fullname" . }}
+  labels:
+    {{- include "transfer-service.labels" . | nindent 4 }}
+data:
+  application.yml: |-
+    server:
+      port: {{ .Values.service.port }}
+    spring:
+      application:
+        name: transfer-service
+      profiles:
+        active: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
+      r2dbc:
+        url: r2dbc:postgresql://{{ .Values.env.DB_HOST }}:{{ .Values.env.DB_PORT }}/transfer_service
+        username: {{ .Values.env.DB_USERNAME }}
+        password: ${DB_PASSWORD}
+        pool:
+          enabled: true
+          initial-size: 10
+          max-size: 50
+          max-idle-time: 30m
+          max-life-time: 60m
+          validation-query: SELECT 1
+      main:
+        web-application-type: reactive
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+              jwk-set-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+          client:
+            registration:
+              account-service:
+                provider: account-service
+                client-id: transfer-service
+                client-secret: ${TRANSFER_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: account-service.read,account-service.write
+              cash-service:
+                provider: cash-service
+                client-id: transfer-service
+                client-secret: ${TRANSFER_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: cash-service.read,cash-service.write
+              blocker-service:
+                provider: blocker-service
+                client-id: transfer-service
+                client-secret: ${TRANSFER_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: blocker-service.read,blocker-service.write
+              notification-service:
+                provider: notification-service
+                client-id: transfer-service
+                client-secret: ${TRANSFER_CLIENT_SECRET}
+                client-authentication-method: client_secret_basic
+                authorization-grant-type: client_credentials
+                scope: notification-service.read,notification-service.write
+            provider:
+              account-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              cash-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              blocker-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+              notification-service:
+                token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health, info, metrics
+      endpoint:
+        health:
+          show-details: always
+    logging:
+      level:
+        org.springframework: INFO
+        ru.practicum: DEBUG
+        org.springframework.web: DEBUG
+        reactor.netty: DEBUG
+      pattern:
+        console: "%d{dd-MM-yyyy HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -16,23 +16,9 @@ spring:
     name: account-service
   profiles:
     active: prod
-#  mvc:
-#    favicon:
-#      enabled: false  # Отключает авто-запрос favicon (WebFlux-аналог)
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      config:
-        enabled: false
-      discovery:
-        instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
-        register: true
-        enabled: true
+  #  mvc:
+  #    favicon:
+  #      enabled: false  # Отключает авто-запрос favicon (WebFlux-аналог)
 
   r2dbc:
     url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/account_service}
@@ -55,8 +41,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
-          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://api-gateway-server:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
 
 
 management:

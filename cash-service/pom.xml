@@ -28,12 +28,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Infrastructure -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
-        </dependency>
-
         <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -109,6 +103,13 @@
                     <mainClass>ru.practicum.CashApplication</mainClass>
                     <finalName>cash-service</finalName>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

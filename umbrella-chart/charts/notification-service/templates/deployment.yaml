@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "notification-service.fullname" . }}
+  labels:
+    {{- include "notification-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "notification-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:account-service
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "notification-service.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            - name: AUTH_SERVICE_JWT_ISSUER_URI
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+            - name: AUTH_SERVICE_JWT_JWK_SET_URI
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+            - name: MAIL_HOST
+              value: {{ .Values.env.MAIL_HOST | quote }}
+            - name: MAIL_PORT
+              value: {{ .Values.env.MAIL_PORT | quote }}
+            - name: GATEWAY_URL
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "notification-service.fullname" . }}
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "notification-service.fullname" . }}
+                  key: MAIL_PASSWORD
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config/application.yml
+              subPath: application.yml
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "notification-service.fullname" . }}

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "user-auth-service.fullname" . }}
+  labels:
+    {{- include "user-auth-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "user-auth-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "user-auth-service.labels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+            - name: DB_HOST
+              value: {{ .Values.env.DB_HOST }}
+            - name: DB_PORT
+              value: {{ .Values.env.DB_PORT | quote }}
+            - name: DB_USERNAME
+              value: {{ .Values.env.DB_USERNAME | quote }}
+            - name: AUTH_SERVICE_JWT_ISSUER_URI
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
+            - name: AUTH_SERVICE_JWT_JWK_SET_URI
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
+            - name: AUTH_SERVICE_TOKEN_URL
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
+            - name: GATEWAY_URL
+              value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "user-auth-service.fullname" . }}
+                  key: DB_PASSWORD
+            - name: USER_AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "user-auth-service.fullname" . }}
+                  key: USER_AUTH_CLIENT_SECRET
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "user-auth-service.fullname" . }}
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config/application.yml
+              subPath: application.yml
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "user-auth-service.fullname" . }}

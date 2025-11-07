@@ -34,10 +34,6 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId> <!-- Для вызова Auth Service -->
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
@@ -91,11 +87,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -122,10 +113,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!--        <dependency>-->
-<!--            <groupId>org.springframework.security</groupId>-->
-<!--            <artifactId>spring-security-config</artifactId>-->
-<!--        </dependency>-->
     </dependencies>
 
     <build>
@@ -137,13 +124,13 @@
                     <mainClass>ru.practicum.FrontUIApplication</mainClass>
                     <finalName>front-ui-service</finalName>
                 </configuration>
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <goals>-->
-<!--                            <goal>repackage</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
@@ -153,7 +140,7 @@
                 <includes>
                     <include>**/*.yml</include>
                     <include>**/*.properties</include>
-                    <include>**/web/**</include>  <!-- Важно! -->
+                    <include>**/web/**</include>
                 </includes>
             </resource>
         </resources>

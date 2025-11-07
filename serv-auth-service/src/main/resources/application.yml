@@ -5,19 +5,6 @@ server:
 spring:
   application:
     name: serv-auth-service
-
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      discovery:
-        enabled: true
-        register: true
-        instance-id: ${spring.application.name}:${random.uuid}
-        service-name: ${spring.application.name}
-        prefer-ip-address: true
-        health-check-path: /actuator/health
-        health-check-interval: 15s
   main:
     allow-bean-definition-overriding: true
     web-application-type: reactive
@@ -103,8 +90,8 @@ spring:
               scopes: notification-service.read,notification-service.write
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://localhost:8080/serv-auth-service}
-          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://localhost:8080/serv-auth-service/oauth2/jwks}
+          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://api-gateway-server:8080/serv-auth-service}
+          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
 
 management:
   endpoints:

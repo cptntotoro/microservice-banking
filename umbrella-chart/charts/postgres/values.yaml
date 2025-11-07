@@ -1,0 +1,46 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  tag: "16"
+
+service:
+  type: ClusterIP
+  port: 5432
+
+ingress:
+  enabled: false
+
+env:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+
+secret:
+  POSTGRES_PASSWORD: postgres
+
+resources: {}
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+
+initDBScript: |
+  CREATE DATABASE account_service;
+  CREATE DATABASE blocker_service;
+  CREATE DATABASE cash_service;
+  CREATE DATABASE exchange_service;
+  CREATE DATABASE serv_auth_service;
+  CREATE DATABASE transfer_service;
+  CREATE DATABASE exchange_generator_service;
+  CREATE DATABASE user_auth_service;
+  CREATE DATABASE notification_service;
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+fullnameOverride: postgres

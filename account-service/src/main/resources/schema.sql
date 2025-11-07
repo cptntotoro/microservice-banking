@@ -17,9 +17,8 @@ CREATE TABLE IF NOT EXISTS users
     CONSTRAINT chk_user_age CHECK (EXTRACT(YEAR FROM AGE(birth_date)) >= 18)
 );
 
-CREATE UNIQUE INDEX idx_users_username ON users (username);
-CREATE UNIQUE INDEX idx_users_email ON users (email);
-
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 -- Таблица ролей
 CREATE TABLE IF NOT EXISTS roles
 (
@@ -38,8 +37,8 @@ CREATE TABLE IF NOT EXISTS user_roles
     FOREIGN KEY (role_uuid) REFERENCES roles (role_uuid) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_roles_user_id ON user_roles (user_uuid);
-CREATE INDEX idx_user_roles_role_id ON user_roles (role_uuid);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles (user_uuid);
+CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles (role_uuid);
 
 -- Таблица валют
 CREATE TABLE IF NOT EXISTS currencies
@@ -49,8 +48,8 @@ CREATE TABLE IF NOT EXISTS currencies
     name          VARCHAR(50) NOT NULL
 );
 
-CREATE UNIQUE INDEX idx_currencies_code ON currencies (code);
-CREATE INDEX idx_currencies_name ON currencies (name);
+CREATE UNIQUE INDEX IF NOT EXISTS  idx_currencies_code ON currencies (code);
+CREATE INDEX IF NOT EXISTS idx_currencies_name ON currencies (name);
 
 -- Таблица счетов
 CREATE TABLE IF NOT EXISTS accounts
@@ -65,5 +64,5 @@ CREATE TABLE IF NOT EXISTS accounts
 );
 
 -- CREATE UNIQUE INDEX idx_accounts_number ON accounts (account_number);
-CREATE INDEX idx_accounts_user_id ON accounts (user_id);
-CREATE INDEX idx_accounts_currency_id ON accounts (currency_id);
+CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts (user_id);
+CREATE INDEX IF NOT EXISTS idx_accounts_currency_id ON accounts (currency_id);

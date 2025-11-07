@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -27,8 +26,8 @@ import ru.practicum.dto.user.EditUserProfileDto;
 public class AuthServiceClient extends BaseServiceClient {
 
     @Autowired
-    public AuthServiceClient(@Qualifier("userAuthServiceWebClient") WebClient webClient, DiscoveryClient discoveryClient) {
-        super(webClient, discoveryClient);
+    public AuthServiceClient(@Qualifier("userAuthServiceWebClient") WebClient webClient) {
+        super(webClient);
     }
 
     @Override
