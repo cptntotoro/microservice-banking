@@ -57,6 +57,5 @@ docker image rm front-ui-service:latest || true
 docker image rm jenkins-jenkins:latest || true
 
 echo "Pruning system..."
-#docker system prune -af --volumes
 
 echo "Done! All clean."
