@@ -42,27 +42,8 @@ spring:
   main:
     web-application-type: reactive
 
-  # ================ OAuth2 Client Configuration ================
-  security:
-    oauth2:
-      # OAuth2 Resource Server Configuration
-      resourceserver:
-        jwt:
-          issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://api-gateway-server:8080/serv-auth-service}
-          jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
-      # OAuth2 Client Configuration
-      client:
-        registration:
-          exchange-service:
-            provider: exchange-service
-            client-id: exchange-generator-service
-            client-secret: showcase-secret
-            client-authentication-method: client_secret_basic
-            authorization-grant-type: client_credentials
-            scope: exchange-service.read,exchange-service.write
-        provider:
-          exchange-service:
-            token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka1:9092,kafka2:9092}
 
 management:
   endpoints:

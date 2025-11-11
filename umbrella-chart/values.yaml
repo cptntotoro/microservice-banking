@@ -60,7 +60,7 @@ cash-service:
     port: 8085
 
 exchange-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: exchange-service
@@ -69,7 +69,7 @@ exchange-service:
     port: 8086
 
 exchange-generator-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: exchange-generator-service
@@ -106,3 +106,20 @@ front-ui-service:
     tag: latest
   service:
     port: 8081
+
+kafka:
+  enabled: true
+  kraft:
+    enabled: true
+  replicaCount: 2
+  controller:
+    replicaCount: 3
+  persistence:
+    enabled: true
+    size: 8Gi
+  provisioning:
+    enabled: true
+    topics:
+      - name: exchange-rates
+        partitions: 1
+        replicationFactor: 2
