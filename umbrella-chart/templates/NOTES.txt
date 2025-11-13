@@ -112,4 +112,41 @@ helm list -n dev -a
 kubectl port-forward svc/front-ui-service 8081:8081 -n dev
 
 minikube ssh docker images
-minikube ssh docker rmi <image-id>
+minikube ssh docker rmi e69a246b7bf7
+
+# Clear Helm cache
+helm repo remove bitnami
+
+# Add Bitnami repository again
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add bitnami https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+
+# Update all repositories
+helm repo update
+
+# Now try the dependency update again
+helm dependency update ./umbrella-chart
+
+
+
+
+kubectl scale deployment exchange-generator-service --replicas=0 -n dev
+minikube ssh docker images
+minikube ssh docker rmi b8837e419099
+mvn clean package -pl exchange-generator-service
+docker build -t exchange-generator-service:latest -f exchange-generator-service/Dockerfile .
+minikube image load exchange-generator-service:latest
+kubectl scale deployment exchange-generator-service --replicas=1 -n dev
+helm upgrade microbank ./umbrella-chart -n dev --wait
+
+kubectl scale deployment exchange-service --replicas=0 -n dev
+minikube ssh docker images
+minikube ssh docker rmi be86da8d0bed
+mvn clean package -pl exchange-service
+docker build -t exchange-service:latest -f exchange-service/Dockerfile .
+minikube image load exchange-service:latest
+kubectl scale deployment exchange-service --replicas=1 -n dev
+helm upgrade microbank ./umbrella-chart -n dev --wait
+
+kubectl get configmap exchange-service -n dev -o yaml
+kubectl get configmap exchange-generator-service -n dev -o yaml
