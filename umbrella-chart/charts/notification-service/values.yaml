@@ -19,10 +19,10 @@ env:
   MAIL_HOST: smtp.gmail.com
   MAIL_PORT: "587"
   GATEWAY_URL: http://api-gateway-server
-  KAFKA_BOOTSTRAP_SERVERS: >-
-    microbank-kafka-controller-0.microbank-kafka-controller-headless.dev.svc.cluster.local:9092,
-    microbank-kafka-controller-1.microbank-kafka-controller-headless.dev.svc.cluster.local:9092,
-    microbank-kafka-controller-2.microbank-kafka-controller-headless.dev.svc.cluster.local:9092
+  KAFKA_HOSTS: >-
+    microbank-kafka-controller-0.microbank-kafka-controller-headless,
+    microbank-kafka-controller-1.microbank-kafka-controller-headless,
+    microbank-kafka-controller-2.microbank-kafka-controller-headless
 
 secret:
   MAIL_USERNAME: your-email@gmail.com

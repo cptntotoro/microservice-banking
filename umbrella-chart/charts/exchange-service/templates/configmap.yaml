@@ -47,7 +47,7 @@ data:
       main:
         web-application-type: reactive
       kafka:
-        bootstrap-servers: {{ .Values.env.KAFKA_BOOTSTRAP_SERVERS }}
+        bootstrap-servers: {{ include "exchange-service.kafka.servers" . }}
       security:
         oauth2:
           resourceserver:

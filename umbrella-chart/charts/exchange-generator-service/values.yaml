@@ -24,10 +24,10 @@ env:
   APP_CURRENCIES_SUPPORTED: "RUB,USD,EUR,CNY,GBP,JPY"
   EXCHANGE_GENERATOR_CLIENT_SECRET: showcase-secret
   GATEWAY_URL: http://api-gateway-server
-  KAFKA_BOOTSTRAP_SERVERS: >-
-    microbank-kafka-controller-0.microbank-kafka-controller-headless.dev.svc.cluster.local:9092,
-    microbank-kafka-controller-1.microbank-kafka-controller-headless.dev.svc.cluster.local:9092,
-    microbank-kafka-controller-2.microbank-kafka-controller-headless.dev.svc.cluster.local:9092
+  KAFKA_HOSTS: >-
+    microbank-kafka-controller-0.microbank-kafka-controller-headless,
+    microbank-kafka-controller-1.microbank-kafka-controller-headless,
+    microbank-kafka-controller-2.microbank-kafka-controller-headless
 
 secret:
   DB_PASSWORD: postgres

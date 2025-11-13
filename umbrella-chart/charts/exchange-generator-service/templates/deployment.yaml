@@ -17,9 +17,9 @@ spec:
       {{- end }}
       labels:
         {{- include "exchange-generator-service.labels" . | nindent 8 }}
-          {{- with .Values.podLabels }}
-          {{- toYaml . | nindent 8 }}
-          {{- end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       initContainers:
         - name: wait-for-exchange
@@ -65,7 +65,7 @@ spec:
                   name: {{ include "exchange-generator-service.fullname" . }}
                   key: EXCHANGE_GENERATOR_CLIENT_SECRET
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: {{ .Values.env.KAFKA_BOOTSTRAP_SERVERS }}
+              value: {{ include "exchange-generator-service.kafka.servers" . }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

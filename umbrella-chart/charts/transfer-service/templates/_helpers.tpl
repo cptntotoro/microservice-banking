@@ -60,3 +60,16 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "transfer-service.kafka.servers" -}}
+{{- $ns := .Release.Namespace -}}
+{{- $hosts := split "," .Values.env.KAFKA_HOSTS -}}
+{{- $result := list -}}
+{{- range $hosts -}}
+  {{- $host := trim . -}}
+  {{- if $host -}}
+    {{- $result = append $result (printf "%s.%s.svc.cluster.local:9092" $host $ns) -}}
+  {{- end -}}
+{{- end -}}
+{{- join "," $result -}}
+{{- end -}}

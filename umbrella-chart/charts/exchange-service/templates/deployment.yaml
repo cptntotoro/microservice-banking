@@ -17,9 +17,9 @@ spec:
       {{- end }}
       labels:
         {{- include "exchange-service.labels" . | nindent 8 }}
-          {{- with .Values.podLabels }}
-          {{- toYaml . | nindent 8 }}
-          {{- end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       initContainers:
         - name: wait-for-postgres
@@ -60,7 +60,7 @@ spec:
                   name: {{ include "exchange-service.fullname" . }}
                   key: DB_PASSWORD
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: {{ .Values.env.KAFKA_BOOTSTRAP_SERVERS }}
+              value: {{ include "exchange-service.kafka.servers" . }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml
