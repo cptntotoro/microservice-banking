@@ -22,6 +22,10 @@ env:
   AUTH_SERVICE_TOKEN_URL:  /serv-auth-service/oauth2/token
   TRANSFER_CLIENT_SECRET: showcase-secret
   GATEWAY_URL: http://api-gateway-server
+  KAFKA_BOOTSTRAP_SERVERS: >-
+    microbank-kafka-controller-0.microbank-kafka-controller-headless.dev.svc.cluster.local:9092,
+    microbank-kafka-controller-1.microbank-kafka-controller-headless.dev.svc.cluster.local:9092,
+    microbank-kafka-controller-2.microbank-kafka-controller-headless.dev.svc.cluster.local:9092
 
 secret:
   DB_PASSWORD: postgres

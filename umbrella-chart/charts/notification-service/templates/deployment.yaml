@@ -52,6 +52,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "notification-service.fullname" . }}
                   key: MAIL_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.env.KAFKA_BOOTSTRAP_SERVERS }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

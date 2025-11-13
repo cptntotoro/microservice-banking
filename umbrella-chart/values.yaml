@@ -51,7 +51,7 @@ blocker-service:
     port: 8084
 
 cash-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: cash-service
@@ -78,7 +78,7 @@ exchange-generator-service:
     port: 8087
 
 notification-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: notification-service
@@ -126,6 +126,13 @@ kafka:
     enabled: true
     topics:
       - name: exchange-rates
+        partitions: 3
+        replicationFactor: 1
+        config:
+          cleanup.policy: delete
+          retention.ms: 86400000  # 1 день
+          min.insync.replicas: 1
+      - name: notification
         partitions: 3
         replicationFactor: 1
         config:

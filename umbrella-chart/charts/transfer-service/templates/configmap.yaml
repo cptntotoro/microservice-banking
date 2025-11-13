@@ -26,6 +26,8 @@ data:
           validation-query: SELECT 1
       main:
         web-application-type: reactive
+      kafka:
+        bootstrap-servers: {{ .Values.env.KAFKA_BOOTSTRAP_SERVERS }}
       security:
         oauth2:
           resourceserver:

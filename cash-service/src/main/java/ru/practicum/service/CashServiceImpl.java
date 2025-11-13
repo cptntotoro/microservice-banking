@@ -2,15 +2,18 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
 import ru.practicum.client.account.AccountsServiceClient;
 import ru.practicum.client.account.dto.BalanceUpdateRequestDto;
 import ru.practicum.client.blocker.BlockerServiceClient;
 import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
-import ru.practicum.client.notification.NotificationsServiceClient;
-import ru.practicum.client.notification.dto.NotificationRequestDto;
+import ru.practicum.dto.NotificationRequestDto;
 import ru.practicum.dao.CashOperationDao;
 import ru.practicum.dto.CashRequestDto;
 import ru.practicum.model.CashRequest;
@@ -39,10 +42,7 @@ public class CashServiceImpl implements CashService {
      */
     private final BlockerServiceClient blockerServiceClient;
 
-    /**
-     * Клиент обращения к сервису оповещений
-     */
-    private final NotificationsServiceClient notificationsServiceClient;
+    private final KafkaSender<String, NotificationRequestDto> kafkaSender;
 
     /**
      * Репозиторий операций
@@ -186,21 +186,38 @@ public class CashServiceImpl implements CashService {
     }
 
     private Mono<Boolean> sendNotification(CashRequestDto request) {
-        String message = String.format("%s %s %s со счета %s",
-                request.getIsDeposit() ? "Пополнено" : "Снято", request.getAmount(), request.getCurrency(), request.getAccountId());
-
         return accountsServiceClient.getUser(request.getUserId())
                 .map(userResponseDto -> NotificationRequestDto.builder()
                         .email(userResponseDto.getEmail())
                         .title("Message from cash-service")
-                        .description(message)
-                        .build()
-                )
-                .flatMap(notificationRequestDto -> notificationsServiceClient.sendNotification(notificationRequestDto)
-                        .thenReturn(true))
+                        .description(String.format("%s %s %s со счета %s",
+                                request.getIsDeposit() ? "Пополнено" : "Снято",
+                                request.getAmount(), request.getCurrency(), request.getAccountId()))
+                        .build())
+                .flatMap(dto -> {
+                    SenderRecord<String, NotificationRequestDto, String> record = SenderRecord.create(
+                            new ProducerRecord<>("notification", "notification", dto),
+                            UUID.randomUUID().toString() // correlationId
+                    );
+
+                    return kafkaSender.send(Mono.just(record))
+                            .doOnNext(result -> {
+                                if (result.exception() != null) {
+                                    log.error("Failed to send Kafka message: {}", result.exception().getMessage());
+                                } else {
+                                    log.info("Kafka message sent successfully, offset: {}", result.recordMetadata().offset());
+                                }
+                            })
+                            .then(Mono.just(true))
+                            .onErrorResume(e -> {
+                                log.error("Kafka send failed, will retry in transaction: {}", e.getMessage());
+                                return Mono.error(e);
+                            });
+                })
+                .retry(3)
                 .onErrorResume(e -> {
-                    log.warn("Ошибка отправки уведомления: {}", e.getMessage());
-                    return Mono.just(true); // Продолжаем даже если уведомление не отправлено
+                    log.warn("Notification failed after retries: {}", e.getMessage());
+                    return Mono.just(false);
                 });
     }
 
