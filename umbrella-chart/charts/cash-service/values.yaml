@@ -39,4 +39,4 @@ serviceAccount:
   annotations: {}
   name: ""
 
-fullnameOverride: cash-servicee
+fullnameOverride: cash-service

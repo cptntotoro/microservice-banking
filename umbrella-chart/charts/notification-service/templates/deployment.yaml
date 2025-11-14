@@ -10,7 +10,7 @@ spec:
     matchLabels:
       {{- include "notification-service.selectorLabels" . | nindent 6 }}
   template:
-    metadata:account-service
+    metadata:
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

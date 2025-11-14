@@ -5,10 +5,22 @@ pipeline {
         stage('Deploy Kafka (KRaft) to dev') {
             steps {
                 sh """
-                helm upgrade --install microbank-umbrella . \\
+                helm upgrade --install microbank . \\
                   --set kafka.enabled=true \\
                   --set kafka.kraft.enabled=true \\
                   --set kafka.controller.replicaCount=3 \\
+                  --set postgres.enabled=false \\
+                  --set serv-auth-service.enabled=false \\
+                  --set user-auth-service.enabled=false \\
+                  --set account-service.enabled=false \\
+                  --set blocker-service.enabled=false \\
+                  --set cash-service.enabled=false \\
+                  --set exchange-service.enabled=false \\
+                  --set exchange-generator-service.enabled=false \\
+                  --set notification-service.enabled=false \\
+                  --set transfer-service.enabled=false \\
+                  --set nginx-gateway.enabled=false \\
+                  --set front-ui-service.enabled=false \\
                   --namespace dev --create-namespace
                 """
             }
@@ -16,10 +28,22 @@ pipeline {
         stage('Deploy Kafka (KRaft) to test') {
             steps {
                 sh """
-                helm upgrade --install microbank-umbrella . \\
+                helm upgrade --install microbank . \\
                   --set kafka.enabled=true \\
                   --set kafka.kraft.enabled=true \\
                   --set kafka.controller.replicaCount=3 \\
+                  --set postgres.enabled=false \\
+                  --set serv-auth-service.enabled=false \\
+                  --set user-auth-service.enabled=false \\
+                  --set account-service.enabled=false \\
+                  --set blocker-service.enabled=false \\
+                  --set cash-service.enabled=false \\
+                  --set exchange-service.enabled=false \\
+                  --set exchange-generator-service.enabled=false \\
+                  --set notification-service.enabled=false \\
+                  --set transfer-service.enabled=false \\
+                  --set nginx-gateway.enabled=false \\
+                  --set front-ui-service.enabled=false \\
                   --namespace test --create-namespace
                 """
             }
@@ -27,10 +51,22 @@ pipeline {
         stage('Deploy Kafka (KRaft) to prod') {
             steps {
                 sh """
-                helm upgrade --install microbank-umbrella . \\
+                helm upgrade --install microbank . \\
                   --set kafka.enabled=true \\
                   --set kafka.kraft.enabled=true \\
                   --set kafka.controller.replicaCount=3 \\
+                  --set postgres.enabled=false \\
+                  --set serv-auth-service.enabled=false \\
+                  --set user-auth-service.enabled=false \\
+                  --set account-service.enabled=false \\
+                  --set blocker-service.enabled=false \\
+                  --set cash-service.enabled=false \\
+                  --set exchange-service.enabled=false \\
+                  --set exchange-generator-service.enabled=false \\
+                  --set notification-service.enabled=false \\
+                  --set transfer-service.enabled=false \\
+                  --set nginx-gateway.enabled=false \\
+                  --set front-ui-service.enabled=false \\
                   --namespace prod --create-namespace
                 """
             }
