@@ -10,16 +10,16 @@ spec:
     matchLabels:
       {{- include "notification-service.selectorLabels" . | nindent 6 }}
   template:
-    metadata:account-service
+    metadata:
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "notification-service.labels" . | nindent 8 }}
-          {{- with .Values.podLabels }}
-          {{- toYaml . | nindent 8 }}
-          {{- end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -52,6 +52,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "notification-service.fullname" . }}
                   key: MAIL_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ include "notification-service.kafka.servers" . }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

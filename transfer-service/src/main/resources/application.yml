@@ -20,6 +20,9 @@ spring:
   main:
     web-application-type: reactive
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+
   # ================ OAuth2 Client Configuration ================
   security:
     oauth2:

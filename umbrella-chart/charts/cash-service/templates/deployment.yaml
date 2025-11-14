@@ -17,9 +17,9 @@ spec:
       {{- end }}
       labels:
         {{- include "cash-service.labels" . | nindent 8 }}
-          {{- with .Values.podLabels }}
-          {{- toYaml . | nindent 8 }}
-          {{- end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       initContainers:
         - name: wait-for-postgres
@@ -60,6 +60,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "cash-service.fullname" . }}
                   key: CASH_CLIENT_SECRET
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ include "cash-service.kafka.servers" . }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

@@ -34,6 +34,8 @@ data:
           validation-query: SELECT 1
       main:
         web-application-type: reactive
+      kafka:
+        bootstrap-servers: {{ include "cash-service.kafka.servers" . }}
       security:
         oauth2:
           resourceserver:

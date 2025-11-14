@@ -49,6 +49,8 @@ data:
             enabled: true
       main:
         web-application-type: reactive
+      kafka:
+        bootstrap-servers: {{ include "exchange-generator-service.kafka.servers" . }}
       security:
         oauth2:
           resourceserver:

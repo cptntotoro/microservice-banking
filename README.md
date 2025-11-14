@@ -33,6 +33,7 @@
 
 
 - Запуск Minikube
+  - kubectl config use-context minikube
   - minikube start --memory=8192 --cpus=4 --driver=docker
   - minikube addons enable ingress
 
@@ -77,3 +78,9 @@
 
 - Проброс порта фронтенда
   - kubectl port-forward svc/front-ui-service 8081:8081 -n dev
+
+# Команды для jenkins
+kubectl config use-context docker-desktop
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx   --namespace ingress-nginx --create-namespace

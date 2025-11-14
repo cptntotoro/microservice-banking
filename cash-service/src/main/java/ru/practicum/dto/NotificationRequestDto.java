@@ -1,4 +1,4 @@
-package ru.practicum.client.notification.dto;
+package ru.practicum.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

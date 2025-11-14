@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
-import ru.practicum.client.exchange.ExchangeServiceClient;
-import ru.practicum.client.exchange.dto.ExchangeRateDto;
+import ru.practicum.dto.ExchangeRateDto;
+import ru.practicum.dto.ExchangeRatesDto;
 import ru.practicum.mapper.exchange.ExchangeRateMapper;
 import ru.practicum.model.currency.Currency;
 import ru.practicum.model.exchange.ExchangeRate;
@@ -21,29 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ExchangeRateGeneratorServiceImpl implements ExchangeRateGeneratorService {
-    /**
-     * Клиент для сервиса обмена валют
-     */
-    private final ExchangeServiceClient exchangeServiceClient;
-
-    /**
-     * Маппер курса обмена валюты
-     */
     private final ExchangeRateMapper exchangeRateMapper;
 
-    /**
-     * Сервис для работы с валютами
-     */
     private final CurrencyService currencyService;
 
-    /**
-     * Хранилище сгенерированных курсов
-     */
+    private final KafkaSender<String, ExchangeRatesDto> kafkaSender;
+
     private final Map<String, ExchangeRate> currentRates = new ConcurrentHashMap<>();
 
     /**
@@ -115,9 +107,16 @@ public class ExchangeRateGeneratorServiceImpl implements ExchangeRateGeneratorSe
                     List<ExchangeRateDto> ratesDto = rates.stream()
                             .map(exchangeRateMapper::exchangeRateToExchangeRateDto)
                             .collect(Collectors.toList());
-                    // Отправка и возврат количества
-                    return exchangeServiceClient.sendExchangeRates(ratesDto)
-                            .thenReturn(rates.size());
+
+                    ExchangeRatesDto wrapper = new ExchangeRatesDto();
+                    wrapper.setRates(ratesDto);
+                    SenderRecord<String, ExchangeRatesDto, Integer> record = SenderRecord.create(
+                            new ProducerRecord<>("exchange-rates", "rates", wrapper),
+                            rates.size()
+                    );
+                    return kafkaSender.send(Mono.just(record))
+                            .next()
+                            .map(SenderResult::correlationMetadata);
                 });
     }
 

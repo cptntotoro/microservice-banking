@@ -41,6 +41,20 @@ pipeline {
                         }
                     }
                 }
+                stage('exchange-service') {
+                    steps {
+                        dir('exchange-service') {
+                            sh 'mvn clean test'
+                        }
+                    }
+                }
+                stage('exchange-generator-service') {
+                    steps {
+                        dir('exchange-generator-service') {
+                            sh 'mvn clean test'
+                        }
+                    }
+                }
             }
         }
 
@@ -51,6 +65,8 @@ pipeline {
                 docker build -t user-auth-service:${IMAGE_TAG} -f user-auth-service/Dockerfile .
                 docker build -t front-ui-service:${IMAGE_TAG} -f front-ui-service/Dockerfile .
                 docker build -t account-service:${IMAGE_TAG} -f account-service/Dockerfile .
+                docker build -t exchange-service:${IMAGE_TAG} -f exchange-service/Dockerfile .
+                docker build -t exchange-generator-service:${IMAGE_TAG} -f exchange-generator-service/Dockerfile .
                 """
             }
         }
@@ -74,6 +90,34 @@ pipeline {
                   --set auth.username=${DB_USER} \\
                   --set auth.password=${DB_PASSWORD}
                 """
+            }
+        }
+
+        stage('Deploy Kafka (KRaft) to test') {
+            steps {
+                dir('umbrella-chart') {
+                    sh 'helm dependency build'
+
+                    sh """
+                    helm upgrade --install microbank . \\
+                      --set kafka.enabled=true \\
+                      --set kafka.kraft.enabled=true \\
+                      --set kafka.controller.replicaCount=3 \\
+                      --set postgres.enabled=false \\
+                      --set serv-auth-service.enabled=false \\
+                      --set user-auth-service.enabled=false \\
+                      --set account-service.enabled=false \\
+                      --set blocker-service.enabled=false \\
+                      --set cash-service.enabled=false \\
+                      --set exchange-service.enabled=false \\
+                      --set exchange-generator-service.enabled=false \\
+                      --set notification-service.enabled=false \\
+                      --set transfer-service.enabled=false \\
+                      --set nginx-gateway.enabled=false \\
+                      --set front-ui-service.enabled=false \\
+                      --namespace test --create-namespace
+                    """
+                }
             }
         }
 
@@ -129,6 +173,24 @@ pipeline {
                   --set ingress.hosts[0].host=account.test.local \\
                   --set ingress.hosts[0].paths[0].path="/" \\
                   --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
+
+                helm upgrade --install exchange-service umbrella-chart/charts/exchange-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=exchange-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=exchange.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
+
+                helm upgrade --install exchange-generator-service umbrella-chart/charts/exchange-generator-service \\
+                  --namespace test --create-namespace \\
+                  --set image.repository=exchange-generator-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=exchange-generator.test.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
                 """
             }
         }
@@ -148,6 +210,34 @@ pipeline {
                   --set auth.username=${DB_USER} \\
                   --set auth.password=${DB_PASSWORD}
                 """
+            }
+        }
+
+        stage('Deploy Kafka (KRaft) to prod') {
+            steps {
+                dir('umbrella-chart') {
+                    sh 'helm dependency build'
+
+                    sh """
+                    helm upgrade --install microbank . \\
+                      --set kafka.enabled=true \\
+                      --set kafka.kraft.enabled=true \\
+                      --set kafka.controller.replicaCount=3 \\
+                      --set postgres.enabled=false \\
+                      --set serv-auth-service.enabled=false \\
+                      --set user-auth-service.enabled=false \\
+                      --set account-service.enabled=false \\
+                      --set blocker-service.enabled=false \\
+                      --set cash-service.enabled=false \\
+                      --set exchange-service.enabled=false \\
+                      --set exchange-generator-service.enabled=false \\
+                      --set notification-service.enabled=false \\
+                      --set transfer-service.enabled=false \\
+                      --set nginx-gateway.enabled=false \\
+                      --set front-ui-service.enabled=false \\
+                      --namespace prod --create-namespace
+                    """
+                }
             }
         }
 
@@ -201,6 +291,24 @@ pipeline {
                   --set image.tag=${IMAGE_TAG} \\
                   --set ingress.enabled=true \\
                   --set ingress.hosts[0].host=account.prod.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
+
+                helm upgrade --install exchange-service umbrella-chart/charts/exchange-service \\
+                  --namespace prod --create-namespace \\
+                  --set image.repository=exchange-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=exchange.prod.local \\
+                  --set ingress.hosts[0].paths[0].path="/" \\
+                  --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
+
+                helm upgrade --install exchange-generator-service umbrella-chart/charts/exchange-generator-service \\
+                  --namespace prod --create-namespace \\
+                  --set image.repository=exchange-generator-service \\
+                  --set image.tag=${IMAGE_TAG} \\
+                  --set ingress.enabled=true \\
+                  --set ingress.hosts[0].host=exchange-generator.prod.local \\
                   --set ingress.hosts[0].paths[0].path="/" \\
                   --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
                 """

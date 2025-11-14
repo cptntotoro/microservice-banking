@@ -14,7 +14,11 @@ spring:
     properties:
       mail:
         smtp:
-          auth: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          test-connection: false
+          auth: false
           starttls:
             enable: true
 
@@ -28,6 +32,8 @@ spring:
           issuer-uri: ${AUTH_SERVICE_JWT_ISSUER_URI:http://api-gateway-server:8080/serv-auth-service}
           jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
 management:
   endpoints:

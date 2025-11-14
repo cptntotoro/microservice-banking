@@ -35,9 +35,15 @@ data:
         properties:
           mail:
             smtp:
+              connectiontimeout: 5000
+              timeout: 5000
+              writetimeout: 5000
+              test-connection: false
               auth: true
               starttls:
                 enable: true
+      kafka:
+        bootstrap-servers: {{ include "notification-service.kafka.servers" . }}
       security:
         oauth2:
           resourceserver:

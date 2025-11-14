@@ -3,9 +3,12 @@ package ru.practicum.service;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderRecord;
 import reactor.util.function.Tuple2;
 import ru.practicum.client.account.AccountServiceClient;
 import ru.practicum.client.account.dto.AccountResponseDto;
@@ -15,9 +18,8 @@ import ru.practicum.client.blocker.dto.OperationCheckRequestDto;
 import ru.practicum.client.exchange.ExchangeServiceClient;
 import ru.practicum.client.exchange.dto.ExchangeRequestDto;
 import ru.practicum.client.exchange.dto.ExchangeResponseDto;
-import ru.practicum.client.notification.NotificationsServiceClient;
-import ru.practicum.client.notification.dto.NotificationRequestDto;
 import ru.practicum.dao.TransferDao;
+import ru.practicum.dto.NotificationRequestDto;
 import ru.practicum.dto.OtherTransferRequestDto;
 import ru.practicum.dto.OwnTransferRequestDto;
 import ru.practicum.exception.NotFoundException;
@@ -47,10 +49,7 @@ public class TransferServiceImpl implements TransferService {
      */
     private final BlockerServiceClient blockerServiceClient;
 
-    /**
-     * Клиент для сервиса оповещений
-     */
-    private final NotificationsServiceClient notificationsServiceClient;
+    private final KafkaSender<String, NotificationRequestDto> kafkaSender;
 
     /**
      * Клиент для сервиса обмена валют
@@ -280,15 +279,26 @@ public class TransferServiceImpl implements TransferService {
         String message = String.format("Перевод %s на сумму %s %s выполнен. Конвертировано в %s %s",
                 type == TransferType.OWN_TRANSFER ? "между своими счетами" : "на другой счет",
                 amount, fromCode, converted, toCode);
-        return notificationsServiceClient.sendNotification(
-                NotificationRequestDto.builder()
+        SenderRecord<String, NotificationRequestDto, String> record = SenderRecord.create(
+                new ProducerRecord<>("notification", "message", NotificationRequestDto.builder()
                         .userId(fromAccountId)
                         .message(message)
-                        .build()
-        ).onErrorResume(e -> {
-            log.warn("Не удалось отправить уведомление: {}", e.getMessage());
-            return Mono.empty();
-        });
+                        .build()),
+                UUID.randomUUID().toString()
+        );
+        return kafkaSender.send(Mono.just(record))
+                .next()
+                .doOnSuccess(result -> {
+                    if (result.exception() != null) {
+                        log.warn("Kafka send failed: {}", result.exception().getMessage());
+                    } else {
+                        log.info("Notification sent, offset: {}", result.recordMetadata().offset());
+                    }
+                }).retry(3).onErrorResume(e -> {
+                    log.warn("Failed to send notification after retries: {}", e.getMessage());
+                    return Mono.empty(); // не прерываем транзакцию
+                })
+                .then();
     }
 
     private void logError(Throwable error, TransferType type) {

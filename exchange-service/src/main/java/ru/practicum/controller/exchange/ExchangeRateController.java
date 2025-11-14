@@ -35,15 +35,6 @@ public class ExchangeRateController {
      */
     private final ExchangeRateMapper exchangeRateMapper;
 
-    @PostMapping("/update-rates")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public Mono<Void> updateRates(@RequestBody Flux<ExchangeRateDto> ratesDto) {
-        log.info("Received rate update from Generator");
-        return exchangeService.updateRatesFromGenerator(
-                ratesDto.map(exchangeRateMapper::exchangeRateDtoToExchangeRate)
-        );
-    }
-
     @GetMapping("/rates")
     public Flux<ExchangeRateDto> getCurrentRates() {
         log.info("Запрос всех текущих валют");

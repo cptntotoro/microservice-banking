@@ -51,7 +51,7 @@ blocker-service:
     port: 8084
 
 cash-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: cash-service
@@ -60,7 +60,7 @@ cash-service:
     port: 8085
 
 exchange-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: exchange-service
@@ -69,7 +69,7 @@ exchange-service:
     port: 8086
 
 exchange-generator-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: exchange-generator-service
@@ -78,7 +78,7 @@ exchange-generator-service:
     port: 8087
 
 notification-service:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: notification-service
@@ -106,3 +106,39 @@ front-ui-service:
     tag: latest
   service:
     port: 8081
+
+kafka:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/kafka
+    tag: "4.0.0-debian-12-r10"
+    pullPolicy: IfNotPresent
+  auth:
+    interBrokerProtocol: "plaintext"
+  listeners:
+    client:
+      protocol: "PLAINTEXT"
+  kraft:
+    enabled: true
+  provisioning:
+    enabled: true
+    topics:
+      - name: exchange-rates
+        partitions: 3
+        replicationFactor: 1
+        config:
+          cleanup.policy: delete
+          retention.ms: 86400000  # 1 день
+          min.insync.replicas: 1
+      - name: notification
+        partitions: 3
+        replicationFactor: 1
+        config:
+          cleanup.policy: delete
+          retention.ms: 86400000  # 1 день
+          min.insync.replicas: 1
+  persistence:
+    enabled: true
+    size: 1Gi
