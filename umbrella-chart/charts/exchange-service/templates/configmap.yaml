@@ -55,10 +55,14 @@ data:
               issuer-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_ISSUER_URI }}
               jwk-set-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
     management:
+      tracing:
+        enabled: true
+        sampling:
+          probability: 1.0
       endpoints:
         web:
           exposure:
-            include: health, info, metrics
+            include: '*'
       endpoint:
         health:
           show-details: always

@@ -48,6 +48,8 @@ spec:
               value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_JWT_JWK_SET_URI }}
             - name: GATEWAY_URL
               value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              value: {{ .Values.env.ZIPKIN_URL }}-{{ .Release.Namespace }}:{{ .Values.env.ZIPKIN_URL_PORT}}{{ .Values.env.ZIPKIN_URI_SPANS }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:

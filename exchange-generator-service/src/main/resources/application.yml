@@ -55,10 +55,14 @@ spring:
           jwk-set-uri: ${AUTH_SERVICE_JWT_JWK_SET_URI:http://api-gateway-server:8080/serv-auth-service/oauth2/jwks}
 
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: '*'
   endpoint:
     health:
       show-details: always

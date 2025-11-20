@@ -50,6 +50,8 @@ spec:
               value: {{ .Values.env.APP_CURRENCIES_SUPPORTED | quote }}
             - name: GATEWAY_URL
               value: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              value: {{ .Values.env.ZIPKIN_URL }}-{{ .Release.Namespace }}:{{ .Values.env.ZIPKIN_URL_PORT}}{{ .Values.env.ZIPKIN_URI_SPANS }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:

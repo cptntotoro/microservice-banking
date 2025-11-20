@@ -97,10 +97,14 @@ data:
               transfer-service:
                 token-uri: {{ .Values.env.GATEWAY_URL }}-{{ .Release.Namespace }}{{ .Values.env.AUTH_SERVICE_TOKEN_URL }}
     management:
+      tracing:
+        enabled: true
+        sampling:
+          probability: 1.0
       endpoints:
         web:
           exposure:
-            include: health, info, metrics
+            include: '*'
       endpoint:
         health:
           show-details: always

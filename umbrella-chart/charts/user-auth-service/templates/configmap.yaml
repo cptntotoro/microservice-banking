@@ -48,10 +48,14 @@ data:
       secret: ${JWT_SECRET}
       expiration: 3600000
     management:
+      tracing:
+        enabled: true
+        sampling:
+          probability: 1.0
       endpoints:
         web:
           exposure:
-            include: health, info, metrics
+            include: '*'
       endpoint:
         health:
           show-details: always

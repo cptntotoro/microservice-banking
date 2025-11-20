@@ -33,10 +33,14 @@ spring:
 
 
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: '*'
   endpoint:
     health:
       show-details: always

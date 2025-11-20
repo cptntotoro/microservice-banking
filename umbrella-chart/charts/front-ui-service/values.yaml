@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: front-ui-service
-  pullPolicy: IfNotPresent
+  pullPolicy: Never
   tag: "latest"
 
 service:
@@ -21,6 +21,10 @@ env:
   FRONT_CLIENT_SECRET: showcase-secret
   JWT_SECRET: your-256-bit-secret-key-base64-encoded-here-must-be-32-chars
   GATEWAY_URL: http://api-gateway-server
+  ZIPKIN_URL: http://zipkin
+  ZIPKIN_URL_PORT: 9411
+  ZIPKIN_URI_SPANS: /api/v2/spans
+  ZIPKIN_SAMPLING_PROBABILITY: 1
 
 secret:
   FRONT_CLIENT_SECRET: showcase-secret

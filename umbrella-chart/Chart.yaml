@@ -71,3 +71,8 @@ dependencies:
     alias: kafka
     repository: "oci://registry-1.docker.io/bitnamicharts"
     condition: kafka.enabled
+
+  - name: zipkin
+    version: 0.1.0
+    repository: file://./charts/zipkin
+    condition: zipkin.enabled
