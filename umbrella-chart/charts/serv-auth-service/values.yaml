@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: serv-auth-service
-  pullPolicy: IfNotPresent
+  pullPolicy: Never
   tag: "latest"
 
 service:
@@ -20,6 +20,10 @@ env:
   AUTH_SERVICE_JWT_ISSUER_URI:  /serv-auth-service
   AUTH_SERVICE_JWT_JWK_SET_URI:  /serv-auth-service/oauth2/jwks
   GATEWAY_URL: http://api-gateway-server
+  ZIPKIN_URL: http://zipkin
+  ZIPKIN_URL_PORT: 9411
+  ZIPKIN_URI_SPANS: /api/v2/spans
+  ZIPKIN_SAMPLING_PROBABILITY: 1
 
 secret:
   DB_PASSWORD: postgres

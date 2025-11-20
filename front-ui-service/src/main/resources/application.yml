@@ -94,10 +94,14 @@ spring:
             token-uri: ${AUTH_SERVICE_TOKEN_URL:http://api-gateway-server:8080/serv-auth-service/oauth2/token}
 
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: '*'
   endpoint:
     health:
       show-details: always
