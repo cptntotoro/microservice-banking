@@ -1,5 +1,6 @@
 package ru.practicum.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class BlockerServiceImpl implements BlockerService {
      * Репозиторий операций
      */
     private final OperationRecordRepository repository;
+    private final MeterRegistry meterRegistry;
 
     private static final int FREQUENCY_THRESHOLD = 5; // Максимум операций за 10 минут
     private static final int RISK_THRESHOLD = 150; // Порог блокировки
@@ -33,6 +35,8 @@ public class BlockerServiceImpl implements BlockerService {
     private static final int UNUSUAL_TIME_RISK_SCORE = 70;
     private static final int HIGH_FREQUENCY_RISK_SCORE = 90;
     private static final int BLOCKED_HISTORY_RISK_SCORE = 50; // Дополнительный риск за историю блокировок
+
+    private static final String BLOCKED_OPERATION_COUNT_TOTAL = "blocked_operation_count_total";
 
     @Override
     public Mono<OperationCheckResponse> checkOperation(OperationCheckRequest request) {
@@ -52,10 +56,14 @@ public class BlockerServiceImpl implements BlockerService {
                     }
                     return performChecks(request);
                 })
-                .flatMap(response ->
-                        saveOperationRecord(request, response)
-                                .thenReturn(response)
-                                .doOnSuccess(r -> logResult(request, r))
+                .flatMap(response -> {
+                            if(response.isBlocked()) {
+                                meterRegistry.counter(BLOCKED_OPERATION_COUNT_TOTAL, "account", request.getAccountId().toString()).increment();
+                            }
+                            return saveOperationRecord(request, response)
+                                    .thenReturn(response)
+                                    .doOnSuccess(r -> logResult(request, r));
+                        }
                 );
     }
 

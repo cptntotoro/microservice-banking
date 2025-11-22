@@ -78,9 +78,14 @@
 
 - Проброс порта фронтенда
   - kubectl port-forward svc/front-ui-service 8081:8081 -n dev
+  - kubectl port-forward svc/user-auth-service 8083:8083 -n dev
+  - kubectl port-forward svc/zipkin-dev 9411:9411 -n dev
+  - kubectl port-forward svc/microbank-grafana 3000:3000 -n dev
+  - kubectl port-forward svc/microbank-prometheus-server 9090:9090 -n dev
 
 # Команды для jenkins
 kubectl config use-context docker-desktop
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx   --namespace ingress-nginx --create-namespace
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --set global.security.allowInsecureImages=true
+helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace --set controller.admissionWebhooks.enabled=false --timeout 5m

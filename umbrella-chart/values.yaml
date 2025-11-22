@@ -150,3 +150,170 @@ zipkin:
     repository: openzipkin/zipkin-slim
     tag: "2.24.1"
     pullPolicy: IfNotPresent
+
+prometheus:
+  enabled: true
+  server:
+    service:
+      type: ClusterIP
+      servicePort: 9090
+  extraScrapeConfigs: |
+    - job_name: 'account-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'account-service.{{ .Release.Namespace }}.svc.cluster.local:8082' ]
+          labels:
+            application: 'account-service'
+    - job_name: 'blocker-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'blocker-service.{{ .Release.Namespace }}.svc.cluster.local:8084' ]
+          labels:
+            application: 'blocker-service'
+    - job_name: 'cash-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'cash-service.{{ .Release.Namespace }}.svc.cluster.local:8085' ]
+          labels:
+            application: 'cash-service'
+    - job_name: 'exchange-generator-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'exchange-generator-service.{{ .Release.Namespace }}.svc.cluster.local:8087' ]
+          labels:
+            application: 'exchange-generator-service'
+    - job_name: 'exchange-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'exchange-service.{{ .Release.Namespace }}.svc.cluster.local:8086' ]
+          labels:
+            application: 'exchange-service'
+    - job_name: 'notification-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'notification-service.{{ .Release.Namespace }}.svc.cluster.local:8089' ]
+          labels:
+            application: 'notification-service'
+    - job_name: 'serv-auth-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'serv-auth-service.{{ .Release.Namespace }}.svc.cluster.local:9000' ]
+          labels:
+            application: 'serv-auth-service'
+    - job_name: 'transfer-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'transfer-service.{{ .Release.Namespace }}.svc.cluster.local:8088' ]
+          labels:
+            application: 'transfer-service'
+    - job_name: 'user-auth-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'user-auth-service.{{ .Release.Namespace }}.svc.cluster.local:8083' ]
+          labels:
+            application: 'user-auth-service'
+    - job_name: 'front-ui-service'
+      metrics_path: /actuator/prometheus
+      static_configs:
+        - targets: [ 'front-ui-service.{{ .Release.Namespace }}.svc.cluster.local:8081' ]
+          labels:
+            application: 'front-ui-service'
+  serverFiles:
+    alerting_rules.yml:
+      groups:
+        - name: http_errors
+          rules:
+            - alert: HighHttp5xxErrorRate
+              expr: >
+                sum(rate(http_server_requests_seconds_count{status=~"5.."}[1m])) 
+                / 
+                sum(rate(http_server_requests_seconds_count[1m])) 
+                > 0.1
+              for: 2m
+              labels:
+                severity: warning
+              annotations:
+                summary: "Высокий процент 5xx ошибок"
+        - name: login_failures
+          rules:
+            - alert: HighLoginFailureRate
+              expr: |
+                sum by (login) (increase(login_fail_count_total[5m])) > 5
+              for: 1m
+              labels:
+                severity: critical
+              annotations:
+                summary: "Неудачные логины"
+                description: "{{ $labels.login }}: более 5 неудачных логинов за 5 минут"
+        - name: blocked_operation
+          rules:
+            - alert: SuspiciousTransferBlocked
+              expr: | 
+                increase(blocked_operation_count_total[1m]) > 0
+              for: 0m
+              labels:
+                severity: warning
+              annotations:
+                summary: "Заблокирована операция"
+                description: "{{ $labels.account }}: заблокирована операция"
+
+grafana:
+  enabled: true
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  adminUser: admin
+  adminPassword: admin
+  ingress:
+    enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: 'http://microbank-prometheus-server.{{ .Release.Namespace }}.svc.cluster.local:9090'
+          isDefault: true
+  extraVolumeMounts:
+    - name: custom-dashboards
+      mountPath: /var/lib/grafana/dashboards/custom
+      readOnly: false
+  extraVolumes:
+    - name: custom-dashboards
+      configMap:
+        name: grafana-dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+        - name: custom
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/custom
+  dashboards:
+    default:
+      spring-boot:
+        gnetId: 10280
+        revision: 1
+        datasource: Prometheus
+      jvm-overview:
+        gnetId: 4701
+        revision: 2
+        datasource: Prometheus
+  persistence:
+    enabled: true
+    size: 1Gi
