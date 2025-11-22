@@ -25,6 +25,11 @@ pipeline {
                 """
             }
         }
+        stage('Manual Approval for test') {
+            steps {
+                input message: 'Deploy to test environment?', ok: 'Yes, deploy'
+            }
+        }
         stage('Deploy Kafka (KRaft) to test') {
             steps {
                 sh """
@@ -46,6 +51,11 @@ pipeline {
                   --set front-ui-service.enabled=false \\
                   --namespace test --create-namespace
                 """
+            }
+        }
+        stage('Manual Approval for prod') {
+            steps {
+                input message: 'Deploy to prod environment?', ok: 'Yes, deploy'
             }
         }
         stage('Deploy Kafka (KRaft) to prod') {

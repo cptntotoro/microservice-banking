@@ -195,6 +195,62 @@ pipeline {
             }
         }
 
+        stage('Deploy Prometheus') {
+            steps {
+                dir('umbrella-chart') {
+                    sh 'helm dependency build'
+
+                    sh """
+                    helm upgrade --install microbank . \\
+                      --set prometheus.enabled=true \\
+                      --set grafana.enabled=false \\
+                      --set kafka.enabled=false \\
+                      --set postgres.enabled=false \\
+                      --set serv-auth-service.enabled=false \\
+                      --set user-auth-service.enabled=false \\
+                      --set account-service.enabled=false \\
+                      --set blocker-service.enabled=false \\
+                      --set cash-service.enabled=false \\
+                      --set exchange-service.enabled=false \\
+                      --set exchange-generator-service.enabled=false \\
+                      --set notification-service.enabled=false \\
+                      --set transfer-service.enabled=false \\
+                      --set nginx-gateway.enabled=false \\
+                      --set front-ui-service.enabled=false \\
+                      --namespace test --create-namespace
+                    """
+                }
+            }
+        }
+
+        stage('Deploy Grafana') {
+            steps {
+                dir('umbrella-chart') {
+                    sh 'helm dependency build'
+
+                    sh """
+                    helm upgrade --install microbank . \\
+                      --set grafana.enabled=true \\
+                      --set prometheus.enabled=false \\
+                      --set kafka.enabled=false \\
+                      --set postgres.enabled=false \\
+                      --set serv-auth-service.enabled=false \\
+                      --set user-auth-service.enabled=false \\
+                      --set account-service.enabled=false \\
+                      --set blocker-service.enabled=false \\
+                      --set cash-service.enabled=false \\
+                      --set exchange-service.enabled=false \\
+                      --set exchange-generator-service.enabled=false \\
+                      --set notification-service.enabled=false \\
+                      --set transfer-service.enabled=false \\
+                      --set nginx-gateway.enabled=false \\
+                      --set front-ui-service.enabled=false \\
+                      --namespace test --create-namespace
+                    """
+                }
+            }
+        }
+
         stage('Manual Approval for PROD') {
             steps {
                 input message: 'Deploy to PROD environment?', ok: 'Yes, deploy'
@@ -312,6 +368,62 @@ pipeline {
                   --set ingress.hosts[0].paths[0].path="/" \\
                   --set ingress.hosts[0].paths[0].pathType="ImplementationSpecific"
                 """
+            }
+        }
+
+        stage('Deploy Prometheus') {
+            steps {
+                dir('umbrella-chart') {
+                    sh 'helm dependency build'
+
+                    sh """
+                    helm upgrade --install microbank . \\
+                      --set prometheus.enabled=true \\
+                      --set grafana.enabled=false \\
+                      --set kafka.enabled=false \\
+                      --set postgres.enabled=false \\
+                      --set serv-auth-service.enabled=false \\
+                      --set user-auth-service.enabled=false \\
+                      --set account-service.enabled=false \\
+                      --set blocker-service.enabled=false \\
+                      --set cash-service.enabled=false \\
+                      --set exchange-service.enabled=false \\
+                      --set exchange-generator-service.enabled=false \\
+                      --set notification-service.enabled=false \\
+                      --set transfer-service.enabled=false \\
+                      --set nginx-gateway.enabled=false \\
+                      --set front-ui-service.enabled=false \\
+                      --namespace prod --create-namespace
+                    """
+                }
+            }
+        }
+
+        stage('Deploy Grafana') {
+            steps {
+                dir('umbrella-chart') {
+                    sh 'helm dependency build'
+
+                    sh """
+                    helm upgrade --install microbank . \\
+                      --set grafana.enabled=true \\
+                      --set prometheus.enabled=false \\
+                      --set kafka.enabled=false \\
+                      --set postgres.enabled=false \\
+                      --set serv-auth-service.enabled=false \\
+                      --set user-auth-service.enabled=false \\
+                      --set account-service.enabled=false \\
+                      --set blocker-service.enabled=false \\
+                      --set cash-service.enabled=false \\
+                      --set exchange-service.enabled=false \\
+                      --set exchange-generator-service.enabled=false \\
+                      --set notification-service.enabled=false \\
+                      --set transfer-service.enabled=false \\
+                      --set nginx-gateway.enabled=false \\
+                      --set front-ui-service.enabled=false \\
+                      --namespace prod --create-namespace
+                    """
+                }
             }
         }
     }
