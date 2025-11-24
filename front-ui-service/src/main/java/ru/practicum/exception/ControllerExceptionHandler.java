@@ -1,6 +1,6 @@
 package ru.practicum.exception;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,7 +12,7 @@ import ru.practicum.exception.transfer.TransferException;
 import java.time.LocalDateTime;
 
 @ControllerAdvice
-@Slf4j
+@Log4j2
 public class ControllerExceptionHandler {
 
     @ExceptionHandler(BaseException.class)

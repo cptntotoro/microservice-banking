@@ -2,7 +2,7 @@ package ru.practicum.controller.transfer;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -17,7 +17,7 @@ import ru.practicum.service.transfer.TransferService;
 
 @Controller
 @RequestMapping("/transfer")
-@Slf4j
+@Log4j2
 @RequiredArgsConstructor
 public class TransferController extends BaseController {
     /**

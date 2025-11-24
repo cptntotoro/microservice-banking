@@ -82,6 +82,7 @@
   - kubectl port-forward svc/zipkin-dev 9411:9411 -n dev
   - kubectl port-forward svc/microbank-grafana 3000:3000 -n dev
   - kubectl port-forward svc/microbank-prometheus-server 9090:9090 -n dev
+  - kubectl port-forward svc/microbank-kibana 5601:5601 -n dev
 
 # Команды для jenkins
 kubectl config use-context docker-desktop

@@ -1,6 +1,6 @@
 package ru.practicum.exception;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
-@Slf4j
+@Log4j2
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 

@@ -1,7 +1,7 @@
 package ru.practicum.client.transfer;
 
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -17,7 +17,7 @@ import ru.practicum.client.transfer.dto.TransferResponseDto;
  * Клиент для обращений к сервису переводов
  */
 @Component
-@Slf4j
+@Log4j2
 public class TransferServiceClient extends BaseServiceClient {
 
     @Autowired

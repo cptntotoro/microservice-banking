@@ -2,7 +2,7 @@ package ru.practicum.controller.auth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +17,7 @@ import ru.practicum.dto.auth.SignUpRequestDto;
 import ru.practicum.service.auth.AuthService;
 
 @Controller
-@Slf4j
+@Log4j2
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
     /**

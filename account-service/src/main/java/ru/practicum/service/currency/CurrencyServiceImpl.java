@@ -2,7 +2,7 @@ package ru.practicum.service.currency;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,7 +19,7 @@ import java.util.UUID;
 /**
  * Реализация сервиса для работы с валютами
  */
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class CurrencyServiceImpl implements CurrencyService {

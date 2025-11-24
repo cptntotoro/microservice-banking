@@ -54,6 +54,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "front-ui-service.fullname" . }}
                   key: JWT_SECRET
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ include "front-ui-service.kafka.servers" . }}
+            - name: KAFKA_LOGS_TOPIC
+              value: {{ .Values.env.KAFKA_LOGS_TOPIC }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

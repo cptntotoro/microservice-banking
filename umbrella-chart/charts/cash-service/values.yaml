@@ -30,6 +30,7 @@ env:
   ZIPKIN_URL_PORT: 9411
   ZIPKIN_URI_SPANS: /api/v2/spans
   ZIPKIN_SAMPLING_PROBABILITY: 1
+  KAFKA_LOGS_TOPIC: cash-service
 
 secret:
   DB_PASSWORD: postgres

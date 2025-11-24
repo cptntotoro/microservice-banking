@@ -2,7 +2,7 @@ package ru.practicum.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.KafkaReceiver;
@@ -10,7 +10,7 @@ import ru.practicum.dto.NotificationRequestDto;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class KafkaNotificationConsumer {
     private final KafkaReceiver<String, NotificationRequestDto> kafkaReceiver;
     private final NotificationService notificationService;

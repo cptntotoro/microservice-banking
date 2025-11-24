@@ -1,6 +1,6 @@
 package ru.practicum.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.server.ServerWebExchange;
@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Function;
 
-@Slf4j
+@Log4j2
 public abstract class BaseController {
 
     /**

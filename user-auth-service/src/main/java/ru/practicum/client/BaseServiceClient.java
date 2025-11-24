@@ -1,6 +1,6 @@
 package ru.practicum.client;
 
-import org.slf4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;

@@ -68,6 +68,8 @@ spec:
                   key: EXCHANGE_GENERATOR_CLIENT_SECRET
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: {{ include "exchange-generator-service.kafka.servers" . }}
+            - name: KAFKA_LOGS_TOPIC
+              value: {{ .Values.env.KAFKA_LOGS_TOPIC }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

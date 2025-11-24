@@ -1,7 +1,7 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Flux;
@@ -13,7 +13,7 @@ import reactor.kafka.receiver.KafkaReceiver;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class KafkaRateConsumer {
     private final ExchangeService exchangeService;
     private final ExchangeRateMapper exchangeRateMapper;

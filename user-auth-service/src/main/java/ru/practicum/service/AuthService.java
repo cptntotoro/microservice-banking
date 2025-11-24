@@ -2,7 +2,7 @@ package ru.practicum.service;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.account.AccountServiceClient;
@@ -11,7 +11,7 @@ import ru.practicum.config.JwtUtil;
 import ru.practicum.dto.AuthRequest;
 import ru.practicum.dto.AuthResponse;
 
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class AuthService {

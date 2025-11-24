@@ -7,8 +7,12 @@ pipeline {
                 sh """
                 helm upgrade --install microbank . \\
                   --set kafka.enabled=true \\
-                  --set kafka.kraft.enabled=true \\
-                  --set kafka.controller.replicaCount=3 \\
+                  --set grafana.enabled=false \\
+                  --set prometheus.enabled=false \\
+                  --set elasticsearch.enabled=false \\
+                  --set logstash.enabled=false \\
+                  --set kibana.enabled=false \\
+                  --set zipkin.enabled=false \\
                   --set postgres.enabled=false \\
                   --set serv-auth-service.enabled=false \\
                   --set user-auth-service.enabled=false \\

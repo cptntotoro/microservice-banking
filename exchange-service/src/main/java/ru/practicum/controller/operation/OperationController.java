@@ -1,7 +1,7 @@
 package ru.practicum.controller.operation;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +15,7 @@ import ru.practicum.service.operation.OperationService;
 @RestController
 @RequestMapping("/api/operations")
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class OperationController {
     /**
      * Сервис управления валютными операциями

@@ -1,7 +1,7 @@
 package ru.practicum.controller.user;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +23,7 @@ import java.util.UUID;
 /**
  * Административный контроллер для управления пользователями
  */
-@Slf4j
+@Log4j2
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
