@@ -2,7 +2,7 @@ package ru.practicum.controller.account;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +15,7 @@ import ru.practicum.service.account.AccountService;
 
 @Controller
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class AccountController extends BaseController {
     /**
      * Сервис пользователей

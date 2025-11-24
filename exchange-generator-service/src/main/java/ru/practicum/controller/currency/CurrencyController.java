@@ -1,7 +1,7 @@
 package ru.practicum.controller.currency;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,7 +13,7 @@ import ru.practicum.service.currency.CurrencyService;
 @RestController
 @RequestMapping("/api/currencies")
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class CurrencyController {
     /**
      * Сервис генерации курсов обмена валют

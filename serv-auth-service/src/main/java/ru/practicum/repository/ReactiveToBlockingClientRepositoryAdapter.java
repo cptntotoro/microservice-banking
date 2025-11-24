@@ -1,13 +1,13 @@
 package ru.practicum.repository;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 
 /**
  * Адаптер реактивного репозитория в блокирующий для Spring Security OAuth2
  */
-@Slf4j
+@Log4j2
 public class ReactiveToBlockingClientRepositoryAdapter implements RegisteredClientRepository {
 
     private final ReactiveRegisteredClientRepository reactiveRepository;

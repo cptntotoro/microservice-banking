@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-pipelines
+data:
+  logstash.conf: |
+    input {
+      kafka {
+        bootstrap_servers => "{{ include "logstash.kafka.servers" . }}"
+        topics => ["front-ui-service-logs", "account-service-logs", "blocker-service-logs", "cash-service-logs", "exchange-generator-service-logs", "exchange-service-logs", "notification-service-logs", "serv-auth-service-logs", "transfer-service-logs", "user-auth-service-logs"]
+        group_id => "microbank-logstash-group"
+        codec => plain { charset => "UTF-8" }
+      }
+    }
+    filter {
+      grok {
+        match => {
+          "message" => [
+            "%{TIMESTAMP_ISO8601:timestamp} \[%{DATA:thread}\] \[%{DATA:traceId}\] \[%{DATA:spanId}\] %{LOGLEVEL:level}\s+%{DATA:logger} - %{GREEDYDATA:log_message}"
+          ]
+        }
+      }
+      mutate {
+        remove_field => [ "event", "message", "@version" ]
+      }
+    }
+    output {
+      stdout { codec => rubydebug }
+      elasticsearch {
+        hosts => ["http://microbank-elasticsearch:9200"]
+        index => "microbank-logs-%{+YYYY.MM.dd}"
+      }
+    }

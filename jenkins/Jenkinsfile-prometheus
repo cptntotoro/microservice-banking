@@ -9,6 +9,10 @@ pipeline {
                   --set prometheus.enabled=true \\
                   --set grafana.enabled=false \\
                   --set kafka.enabled=false \\
+                  --set elasticsearch.enabled=false \\
+                  --set logstash.enabled=false \\
+                  --set kibana.enabled=false \\
+                  --set zipkin.enabled=false \\
                   --set postgres.enabled=false \\
                   --set serv-auth-service.enabled=false \\
                   --set user-auth-service.enabled=false \\
@@ -21,7 +25,7 @@ pipeline {
                   --set transfer-service.enabled=false \\
                   --set nginx-gateway.enabled=false \\
                   --set front-ui-service.enabled=false \\
-                  --namespace monitoring --create-namespace
+                  --namespace dev --create-namespace
                 """
             }
         }

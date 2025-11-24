@@ -1,0 +1,29 @@
+image:
+  repository: docker.io/library/logstash
+  tag: "8.15.2"
+
+service:
+  type: ClusterIP
+  ports:
+    - name: beats
+      port: 5044
+      targetPort: 5044
+    - name: api
+      port: 9600
+      targetPort: 9600
+
+serviceAccount:
+  create: true
+  name: ""
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false
+
+env:
+  KAFKA_HOSTS: >-
+    microbank-kafka-controller-0.microbank-kafka-controller-headless,
+    microbank-kafka-controller-1.microbank-kafka-controller-headless,
+    microbank-kafka-controller-2.microbank-kafka-controller-headless

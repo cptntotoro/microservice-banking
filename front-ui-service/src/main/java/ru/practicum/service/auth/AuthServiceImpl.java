@@ -1,7 +1,7 @@
 package ru.practicum.service.auth;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
@@ -14,7 +14,7 @@ import ru.practicum.dto.auth.SignUpRequestDto;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class AuthServiceImpl implements AuthService {
     /**
      * Клиент для сервиса аккаунтов

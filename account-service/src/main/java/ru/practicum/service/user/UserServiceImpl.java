@@ -1,6 +1,6 @@
 package ru.practicum.service.user;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -28,7 +28,7 @@ import java.util.UUID;
 /**
  * Реализация сервиса для работы с пользователями
  */
-@Slf4j
+@Log4j2
 @Service
 public class UserServiceImpl implements UserService {
     /**

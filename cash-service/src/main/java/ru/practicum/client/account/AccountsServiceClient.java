@@ -1,7 +1,7 @@
 package ru.practicum.client.account;
 
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -19,7 +19,7 @@ import java.util.UUID;
  * Клиент для сервиса аккаунтов
  */
 @Component
-@Slf4j
+@Log4j2
 public class AccountsServiceClient extends BaseServiceClient {
 
     @Autowired

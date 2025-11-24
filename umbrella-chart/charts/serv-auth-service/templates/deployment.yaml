@@ -60,6 +60,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "serv-auth-service.fullname" . }}
                   key: CLIENT_SECRET
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ include "serv-auth-service.kafka.servers" . }}
+            - name: KAFKA_LOGS_TOPIC
+              value: {{ .Values.env.KAFKA_LOGS_TOPIC }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

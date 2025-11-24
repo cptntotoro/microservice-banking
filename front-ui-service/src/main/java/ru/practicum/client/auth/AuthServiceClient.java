@@ -1,7 +1,7 @@
 package ru.practicum.client.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -22,7 +22,7 @@ import ru.practicum.dto.user.EditUserProfileDto;
  * Клиент сервиса аутентификации
  */
 @Component
-@Slf4j
+@Log4j2
 public class AuthServiceClient extends BaseServiceClient {
 
     @Autowired

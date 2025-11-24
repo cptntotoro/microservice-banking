@@ -57,6 +57,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "account-service.fullname" . }}
                   key: DB_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ include "account-service.kafka.servers" . }}
+            - name: KAFKA_LOGS_TOPIC
+              value: {{ .Values.env.KAFKA_LOGS_TOPIC }}
           volumeMounts:
             - name: config-volume
               mountPath: /config/application.yml

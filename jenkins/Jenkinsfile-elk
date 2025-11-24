@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy ELK') {
+            steps {
+                sh """
+                helm upgrade --install microbank . \\
+                  --set elasticsearch.enabled=true \\
+                  --set logstash.enabled=true \\
+                  --set kibana.enabled=true \\
+                  --set kafka.enabled=false \\
+                  --set grafana.enabled=false \\
+                  --set prometheus.enabled=false \\
+                  --set zipkin.enabled=false \\
+                  --set postgres.enabled=false \\
+                  --set serv-auth-service.enabled=false \\
+                  --set user-auth-service.enabled=false \\
+                  --set account-service.enabled=false \\
+                  --set blocker-service.enabled=false \\
+                  --set cash-service.enabled=false \\
+                  --set exchange-service.enabled=false \\
+                  --set exchange-generator-service.enabled=false \\
+                  --set notification-service.enabled=false \\
+                  --set transfer-service.enabled=false \\
+                  --set nginx-gateway.enabled=false \\
+                  --set front-ui-service.enabled=false \\
+                  --namespace dev --create-namespace
+                """
+            }
+        }
+    }
+}

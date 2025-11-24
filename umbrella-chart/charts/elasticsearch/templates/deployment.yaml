@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microbank-elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microbank-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: microbank-elasticsearch
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}

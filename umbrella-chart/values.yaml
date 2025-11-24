@@ -317,3 +317,12 @@ grafana:
   persistence:
     enabled: true
     size: 1Gi
+
+logstash:
+  enabled: true
+
+kibana:
+  enabled: true
+
+elasticsearch:
+  enabled: true

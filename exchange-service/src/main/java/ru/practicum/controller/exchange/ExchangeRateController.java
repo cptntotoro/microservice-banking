@@ -2,7 +2,7 @@ package ru.practicum.controller.exchange;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +23,7 @@ import ru.practicum.service.exchange.ExchangeService;
 @RestController
 @RequestMapping("/api/exchange")
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class ExchangeRateController {
     /**
      * Сервис обмена валют

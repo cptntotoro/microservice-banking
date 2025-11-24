@@ -13,7 +13,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@Slf4j
+@Log4j2
 @RequiredArgsConstructor
 public class TokenController {
     /**

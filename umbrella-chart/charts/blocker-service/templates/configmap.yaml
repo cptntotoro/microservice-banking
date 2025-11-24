@@ -58,3 +58,41 @@ data:
       unusual-time-risk-score: {{ .Values.env.BLOCKER_UNUSUAL_TIME_RISK_SCORE }}
       high-frequency-risk-score: {{ .Values.env.BLOCKER_HIGH_FREQUENCY_RISK_SCORE }}
       blocked-history-risk-score: {{ .Values.env.BLOCKER_BLOCKED_HISTORY_RISK_SCORE }}
+  log4j2.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="WARN">
+        <Appenders>
+            <Console name="Console" target="SYSTEM_OUT">
+                <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level: %msg%n"/>
+            </Console>
+
+            <Kafka name="Kafka" topic="{{ .Values.env.KAFKA_LOGS_TOPIC }}-logs">
+                <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level: %msg%n"/>
+                <Property name="bootstrap.servers" value={{ include "blocker-service.kafka.servers" . | quote }}/>
+                <Property name="key.serializer" value="org.apache.kafka.common.serialization.StringSerializer"/>
+                <Property name="value.serializer" value="org.apache.kafka.common.serialization.StringSerializer"/>
+            </Kafka>
+        </Appenders>
+
+        <Loggers>
+            <Logger name="ru.yandex.practicum.accounts" level="info" additivity="false">
+                <AppenderRef ref="Console"/>
+                <AppenderRef ref="Kafka"/>
+            </Logger>
+
+            <Logger name="org.springframework" level="warn" additivity="false">
+                <AppenderRef ref="Console"/>
+                <AppenderRef ref="Kafka"/>
+            </Logger>
+
+            <Logger name="org.apache.kafka" level="warn" additivity="false">
+                <AppenderRef ref="Console"/>
+                <AppenderRef ref="Kafka"/>
+            </Logger>
+
+            <Root level="info">
+                <AppenderRef ref="Console"/>
+                <AppenderRef ref="Kafka"/>
+            </Root>
+        </Loggers>
+    </Configuration>

@@ -1,7 +1,7 @@
 package ru.practicum.service.currency;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import ru.practicum.config.CurrencyConfig;
@@ -14,7 +14,7 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Log4j2
 public class CurrencyServiceImpl implements CurrencyService {
 
     private final CurrencyConfig currencyConfig;
